@@ -4,10 +4,9 @@ import DashboardHeader from '@/components/dashboard-header';
 import SidebarNav from '@/components/layout/sidebar-nav';
 import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Search, Flame, Clock, ArrowUpRight } from 'lucide-react';
+import { Flame, Clock, ArrowUpRight } from 'lucide-react';
 function SidebarLoadingSkeleton() {
   return (
     <div className="w-12 p-2 space-y-2 rounded-xl border border-white/10 bg-background/60 backdrop-blur">
@@ -59,37 +58,28 @@ const quickShortcuts = [
 
 function FeedToolbar() {
   return (
-    <div className="sticky top-[136px] z-30 flex flex-col gap-3 rounded-3xl border border-border/60 bg-card/85 px-4 py-3 shadow-sm backdrop-blur sm:top-[112px] md:top-[92px]">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="relative min-w-[260px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search dashboard"
-            className="h-10 rounded-full border border-border bg-background/70 pl-9 text-sm"
-          />
-        </div>
-        <div className="flex items-center gap-2 whitespace-nowrap text-sm font-medium">
-          <Button variant="default" size="sm" className="rounded-full px-4">
-            <Flame className="mr-2 h-4 w-4" /> Best
-          </Button>
-          <Button variant="ghost" size="sm" className="rounded-full px-4">
-            <Clock className="mr-2 h-4 w-4" /> New
-          </Button>
-          <Button variant="ghost" size="sm" className="rounded-full px-4">
-            <ArrowUpRight className="mr-2 h-4 w-4" /> Top
-          </Button>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <span className="rounded-full border border-border bg-background/80 px-3 py-1 text-foreground">
+    <div className="sticky top-[110px] z-30 flex flex-col gap-3 rounded-3xl border border-border/60 bg-card/85 px-4 py-3 shadow-sm backdrop-blur sm:top-[96px] md:top-[88px]">
+      <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+        <span className="rounded-full border border-border bg-background/80 px-4 py-1.5 text-foreground">
           Posts
         </span>
-        <span className="rounded-full border border-transparent bg-background/60 px-3 py-1">
+        <span className="rounded-full border border-transparent bg-background/60 px-4 py-1.5 text-muted-foreground transition-colors hover:border-border hover:text-foreground">
           Events
         </span>
-        <span className="rounded-full border border-transparent bg-background/60 px-3 py-1">
+        <span className="rounded-full border border-transparent bg-background/60 px-4 py-1.5 text-muted-foreground transition-colors hover:border-border hover:text-foreground">
           Communities
         </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-sm font-medium">
+        <Button variant="default" size="sm" className="rounded-full px-4">
+          <Flame className="mr-2 h-4 w-4" /> Best
+        </Button>
+        <Button variant="ghost" size="sm" className="rounded-full px-4">
+          <Clock className="mr-2 h-4 w-4" /> New
+        </Button>
+        <Button variant="ghost" size="sm" className="rounded-full px-4">
+          <ArrowUpRight className="mr-2 h-4 w-4" /> Top
+        </Button>
       </div>
     </div>
   );

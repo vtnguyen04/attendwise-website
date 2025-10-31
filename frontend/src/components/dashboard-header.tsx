@@ -56,7 +56,7 @@ export default function DashboardHeader({ scrollY }: { scrollY: number }) {
           </span>
         </div>
 
-        <div className="order-3 w-full md:order-none md:flex-1">
+        <div className="order-3 w-full md:order-none md:flex-1 md:max-w-xl">
           <SearchInput />
         </div>
 
