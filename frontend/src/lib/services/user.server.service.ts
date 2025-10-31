@@ -12,8 +12,8 @@ export const getUserById = async (userId: string, token?: string): Promise<User 
 
 export const getPostsByUserId = async (userId: string, token?: string): Promise<Post[]> => {
   const response = await serverFetch<{ posts: Post[] }>(
-    `/api/v1/users/${userId}/posts`,
-    ['posts', userId],
+    `/api/v1/feed/posts?author_id=${userId}`,
+    ['global-posts', userId],
     token
   );
   return response?.posts ?? [];
