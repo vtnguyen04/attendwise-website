@@ -12,12 +12,13 @@ import type { Community } from '@/lib/types';
 
 import { CommunityList } from '@/components/community/shared/community-list';
 import { getCommunitySuggestions, getMyCommunitiesClient } from '@/lib/services/community.client.service';
+import { GlassCard } from '@/components/ui/glass-card';
 
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import Search from 'lucide-react/icons/search';
 import Compass from 'lucide-react/icons/compass';
 import UsersRound from 'lucide-react/icons/users-round';
@@ -30,12 +31,12 @@ const CommunitiesSkeleton = () => (
   <div className="overflow-hidden">
     <div className="flex gap-6 pb-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="w-72 h-80 flex-shrink-0 space-y-3 rounded-2xl border border-border/60 bg-card/70 p-4">
-          <Skeleton className="h-20 w-20 rounded-full mx-auto bg-muted/40" />
-          <Skeleton className="h-6 w-3/4 rounded-lg mx-auto bg-muted/40" />
-          <Skeleton className="h-4 w-1/2 rounded-lg mx-auto bg-muted/40" />
+        <GlassCard key={i} className="w-72 h-80 flex-shrink-0 space-y-3 p-4">
+          <Skeleton className="mx-auto h-20 w-20 rounded-full bg-muted/40" />
+          <Skeleton className="mx-auto h-6 w-3/4 rounded-lg bg-muted/40" />
+          <Skeleton className="mx-auto h-4 w-1/2 rounded-lg bg-muted/40" />
           <Skeleton className="h-10 w-full rounded-lg bg-muted/40" />
-        </div>
+        </GlassCard>
       ))}
     </div>
   </div>
@@ -204,7 +205,7 @@ function MyCommunitiesTab({ communities, isLoading }: { communities: Community[]
 
   if (!communities || communities.length === 0) {
     return (
-      <Card className="border border-border/60 bg-card/80 backdrop-blur">
+      <GlassCard className="rounded-3xl border-border/60 bg-card/85 backdrop-blur">
         <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
           <Sparkles className="h-6 w-6 text-primary" />
           <div className="space-y-1">
@@ -222,7 +223,7 @@ function MyCommunitiesTab({ communities, isLoading }: { communities: Community[]
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -241,7 +242,7 @@ function MyCommunitiesTab({ communities, isLoading }: { communities: Community[]
 function CommunitySidebar({ communities, isLoading }: { communities: Community[]; isLoading: boolean }) {
   return (
     <div className="space-y-6">
-      <Card className="border border-border/60 bg-card/85 backdrop-blur">
+      <GlassCard className="rounded-3xl border-border/60 bg-card/85 backdrop-blur">
         <CardContent className="space-y-4 p-6">
           <div className="space-y-1">
             <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-muted-foreground">Quick actions</h3>
@@ -262,9 +263,9 @@ function CommunitySidebar({ communities, isLoading }: { communities: Community[]
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </GlassCard>
 
-      <Card className="border border-border/60 bg-card/85 backdrop-blur">
+      <GlassCard className="rounded-3xl border-border/60 bg-card/85 backdrop-blur">
         <CardContent className="space-y-4 p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">My communities</h3>
@@ -303,7 +304,7 @@ function CommunitySidebar({ communities, isLoading }: { communities: Community[]
             </div>
           )}
         </CardContent>
-      </Card>
+      </GlassCard>
     </div>
   );
 }
@@ -317,7 +318,7 @@ export default function CommunitiesPage() {
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-8">
-        <section className="rounded-3xl border border-border/60 bg-card/90 p-6 shadow-glass backdrop-blur sm:p-8">
+        <GlassCard className="rounded-3xl border-border/60 bg-card/90 p-6 shadow-glass backdrop-blur sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
@@ -331,7 +332,7 @@ export default function CommunitiesPage() {
               </div>
             </div>
           </div>
-        </section>
+        </GlassCard>
 
         <Tabs defaultValue="explore" className="w-full">
           <TabsList className="flex w-full flex-wrap gap-2 rounded-full border border-border/60 bg-card/80 p-1 backdrop-blur">
