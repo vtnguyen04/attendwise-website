@@ -1,59 +1,74 @@
-
 import { clientFetch } from '@/lib/client-fetch';
-import type { FeedItem } from '@/lib/types';
-import { extractStringValue } from '@/lib/utils';
+import type { FeedItem, Post, EventItem } from '@/lib/types';
 import { PaginatedResponse } from '@/lib/types';
 
-/**
- * [SERVER] Fetches the personalized feed for the current user.
- * This is intended for server-side rendering of the initial feed.
- */
-export const getFeed = async (page: number = 1): Promise<PaginatedResponse<FeedItem>> => {
-  const response = await clientFetch<{ feed: any[], total: number, page: number, limit: number }>(`/api/v1/feed?page=${page}`);
+export type FeedApiItem = {
+  type: string;
+  post?: Post;
+  event?: EventItem;
+  created_at: string;
+};
 
-  if (!response || !Array.isArray(response.feed)) {
-    return { data: [], total: 0, page: page, limit: 10 };
+export const mapFeedItems = (items?: FeedApiItem[] | null): FeedItem[] => {
+  if (!Array.isArray(items)) {
+    return [];
   }
 
-  // Map the raw API response to the client-side FeedItem type.
-  const feedItems = response.feed.map((item: any) => {
-    if (!item.data || !item.author) {
-      console.warn("Feed item missing 'data' or 'author' field:", item);
-      return null; // Skip this item
-    }
+  return items
+    .map<FeedItem | null>((item) => {
+      if (item.type === 'post' && item.post) {
+        return {
+          type: 'post',
+          created_at: item.created_at,
+          post: item.post,
+        };
+      }
 
-    const baseItem: Omit<FeedItem, 'content' | 'name'> = {
-      type: item.type,
-      id: item.data.id,
-      created_at: item.data.createdAt || item.data.created_at,
-      author_id: item.author.id,
-      author_name: item.author.name,
-      author_avatar_url: extractStringValue(item.author.profile_picture_url),
-    };
+      if (item.type === 'event' && item.event) {
+        return {
+          type: 'event',
+          created_at: item.created_at,
+          event: item.event,
+        };
+      }
 
-    if (item.type === 'post') {
-      return {
-        ...baseItem,
-        community_id: item.data.community_id,
-        content: item.data.content,
-        file_attachments: item.data.file_attachments,
-        updated_at: item.data.updated_at,
-      } as FeedItem;
-    } else if (item.type === 'event') {
-      return {
-        ...baseItem,
-        name: item.data.name,
-        start_time: item.data.start_time,
-        end_time: item.data.end_time,
-      } as FeedItem;
-    }
-    return null;
-  }).filter(Boolean) as FeedItem[];
+      console.warn('[feed] Skipping malformed feed item', item);
+      return null;
+    })
+    .filter((item): item is FeedItem => item !== null);
+};
+
+/**
+ * Fetches the personalized feed for the current user.
+ * The backend currently returns a single page of results.
+ */
+export const getFeed = async (
+  page: number = 1,
+  token?: string
+): Promise<PaginatedResponse<FeedItem>> => {
+  if (page > 1) {
+    return { data: [], total: 0, page, limit: 0 };
+  }
+
+  let response: { feed?: FeedApiItem[] } | null = null;
+
+  if (typeof window === 'undefined') {
+    const { serverFetch } = await import('@/lib/server-fetch');
+    response = await serverFetch<{ feed?: FeedApiItem[] }>(
+      `/api/v1/feed`,
+      ['feed:page:1'],
+      token
+    );
+  } else {
+    response = await clientFetch<{ feed?: FeedApiItem[] }>(`/api/v1/feed`);
+  }
+
+  const feedItems = mapFeedItems(response?.feed);
 
   return {
     data: feedItems,
-    total: response.total,
-    page: response.page,
-    limit: response.limit,
+    total: feedItems.length,
+    page: 1,
+    limit: feedItems.length,
   };
 };

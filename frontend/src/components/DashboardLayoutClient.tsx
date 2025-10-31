@@ -75,10 +75,13 @@ function FeedToolbar() {
   );
 }
 
+const isPostItem = (item: FeedItem): item is Extract<FeedItem, { type: 'post' }> =>
+  item.type === 'post' && Boolean(item.post);
+
 function RightRail() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
-  const [recentPosts, setRecentPosts] = useState<FeedItem[]>([]);
+  const [recentPosts, setRecentPosts] = useState<Array<Extract<FeedItem, { type: 'post' }>>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const formatRelativeTime = (value?: string) => {
@@ -104,9 +107,8 @@ function RightRail() {
         if (!isMounted) return;
 
         setUpcomingEvents(events.slice(0, 3));
-        setRecentPosts(
-          feedItems.filter((item) => item.type === 'post').slice(0, 3)
-        );
+        const posts = feedItems.filter(isPostItem).slice(0, 3);
+        setRecentPosts(posts);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -137,7 +139,7 @@ function RightRail() {
       <div className="sticky top-24 hidden lg:flex">
         <button
           onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-2 rounded-full border border-border bg-card/75 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+          className="flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
         >
           <ChevronRight className="h-3 w-3" />
           <span>Show insights</span>
@@ -147,9 +149,9 @@ function RightRail() {
   }
 
   return (
-    <aside className="hidden w-full max-w-xs shrink-0 lg:flex">
-      <div className="sticky top-24 flex w-full flex-col gap-4">
-        <div className="flex items-center justify-between rounded-2xl border border-border bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <aside className="hidden w-full max-w-[260px] shrink-0 lg:flex">
+      <div className="sticky top-24 flex w-full flex-col gap-3">
+        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           <span>Insights</span>
           <button
             onClick={() => setIsCollapsed(true)}
@@ -159,46 +161,52 @@ function RightRail() {
             <ChevronLeft className="h-4 w-4" />
           </button>
         </div>
-        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
-          <h2 className="text-sm font-semibold text-foreground">Upcoming events</h2>
+        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Upcoming events
+          </h2>
           {isLoading ? (
             renderSkeleton()
           ) : upcomingEvents.length === 0 ? (
             <p className="mt-2 text-xs text-muted-foreground">No upcoming events yet.</p>
           ) : (
-            <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+            <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
               {upcomingEvents.map((event) => (
                 <li
                   key={event.event_id}
-                  className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+                  className="rounded-lg border border-border/50 bg-background/70 px-3 py-2"
                 >
-                  <p className="font-medium text-foreground">{event.event_name}</p>
-                  <p className="text-xs">{formatRelativeTime(event.start_time)}</p>
+                  <p className="font-medium text-foreground text-sm">{event.event_name}</p>
+                  <p className="mt-1 text-[11px]">{formatRelativeTime(event.start_time)}</p>
                 </li>
               ))}
             </ul>
           )}
         </section>
-        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
-          <h2 className="text-sm font-semibold text-foreground">Recent posts</h2>
+        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Recent posts
+          </h2>
           {isLoading ? (
             renderSkeleton()
           ) : recentPosts.length === 0 ? (
             <p className="mt-2 text-xs text-muted-foreground">No posts in your feed yet.</p>
           ) : (
-            <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
-              {recentPosts.map((post) => (
+            <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
+              {recentPosts.map((item) => (
                 <li
-                  key={post.id}
-                  className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+                  key={item.post.id}
+                  className="rounded-lg border border-border/50 bg-background/70 px-3 py-2"
                 >
-                  <p className="font-medium text-foreground line-clamp-2">
-                    {post.content?.trim() || 'View post'}
+                  <p className="font-medium text-foreground line-clamp-2 text-sm">
+                    {item.post.content?.trim() || 'View post'}
                   </p>
                   <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                    <span className="truncate">{post.author_name}</span>
+                    <span className="truncate">
+                      {item.post.author?.name || 'Unknown author'}
+                    </span>
                     <span className="shrink-0">
-                      {formatRelativeTime(post.created_at)}
+                      {formatRelativeTime(item.created_at)}
                     </span>
                   </div>
                 </li>
@@ -206,14 +214,16 @@ function RightRail() {
             </ul>
           )}
         </section>
-        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
-          <h2 className="text-sm font-semibold text-foreground">Shortcuts</h2>
-          <nav className="mt-3 grid gap-2 text-sm">
+        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Shortcuts
+          </h2>
+          <nav className="mt-2 grid gap-2 text-sm">
             {quickShortcuts.map((shortcut) => (
               <a
                 key={shortcut.label}
                 href={shortcut.href}
-                className="rounded-lg border border-border/60 bg-background/60 px-3 py-2 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                className="rounded-lg border border-border/50 bg-background/70 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
               >
                 {shortcut.label}
               </a>

@@ -7,8 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { getFeed } from '@/lib/services/feed.service';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import { Post, FeedItem } from '@/lib/types'; // Import FeedItem
-import { PaginatedResponse } from '@/lib/types';
+import { FeedItem, PaginatedResponse } from '@/lib/types';
 import { PostCard } from '@/components/community/feed/PostCard';
 import CreatePost from '@/components/community/shared/create-post-card';
 import { FeedSkeleton } from '@/components/skeletons/feed-skeleton';
@@ -95,11 +94,10 @@ export default function FeedClientPage({ initialFeed, searchParams }: FeedClient
       </div>
       <div className="space-y-4 mt-4">
         {feedItems.map((item: FeedItem) => {
-          if (item.type === 'post') {
-            // TODO: This is a temporary workaround. We need to create a proper mapping from FeedItem to Post
-            return <PostCard key={item.id} post={item as any} />;
+          if (item.type === 'post' && item.post) {
+            return <PostCard key={item.post.id} post={item.post} />;
           }
-          // Render event card or something else for event type
+          // TODO: render event cards when design is ready
           return null;
         })}
         {isFetchingNextPage && <FeedSkeleton />}

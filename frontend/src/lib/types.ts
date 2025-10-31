@@ -100,26 +100,6 @@ export type EventItem = {
   created_by_avatar: NullableString;
 };
 
-export interface FeedItem {
-    type: 'post' | 'event';
-    id: string; 
-    community_id?: string;
-    created_at: string;
-    updated_at?: string;
-    author_id: string;
-    author_name: string;
-    author_avatar_url?: string;
-    
-    // --- Post-specific fields ---
-    content?: string; 
-    file_attachments?: { url: string; name: string; type: string }[]; 
-
-    // --- Event-specific fields ---
-    name?: string; 
-    start_time?: string; 
-    end_time?: string;   
-}
-
 export type AppEvent = {
   id: string;
   community_id: string;
@@ -236,6 +216,18 @@ export type Post = {
   user_has_liked?: boolean;
   community_role?: 'community_admin' | 'moderator' | 'member' | 'pending';
 };
+
+export type FeedItem =
+  | {
+      type: 'post';
+      created_at: string;
+      post: Post;
+    }
+  | {
+      type: 'event';
+      created_at: string;
+      event: EventItem;
+    };
 
 export type Comment = {
   id: string;
