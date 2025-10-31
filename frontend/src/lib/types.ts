@@ -180,9 +180,12 @@ export type Author = {
 };
 
 export interface Attachment {
-  Name: string;
-  Url: string;
-  Type: string;
+  Name?: string;
+  Url?: string;
+  Type?: string;
+  name?: string;
+  url?: string;
+  type?: string;
 }
 
 export type Post = {

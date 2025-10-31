@@ -180,8 +180,24 @@ export function PostCard({ post: initialPost, viewerRole, onPostDeleted, onPostU
     }
   };
 
-  const imageAttachments = post.file_attachments?.filter(f => f.Type.startsWith('image/')) || [];
-  const otherAttachments = post.file_attachments?.filter(f => !f.Type.startsWith('image/')) || [];
+  const getAttachmentType = (attachment: Post['file_attachments'][number]) =>
+    attachment?.Type || attachment?.type || '';
+
+  const getAttachmentUrl = (attachment: Post['file_attachments'][number]) =>
+    attachment?.Url || attachment?.url || '';
+
+  const getAttachmentName = (attachment: Post['file_attachments'][number]) =>
+    attachment?.Name || attachment?.name || getAttachmentUrl(attachment) || 'Attachment';
+
+  const imageAttachments =
+    post.file_attachments?.filter((attachment) =>
+      getAttachmentType(attachment).startsWith('image/')
+    ) || [];
+
+  const otherAttachments =
+    post.file_attachments?.filter(
+      (attachment) => !getAttachmentType(attachment).startsWith('image/')
+    ) || [];
 
   const userRole: CommunityRole = viewerRole ?? post.community_role;
   const canManagePost = Boolean(
@@ -307,38 +323,56 @@ export function PostCard({ post: initialPost, viewerRole, onPostDeleted, onPostU
         <div className="space-y-2">
           {imageAttachments.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
-              {imageAttachments.map((attachment) => (
-                <div
-                  key={attachment.Url}
-                  className="relative aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/20"
-                >
-                  <Image
-                    src={attachment.Url}
-                    alt={attachment.Name}
-                    fill
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                </div>
-              ))}
+              {imageAttachments.map((attachment, index) => {
+                const url = getAttachmentUrl(attachment);
+                const name = getAttachmentName(attachment);
+
+                if (!url) return null;
+
+                return (
+                  <div
+                    key={`${url}-${index}`}
+                    className="relative aspect-video overflow-hidden rounded-lg border border-white/10 bg-black/20"
+                  >
+                    <Image
+                      src={url}
+                      alt={name}
+                      fill
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  </div>
+                );
+              })}
             </div>
           )}
           {otherAttachments.length > 0 && (
             <div className="space-y-2 pt-2">
-              {otherAttachments.map((attachment) => (
-                <a
-                  key={attachment.Url}
-                  href={attachment.Url}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 rounded-lg border border-white/10 bg-black/10 px-3 py-2 transition-all duration-300 hover:border-white/20 hover:bg-black/20"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <FileIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <span className="truncate text-sm text-muted-foreground">{attachment.Name}</span>
-                </a>
-              ))}
+              {otherAttachments.map((attachment, index) => {
+                const url = getAttachmentUrl(attachment);
+                const name = getAttachmentName(attachment);
+                const type = getAttachmentType(attachment) || 'File';
+
+                if (!url) return null;
+
+                return (
+                  <a
+                    key={`${url}-${index}`}
+                    href={url}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 rounded-lg border border-white/10 bg-black/10 px-3 py-2 transition-all duration-300 hover:border-white/20 hover:bg-black/20"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <FileIcon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-sm text-muted-foreground">{name}</span>
+                      <span className="text-xs text-muted-foreground/70">{type}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
