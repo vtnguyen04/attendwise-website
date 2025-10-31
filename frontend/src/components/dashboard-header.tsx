@@ -48,19 +48,19 @@ export default function DashboardHeader({ scrollY }: { scrollY: number }) {
           : 'border-b border-transparent'
       )}
     >
-      <div className="flex flex-wrap items-center gap-2 md:gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex w-full flex-wrap items-center gap-2 md:flex-nowrap md:gap-3">
+        <div className="flex items-center gap-2 md:min-w-[160px]">
           <MobileSidebar />
           <span className="text-sm font-semibold text-muted-foreground md:hidden">
             Dashboard
           </span>
         </div>
 
-        <div className="order-3 w-full md:order-none md:flex-1 md:max-w-xl">
+        <div className="order-3 w-full md:order-none md:mx-auto md:flex-1 md:min-w-[300px] md:max-w-2xl">
           <SearchInput />
         </div>
 
-        <div className="order-2 ml-auto flex items-center gap-2 md:order-none">
+        <div className="order-2 ml-auto flex items-center gap-2 md:order-none md:ml-0">
           <div className="hidden md:block">
             <LanguageToggle />
           </div>

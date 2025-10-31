@@ -58,19 +58,19 @@ const quickShortcuts = [
 
 function FeedToolbar() {
   return (
-    <div className="sticky top-[110px] z-30 flex flex-col gap-3 rounded-3xl border border-border/60 bg-card/85 px-4 py-3 shadow-sm backdrop-blur sm:top-[96px] md:top-[88px]">
-      <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-        <span className="rounded-full border border-border bg-background/80 px-4 py-1.5 text-foreground">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/85 px-4 py-2 shadow-sm backdrop-blur">
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground sm:text-sm">
+        <span className="rounded-full border border-border bg-background/80 px-3 py-1.5 text-foreground">
           Posts
         </span>
-        <span className="rounded-full border border-transparent bg-background/60 px-4 py-1.5 text-muted-foreground transition-colors hover:border-border hover:text-foreground">
+        <button className="rounded-full border border-transparent bg-background/60 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground">
           Events
-        </span>
-        <span className="rounded-full border border-transparent bg-background/60 px-4 py-1.5 text-muted-foreground transition-colors hover:border-border hover:text-foreground">
+        </button>
+        <button className="rounded-full border border-transparent bg-background/60 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground">
           Communities
-        </span>
+        </button>
       </div>
-      <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-sm font-medium">
+      <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-xs font-medium sm:text-sm">
         <Button variant="default" size="sm" className="rounded-full px-4">
           <Flame className="mr-2 h-4 w-4" /> Best
         </Button>
