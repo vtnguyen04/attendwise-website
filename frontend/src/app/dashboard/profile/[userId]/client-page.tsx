@@ -91,8 +91,8 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
   };
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-8 p-4 sm:p-6 lg:p-8">
-      <Card className="overflow-hidden border border-border/70 bg-card/90 shadow-lg backdrop-blur">
+    <div className="mx-auto flex max-w-4xl flex-col gap-8 p-4 sm:p-6 lg:p-8 text-card-foreground">
+      <Card className="overflow-hidden rounded-[28px] border border-border/60 bg-glass-gradient-dark shadow-glass backdrop-blur">
         <CardContent className="flex flex-col items-center gap-6 p-6 sm:p-8">
           <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
             <Avatar className="h-24 w-24 border-4 border-primary/50 shadow-[0_18px_45px_-24px_rgba(99,102,241,0.45)] sm:h-28 sm:w-28">
@@ -103,7 +103,7 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">{displayName}</h1>
                 {roleLabel && (
-                  <Badge variant="outline" className="rounded-full border-primary/40 bg-primary/10 text-xs uppercase tracking-[0.2em] text-primary">
+                  <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/15 text-xs uppercase tracking-[0.18em] text-primary/90">
                     {roleLabel}
                   </Badge>
                 )}
@@ -121,13 +121,13 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
             <ProfileInfo icon={Flame} label="Posts" value={String(posts.length)} />
           </div>
 
-      <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
             {isOwnProfile ? (
               <div className="flex flex-wrap items-center gap-3">
-                <Button variant="secondary" asChild className="rounded-full px-6 shadow-sm">
+                <Button variant="secondary" asChild className="rounded-full border border-white/10 px-6 shadow-magnify">
                   <Link href="/dashboard/settings">Edit profile</Link>
                 </Button>
-                <Button variant="outline" asChild className="rounded-full border-border/60 px-5">
+                <Button variant="outline" asChild className="rounded-full border border-white/15 px-5 text-sm text-muted-foreground hover:text-foreground">
                   <Link href="/dashboard/settings/security">Security</Link>
                 </Button>
               </div>
@@ -158,13 +158,13 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
 
 function ProfileInfo({ icon: Icon, label, value }: { icon: ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 text-sm shadow-sm">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+    <div className="flex items-start gap-3 rounded-2xl border border-white/12 bg-[hsla(var(--card),0.9)] p-4 text-sm shadow-sm">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/12 text-primary">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
         <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-        <p className="mt-1 truncate font-medium text-foreground/90">{value}</p>
+        <p className="mt-1 truncate font-medium text-foreground/95">{value}</p>
       </div>
     </div>
   );
