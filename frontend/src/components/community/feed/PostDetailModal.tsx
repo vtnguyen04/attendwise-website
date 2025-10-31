@@ -246,25 +246,32 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
                 {/* Media Attachments */}
                 {post.file_attachments && post.file_attachments.length > 0 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {post.file_attachments.map((attachment) => {
-                      const isImage = attachment.Type.startsWith('image/');
+                    {post.file_attachments.map((attachment, index) => {
+                      const type = attachment?.Type || attachment?.type || '';
+                      const url = attachment?.Url || attachment?.url || '';
+                      const name =
+                        attachment?.Name || attachment?.name || url || `attachment-${index + 1}`;
+                      const isImage = type.startsWith('image/');
+
+                      if (!url) return null;
+
                       return (
                         <div 
-                          key={attachment.Url} 
+                          key={`${url}-${index}`} 
                           className="bg-glass-interactive relative aspect-video overflow-hidden hover:border-primary/50 transition-colors"
                         >
                           {isImage ? (
-                            <a href={attachment.Url} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
+                            <a href={url} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
                               <Image 
-                                src={attachment.Url} 
-                                alt={attachment.Name} 
+                                src={url} 
+                                alt={name} 
                                 layout="fill" 
                                 className="object-cover hover:scale-105 transition-transform duration-300"
                               />
                             </a>
                           ) : (
                             <a 
-                              href={attachment.Url} 
+                              href={url} 
                               download 
                               target="_blank"
                               rel="noopener noreferrer"
@@ -274,7 +281,7 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
                                 <FileIcon className="h-6 w-6 text-primary" />
                               </div>
                               <span className="text-sm font-medium text-muted-foreground text-center break-all">
-                                {attachment.Name}
+                                {name}
                               </span>
                             </a>
                           )}
