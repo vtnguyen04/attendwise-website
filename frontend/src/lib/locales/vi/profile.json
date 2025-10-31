@@ -1,0 +1,19 @@
+{
+    "title": "Cài đặt hồ sơ",
+    "description": "Quản lý thông tin cá nhân và chi tiết tài khoản của bạn.",
+    "picture_label": "Ảnh đại diện",
+    "name_label": "Tên",
+    "name_placeholder": "Tên của bạn",
+    "company_label": "Công ty",
+    "company_placeholder": "Công ty của bạn",
+    "position_label": "Chức vụ",
+    "position_placeholder": "Vai trò của bạn",
+    "save_button": "Lưu thay đổi",
+    "upload_failed_title": "Tải ảnh lên thất bại",
+    "upload_failed_description": "Không thể tải lên ảnh đại diện mới.",
+    "no_changes": "Không có thay đổi nào để lưu.",
+    "update_success_title": "Hồ sơ đã được cập nhật",
+    "update_success_description": "Hồ sơ của bạn đã được cập nhật thành công.",
+    "update_failed_title": "Cập nhật thất bại",
+    "update_failed_error": "Không thể cập nhật hồ sơ."
+}

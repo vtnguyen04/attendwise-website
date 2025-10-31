@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Base Colors - Dark Theme */
+    --background: 220 20% 10%;
+    --foreground: 220 10% 92%;
+    --card: 220 18% 14%;
+    --card-foreground: 220 10% 92%;
+    --popover: 220 18% 12%;
+    --popover-foreground: 220 10% 92%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 220 10% 98%;
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 220 10% 90%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 220 10% 98%;
+    --muted: 220 15% 25%;
+    --muted-foreground: 220 10% 60%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 220 10% 98%;
+    --border: 220 15% 18%;
+    --input: 220 18% 15%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+
+    /* 🌊 Liquid Glass Variables - Dark */
+    --glass-bg: hsla(220, 20%, 18%, 0.8);
+    --glass-bg-hover: hsla(220, 20%, 22%, 0.75);
+    --glass-border: hsla(220, 15%, 30%, 0.6);
+    --glass-border-hover: hsla(220, 15%, 40%, 0.8);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    /* 🔍 Magnifying Glass Variables - Dark */
+    --magnify-glow: hsla(217, 91%, 60%, 0.3);
+    --magnify-shadow: 0 0 0 4px hsla(217, 91%, 60%, 0.1), 0 12px 36px hsla(217, 91%, 60%, 0.3);
+    
+    /* ✨ Effects - Dark */
+    --liquid-shimmer: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+    --spotlight-gradient: radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+
+    /* Easings */
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .light {
+    /* Base Colors - Light Theme */
+    --background: 230 50% 95%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 10% 96%;
+    --secondary-foreground: 220 15% 20%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 220 10% 94%;
+    --muted-foreground: 220 10% 45%;
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 88%;
+    --input: 220 10% 98%;
+    --ring: 217 91% 60%;
+
+    /* 🌊 Liquid Glass Variables - Light */
+    --glass-bg: hsla(230, 30%, 96%, 0.75);
+    --glass-bg-hover: hsla(230, 30%, 92%, 0.85);
+    --glass-border: hsla(220, 15%, 80%, 0.7);
+    --glass-border-hover: hsla(220, 15%, 75%, 0.9);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    --glass-shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 1);
+
+    /* 🔍 Magnifying Glass Variables - Light */
+    --magnify-glow: hsla(217, 91%, 60%, 0.25);
+    --magnify-shadow: 0 0 0 4px hsla(217, 91%, 60%, 0.08), 0 12px 36px hsla(217, 91%, 60%, 0.25);
+    
+    /* ✨ Effects - Light */
+    --liquid-shimmer: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    --spotlight-gradient: radial-gradient(circle at center, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+  }
+
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 🎨 Optimized Background - Static gradients only */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, hsla(var(--primary), 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, hsla(var(--accent), 0.1) 0%, transparent 50%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Reduced motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+
+
+@layer utilities {
+  /* Custom scrollbar - Simple version */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted) / 0.4);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted) / 0.6);
+  }
+
+  /* Glass shadows */
+  .shadow-glass {
+    box-shadow: var(--glass-shadow);
+  }
+
+  .shadow-glass-hover {
+    box-shadow: var(--glass-shadow-hover);
+  }
+
+  .shadow-magnify {
+    box-shadow: var(--magnify-shadow);
+  }
+
+  /* Backdrop filters */
+  .backdrop-glass {
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+  }
+
+  .backdrop-magnify {
+    backdrop-filter: blur(16px) brightness(1.05);
+    -webkit-backdrop-filter: blur(16px) brightness(1.05);
+  }
+
+  /* Text effects */
+  .text-glow {
+    text-shadow: 0 2px 12px hsla(var(--primary), 0.4);
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: hsla(var(--primary), 0.25);
+    color: hsl(var(--foreground));
+  }
+
+  /* Focus visible */
+  *:focus-visible {
+    outline: 2px solid hsla(var(--primary), 0.5);
+    outline-offset: 2px;
+  }
+
+  /* Disable transitions for theme */
+  .theme-transitioning * {
+    transition: none !important;
+  }
+
+  /* Infinite Scroll Animation */
+  @keyframes infinite-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .animate-infinite-scroll {
+    display: flex;
+    animation: infinite-scroll 60s linear infinite;
+  }
+
+  .animate-infinite-scroll:hover {
+    animation-play-state: paused;
+  }
+}
+

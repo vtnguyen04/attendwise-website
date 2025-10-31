@@ -1,0 +1,25 @@
+{
+    "title": "Security",
+    "description": "Manage your security settings and two-factor authentication.",
+    "face_id": {
+        "title": "FaceID Enrollment",
+        "description": "Manage your FaceID settings for secure check-ins.",
+        "enrollment_status": "Enrollment Status",
+        "enrolled_text": "You have already enrolled your face for FaceID check-ins.",
+        "not_enrolled_text": "Enroll your face to enable faster, more secure event check-ins.",
+        "re_enroll_button": "Re-enroll",
+        "enroll_now_button": "Enroll Now"
+    },
+    "password": {
+        "title": "Change Password",
+        "description": "Update your password regularly to keep your account secure.",
+        "current_label": "Current Password",
+        "new_label": "New Password",
+        "confirm_label": "Confirm New Password",
+        "save_button": "Save Password",
+        "success_title": "Password Updated",
+        "success_description": "Your password has been changed successfully.",
+        "error_title": "Update Failed",
+        "error_generic": "Failed to update password. Please try again."
+    }
+}

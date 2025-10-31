@@ -1,0 +1,19 @@
+{
+    "title": "Profile Settings",
+    "description": "Manage your personal information and account details.",
+    "picture_label": "Profile Picture",
+    "name_label": "Name",
+    "name_placeholder": "Your Name",
+    "company_label": "Company",
+    "company_placeholder": "Your Company",
+    "position_label": "Position",
+    "position_placeholder": "Your Role",
+    "save_button": "Save changes",
+    "upload_failed_title": "Image Upload Failed",
+    "upload_failed_description": "Could not upload the new profile picture.",
+    "no_changes": "No changes to save.",
+    "update_success_title": "Profile Updated",
+    "update_success_description": "Your profile has been successfully updated.",
+    "update_failed_title": "Update Failed",
+    "update_failed_error": "Failed to update profile."
+}

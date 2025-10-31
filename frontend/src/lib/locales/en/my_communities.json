@@ -1,0 +1,15 @@
+{
+    "title": "My Communities",
+    "fetch_error": "Failed to fetch your communities.",
+    "delete_bulk_success": "{count} communities deleted.",
+    "delete_bulk_error": "Failed to delete communities.",
+    "delete_single_success": "Community deleted.",
+    "delete_single_error": "Failed to delete community.",
+    "create_button": "Create Community",
+    "edit_dialog_title": "Edit Community",
+    "create_dialog_title": "Create a new community",
+    "edit_dialog_description": "Update your community details below.",
+    "create_dialog_description": "Fill out the details below to get your community started.",
+    "no_communities_title": "You are not part of any communities yet.",
+    "no_communities_description": "Explore and join communities to get started."
+}

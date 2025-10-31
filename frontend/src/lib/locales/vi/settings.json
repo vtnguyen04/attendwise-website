@@ -1,0 +1,14 @@
+{
+    "title": "Cài đặt",
+    "description": "Quản lý cài đặt tài khoản và tùy chọn của bạn.",
+    "nav.profile": "Hồ sơ",
+    "nav.security": "Bảo mật",
+    "nav.notifications": "Thông báo",
+    "security.title": "Bảo mật",
+    "security.description": "Quản lý cài đặt bảo mật và xác thực hai yếu tố của bạn.",
+    "security.face_id_title": "Đăng ký FaceID",
+    "security.face_id_enrolled_text": "Bạn đã đăng ký khuôn mặt của mình để điểm danh bằng FaceID.",
+    "security.face_id_not_enrolled_text": "Đăng ký khuôn mặt của bạn để cho phép điểm danh sự kiện nhanh hơn, an toàn hơn.",
+    "security.re_enroll_button": "Đăng ký lại",
+    "security.enroll_now_button": "Đăng ký ngay"
+}

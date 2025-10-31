@@ -1,0 +1,25 @@
+{
+    "title": "Bảo mật",
+    "description": "Quản lý cài đặt bảo mật và xác thực hai yếu tố của bạn.",
+    "face_id": {
+        "title": "Đăng ký FaceID",
+        "description": "Quản lý cài đặt FaceID của bạn để điểm danh an toàn.",
+        "enrollment_status": "Trạng thái đăng ký",
+        "enrolled_text": "Bạn đã đăng ký khuôn mặt của mình để điểm danh bằng FaceID.",
+        "not_enrolled_text": "Đăng ký khuôn mặt của bạn để cho phép điểm danh sự kiện nhanh hơn, an toàn hơn.",
+        "re_enroll_button": "Đăng ký lại",
+        "enroll_now_button": "Đăng ký ngay"
+    },
+    "password": {
+        "title": "Đổi mật khẩu",
+        "description": "Cập nhật mật khẩu thường xuyên để giữ an toàn cho tài khoản của bạn.",
+        "current_label": "Mật khẩu hiện tại",
+        "new_label": "Mật khẩu mới",
+        "confirm_label": "Xác nhận mật khẩu mới",
+        "save_button": "Lưu mật khẩu",
+        "success_title": "Đã cập nhật mật khẩu",
+        "success_description": "Mật khẩu của bạn đã được thay đổi thành công.",
+        "error_title": "Cập nhật thất bại",
+        "error_generic": "Không thể cập nhật mật khẩu. Vui lòng thử lại."
+    }
+}

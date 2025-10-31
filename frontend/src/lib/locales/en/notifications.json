@@ -1,0 +1,17 @@
+{
+    "title": "Notifications Settings",
+    "description": "Manage how you receive notifications.",
+    "email.label": "Email Notifications",
+    "email.description": "Receive updates and alerts via email.",
+    "push.label": "Push Notifications",
+    "push.description": "Receive alerts directly on your device.",
+    "in_app.label": "In-App Notifications",
+    "in_app.description": "Show notifications inside the application.",
+    "save_button": "Save Changes",
+    "fetch_error_title": "Error",
+    "fetch_error_description": "Failed to fetch notification preferences.",
+    "save_success_title": "Preferences Saved",
+    "save_success_description": "Your notification settings have been updated.",
+    "save_error_title": "Error",
+    "save_error_description": "Failed to save preferences."
+}

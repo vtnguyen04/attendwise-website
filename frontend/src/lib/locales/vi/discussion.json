@@ -1,0 +1,18 @@
+{
+    "toast.error": "Lỗi",
+    "toast.success": "Thành công",
+    "comments.fetch_error": "Không thể tải bình luận.",
+    "comments.add_success": "Bình luận của bạn đã được đăng.",
+    "comments.add_error": "Không thể đăng bình luận.",
+    "comments.loading": "Đang tải bình luận...",
+    "comments.placeholder": "Viết bình luận...",
+    "posts.fetch_error": "Không thể tải các cuộc thảo luận.",
+    "posts.create_success_title": "Đã gửi bài đăng",
+    "posts.create_success_description": "Bài đăng của bạn đang chờ được duyệt.",
+    "posts.create_error": "Không thể tạo bài đăng.",
+    "posts.create_title": "Tạo bài đăng",
+    "posts.placeholder": "Đặt câu hỏi hoặc chia sẻ điều gì đó với những người tham dự sự kiện...",
+    "posts.create_button": "Đăng",
+    "posts.empty_title": "Chưa có thảo luận nào",
+    "posts.empty_description": "Hãy là người đầu tiên chia sẻ điều gì đó!"
+}

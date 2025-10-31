@@ -1,0 +1,10 @@
+{
+    "name": "Name",
+    "your_role": "Your Role",
+    "members": "Members",
+    "created_at": "Created At",
+    "actions": "Actions",
+    "role_admin": "Admin",
+    "role_member": "Member",
+    "role_community_admin": "Community Admin"
+}

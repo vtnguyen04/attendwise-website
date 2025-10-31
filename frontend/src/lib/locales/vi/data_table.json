@@ -1,0 +1,15 @@
+{
+    "delete_selected": "Xóa ({count})",
+    "delete_dialog_title": "Bạn có chắc chắn không?",
+    "delete_dialog_description": "Hành động này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn các mục đã chọn.",
+    "delete_single_description": "Hành động này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn \"{{name}}\".",
+    "cancel_button": "Hủy",
+    "delete_button": "Xóa",
+    "deleting_button": "Đang xóa...",
+    "no_results": "Không có kết quả.",
+    "previous_button": "Trước",
+    "next_button": "Tiếp",
+    "select_all": "Chọn tất cả",
+    "select_row": "Chọn hàng",
+    "open_menu": "Mở menu"
+}

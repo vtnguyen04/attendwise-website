@@ -1,0 +1,18 @@
+{
+    "toast.error": "Error",
+    "toast.success": "Success",
+    "comments.fetch_error": "Could not load comments.",
+    "comments.add_success": "Your comment has been posted.",
+    "comments.add_error": "Failed to post comment.",
+    "comments.loading": "Loading comments...",
+    "comments.placeholder": "Write a comment...",
+    "posts.fetch_error": "Could not load discussions.",
+    "posts.create_success_title": "Post Submitted",
+    "posts.create_success_description": "Your post is pending approval.",
+    "posts.create_error": "Failed to create post.",
+    "posts.create_title": "Create a Post",
+    "posts.placeholder": "Ask a question or share something with event attendees...",
+    "posts.create_button": "Post",
+    "posts.empty_title": "No Discussions Yet",
+    "posts.empty_description": "Be the first to share something!"
+}
