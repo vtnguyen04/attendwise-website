@@ -37,6 +37,19 @@ export const getCommunitySuggestions = async (): Promise<Community[]> => {
   }
 };
 
+/**
+ * [CLIENT] Fetches the communities the current user belongs to.
+ */
+export const getMyCommunitiesClient = async (): Promise<Community[]> => {
+  try {
+    const response = await apiClient.get('/api/v1/my-communities');
+    return response.data.communities || [];
+  } catch (error) {
+    console.error('Failed to fetch my communities:', error);
+    return [];
+  }
+};
+
 // =================================================================================
 // Member Management
 // =================================================================================

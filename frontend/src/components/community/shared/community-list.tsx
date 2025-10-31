@@ -1,7 +1,7 @@
 // components/community/shared/community-list.tsx
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -18,11 +18,7 @@ import { CommunityActionButton } from './community-action-button';
 
 // --- NEW REDESIGNED COMMUNITY CARD ---
 
-interface CommunityCardProps {
-  community: Community;
-}
-
-const CommunityCard = memo(({ community }: CommunityCardProps) => {
+const CommunityCard = memo(({ community }: { community: Community }) => {
   const coverImageUrl = useMemo(() => 
     getSafeImageUrl(community.cover_image_url) || `http://localhost:9000/attendwise/405a368a0202885cd11310.jpg`,
     [community.cover_image_url, community.id]
@@ -132,9 +128,46 @@ CommunityCard.displayName = 'CommunityCard';
 
 export const CommunityList = memo(function CommunityList({
   communities,
+  autoScroll = false,
 }: {
-  communities: Community[],
+  communities: Community[];
+  autoScroll?: boolean;
 }) {
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isPausedRef = useRef(false);
+
+  useEffect(() => {
+    if (!autoScroll) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let rafId: number;
+    let lastTimestamp = performance.now();
+    const speed = 0.08; // pixels per ms
+
+    const step = (timestamp: number) => {
+      if (isPausedRef.current) {
+        lastTimestamp = timestamp;
+        rafId = requestAnimationFrame(step);
+        return;
+      }
+
+      const delta = timestamp - lastTimestamp;
+      container.scrollLeft += delta * speed;
+
+      if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 1) {
+        container.scrollLeft = 0;
+      }
+
+      lastTimestamp = timestamp;
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(rafId);
+  }, [autoScroll, communities.length]);
+
   if (!communities || communities.length === 0) {
     return (
       <div className={"col-span-full text-center py-16 text-muted-foreground"}>
@@ -144,8 +177,13 @@ export const CommunityList = memo(function CommunityList({
   }
 
   return (
-    <div className="relative w-full h-full overflow-x-auto">
-      <div className="flex space-x-4">
+    <div
+      ref={scrollContainerRef}
+      className="relative w-full h-full overflow-x-auto"
+      onMouseEnter={() => (isPausedRef.current = true)}
+      onMouseLeave={() => (isPausedRef.current = false)}
+    >
+      <div className="flex space-x-4 pb-2">
         {communities.map((community) => (
           <CommunityCard key={community.id} community={community} />
         ))}
