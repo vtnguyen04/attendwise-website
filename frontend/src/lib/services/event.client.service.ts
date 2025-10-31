@@ -10,6 +10,7 @@ import type {
   CreateEventPayload,
   RegistrationWithEventDetails,
   UpdateEventPayload,
+  EventItem,
 } from '@/lib/types';
 
 /**
@@ -150,5 +151,25 @@ export const getEventById = async (eventId: string): Promise<AppEvent | null> =>
   } catch (error) {
     console.error(`Failed to fetch event ${eventId}:`, error);
     return null;
+  }
+};
+
+/**
+ * [CLIENT] Fetches the current user's events filtered by status.
+ */
+export const getMyEventsByStatus = async (
+  status: 'upcoming' | 'ongoing' | 'past'
+): Promise<EventItem[]> => {
+  try {
+    const response = await apiClient.get<{ events: EventItem[] }>(
+      `/api/v1/events/my-events`,
+      {
+        params: { status },
+      }
+    );
+    return response.data.events || [];
+  } catch (error) {
+    console.error(`Failed to fetch ${status} events`, error);
+    return [];
   }
 };

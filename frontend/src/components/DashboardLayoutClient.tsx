@@ -7,7 +7,11 @@ import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Flame, Clock, ArrowUpRight, ChevronLeft } from 'lucide-react';
+import { Flame, Clock, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { getMyEventsByStatus } from '@/lib/services/event.client.service';
+import { getFeed } from '@/lib/services/feed.client.service';
+import type { EventItem, FeedItem } from '@/lib/types';
 function SidebarLoadingSkeleton() {
   return (
     <div className="w-12 p-2 space-y-2 rounded-xl border border-white/10 bg-background/60 backdrop-blur">
@@ -35,28 +39,6 @@ function HeaderLoadingSkeleton() {
     </div>
   );
 }
-
-const upcomingEvents = [
-  {
-    title: 'Product showcase',
-    schedule: 'Tomorrow · 10:00 AM',
-  },
-  {
-    title: 'Design review',
-    schedule: 'Thu · 2:30 PM',
-  },
-];
-
-const recentPosts = [
-  {
-    title: 'New brand system guidelines',
-    community: 'Design Guild · 2h ago',
-  },
-  {
-    title: 'Infra update: staging rollout',
-    community: 'Engineering Ops · 4h ago',
-  },
-];
 
 const quickShortcuts = [
   { label: 'Create post', href: '/dashboard/communities/create' },
@@ -95,15 +77,70 @@ function FeedToolbar() {
 
 function RightRail() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
+  const [recentPosts, setRecentPosts] = useState<FeedItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const formatRelativeTime = (value?: string) => {
+    if (!value) return 'Date to be announced';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Date to be announced';
+    }
+    return formatDistanceToNow(date, { addSuffix: true });
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInsights() {
+      setIsLoading(true);
+      try {
+        const [events, feedItems] = await Promise.all([
+          getMyEventsByStatus('upcoming'),
+          getFeed(),
+        ]);
+
+        if (!isMounted) return;
+
+        setUpcomingEvents(events.slice(0, 3));
+        setRecentPosts(
+          feedItems.filter((item) => item.type === 'post').slice(0, 3)
+        );
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInsights();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const renderSkeleton = () => (
+    <div className="mt-3 space-y-2">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-12 animate-pulse rounded-lg border border-border/40 bg-background/40"
+        />
+      ))}
+    </div>
+  );
 
   if (isCollapsed) {
     return (
       <div className="sticky top-24 hidden lg:flex">
         <button
           onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-2 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+          className="flex items-center gap-2 rounded-full border border-border bg-card/75 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
         >
-          Show sidebar
+          <ChevronRight className="h-3 w-3" />
+          <span>Show insights</span>
         </button>
       </div>
     );
@@ -124,31 +161,50 @@ function RightRail() {
         </div>
         <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
           <h2 className="text-sm font-semibold text-foreground">Upcoming events</h2>
-          <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
-            {upcomingEvents.map((event) => (
-              <li
-                key={event.title}
-                className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
-              >
-                <p className="font-medium text-foreground">{event.title}</p>
-                <p className="text-xs">{event.schedule}</p>
-              </li>
-            ))}
-          </ul>
+          {isLoading ? (
+            renderSkeleton()
+          ) : upcomingEvents.length === 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">No upcoming events yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+              {upcomingEvents.map((event) => (
+                <li
+                  key={event.event_id}
+                  className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+                >
+                  <p className="font-medium text-foreground">{event.event_name}</p>
+                  <p className="text-xs">{formatRelativeTime(event.start_time)}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
         <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
           <h2 className="text-sm font-semibold text-foreground">Recent posts</h2>
-          <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
-            {recentPosts.map((post) => (
-              <li
-                key={post.title}
-                className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
-              >
-                <p className="font-medium text-foreground">{post.title}</p>
-                <p className="text-xs">{post.community}</p>
-              </li>
-            ))}
-          </ul>
+          {isLoading ? (
+            renderSkeleton()
+          ) : recentPosts.length === 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">No posts in your feed yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+              {recentPosts.map((post) => (
+                <li
+                  key={post.id}
+                  className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+                >
+                  <p className="font-medium text-foreground line-clamp-2">
+                    {post.content?.trim() || 'View post'}
+                  </p>
+                  <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                    <span className="truncate">{post.author_name}</span>
+                    <span className="shrink-0">
+                      {formatRelativeTime(post.created_at)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
         <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
           <h2 className="text-sm font-semibold text-foreground">Shortcuts</h2>
