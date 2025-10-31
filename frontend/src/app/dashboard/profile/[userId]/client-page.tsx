@@ -128,7 +128,7 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
                   <Link href="/dashboard/settings">Edit profile</Link>
                 </Button>
                 <Button variant="outline" asChild className="rounded-full border-border/60 px-5">
-                  <Link href="/dashboard/settings/account">Account settings</Link>
+                  <Link href="/dashboard/settings/security">Security</Link>
                 </Button>
               </div>
             ) : (
