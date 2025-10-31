@@ -7,7 +7,7 @@ import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Flame, Clock, ArrowUpRight } from 'lucide-react';
+import { Flame, Clock, ArrowUpRight, ChevronLeft } from 'lucide-react';
 function SidebarLoadingSkeleton() {
   return (
     <div className="w-12 p-2 space-y-2 rounded-xl border border-white/10 bg-background/60 backdrop-blur">
@@ -36,18 +36,25 @@ function HeaderLoadingSkeleton() {
   );
 }
 
-const recentHighlights = [
+const upcomingEvents = [
   {
-    title: 'Upcoming sessions',
-    description: 'Two events start this week. Review attendees and reminders.',
+    title: 'Product showcase',
+    schedule: 'Tomorrow · 10:00 AM',
   },
   {
-    title: 'Communities to check',
-    description: 'Design Guild posted new materials 3h ago.',
+    title: 'Design review',
+    schedule: 'Thu · 2:30 PM',
+  },
+];
+
+const recentPosts = [
+  {
+    title: 'New brand system guidelines',
+    community: 'Design Guild · 2h ago',
   },
   {
-    title: 'Pending approvals',
-    description: '3 members awaiting confirmation.',
+    title: 'Infra update: staging rollout',
+    community: 'Engineering Ops · 4h ago',
   },
 ];
 
@@ -87,38 +94,77 @@ function FeedToolbar() {
 }
 
 function RightRail() {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (isCollapsed) {
+    return (
+      <div className="sticky top-24 hidden lg:flex">
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-2 text-xs font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+        >
+          Show sidebar
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <aside className="hidden w-full max-w-xs shrink-0 flex-col gap-4 lg:flex">
-      <section className="rounded-3xl border border-border bg-card/90 p-5 shadow-sm backdrop-blur">
-        <h2 className="text-sm font-semibold text-foreground">Highlights</h2>
-        <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-          {recentHighlights.map((item) => (
-            <li
-              key={item.title}
-              className="rounded-2xl border border-border/60 bg-background/60 px-4 py-3"
-            >
-              <p className="font-semibold text-foreground">{item.title}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {item.description}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="rounded-3xl border border-border bg-card/90 p-5 shadow-sm backdrop-blur">
-        <h2 className="text-sm font-semibold text-foreground">Shortcuts</h2>
-        <nav className="mt-4 grid gap-2">
-          {quickShortcuts.map((shortcut) => (
-            <a
-              key={shortcut.label}
-              href={shortcut.href}
-              className="rounded-xl border border-border/60 bg-background/60 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-            >
-              {shortcut.label}
-            </a>
-          ))}
-        </nav>
-      </section>
+    <aside className="hidden w-full max-w-xs shrink-0 lg:flex">
+      <div className="sticky top-24 flex w-full flex-col gap-4">
+        <div className="flex items-center justify-between rounded-2xl border border-border bg-card/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <span>Insights</span>
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="rounded-full border border-transparent p-1 text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
+        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
+          <h2 className="text-sm font-semibold text-foreground">Upcoming events</h2>
+          <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+            {upcomingEvents.map((event) => (
+              <li
+                key={event.title}
+                className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+              >
+                <p className="font-medium text-foreground">{event.title}</p>
+                <p className="text-xs">{event.schedule}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
+          <h2 className="text-sm font-semibold text-foreground">Recent posts</h2>
+          <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+            {recentPosts.map((post) => (
+              <li
+                key={post.title}
+                className="rounded-xl border border-border/60 bg-background/60 px-3 py-2"
+              >
+                <p className="font-medium text-foreground">{post.title}</p>
+                <p className="text-xs">{post.community}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="rounded-2xl border border-border bg-card/90 p-4 shadow-sm backdrop-blur">
+          <h2 className="text-sm font-semibold text-foreground">Shortcuts</h2>
+          <nav className="mt-3 grid gap-2 text-sm">
+            {quickShortcuts.map((shortcut) => (
+              <a
+                key={shortcut.label}
+                href={shortcut.href}
+                className="rounded-lg border border-border/60 bg-background/60 px-3 py-2 font-medium text-foreground transition-colors hover:border-primary/40 hover:text-primary"
+              >
+                {shortcut.label}
+              </a>
+            ))}
+          </nav>
+        </section>
+      </div>
     </aside>
   );
 }
