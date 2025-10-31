@@ -43,8 +43,8 @@ export default function FeedClientPage({ initialFeed, searchParams }: FeedClient
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['feed'],
-    queryFn: ({ pageParam = 1 }) => getFeed(pageParam),
+    queryKey: ['feed', 'global'],
+    queryFn: ({ pageParam = 1 }) => getFeed(pageParam, undefined, 'global'),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.page * lastPage.limit < lastPage.total) {

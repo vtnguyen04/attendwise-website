@@ -101,7 +101,7 @@ function RightRail() {
       try {
         const [events, feedItems] = await Promise.all([
           getMyEventsByStatus('upcoming'),
-          getFeed(),
+          getFeed('global'),
         ]);
 
         if (!isMounted) return;

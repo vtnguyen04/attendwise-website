@@ -3,15 +3,17 @@
 
 import apiClient from '@/lib/api-client';
 import type { FeedItem } from '@/lib/types';
-import { mapFeedItems } from './feed.service';
+import { mapFeedItems, FeedScope } from './feed.service';
 
 /**
  * [CLIENT] Fetches the personalized feed for the current user.
  * This is intended for client-side rendering of the feed.
  */
-export const getFeed = async (): Promise<FeedItem[]> => {
+export const getFeed = async (scope: FeedScope = 'global'): Promise<FeedItem[]> => {
   try {
-    const response = await apiClient.get<{ feed?: any[] }>('/api/v1/feed');
+    const response = await apiClient.get<{ feed?: any[] }>('/api/v1/feed', {
+      params: { scope },
+    });
     return mapFeedItems(response.data?.feed);
   } catch (error) {
     console.error('Failed to fetch feed on client:', error);
