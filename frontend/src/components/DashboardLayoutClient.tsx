@@ -1,5 +1,6 @@
 'use client';
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import DashboardHeader from '@/components/dashboard-header';
 import SidebarNav from '@/components/layout/sidebar-nav';
 import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
@@ -129,6 +130,8 @@ function Layout({ children }: { children: React.ReactNode }) {
   const mainRef = useRef<HTMLDivElement>(null);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { setOpen, isMobile } = useSidebar();
+  const pathname = usePathname();
+  const isFeedPage = pathname === '/dashboard';
 
   useEffect(() => {
     if (!isMobile) {
@@ -199,15 +202,19 @@ function Layout({ children }: { children: React.ReactNode }) {
         </header>
 
         <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-transparent">
-          <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-4 py-6 lg:flex-row lg:gap-8 lg:px-8">
-            <section className="w-full flex-1 space-y-6">
-              <FeedToolbar />
-              <div className="space-y-4">
-                {children}
-              </div>
-            </section>
-            <RightRail />
-          </div>
+          {isFeedPage ? (
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-4 py-6 lg:flex-row lg:gap-8 lg:px-8">
+              <section className="w-full flex-1 space-y-6">
+                <FeedToolbar />
+                <div className="space-y-4">{children}</div>
+              </section>
+              <RightRail />
+            </div>
+          ) : (
+            <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
+              {children}
+            </div>
+          )}
         </main>
       </SidebarInset>
     </div>
