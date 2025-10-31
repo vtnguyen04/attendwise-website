@@ -14,7 +14,7 @@ interface UserPostsProps {
 export default function UserPosts({ posts, isOwnProfile = false }: UserPostsProps) {
   if (posts.length === 0) {
     return (
-      <Card className="border-border/60 bg-background/85 shadow-sm backdrop-blur">
+      <Card className="border border-border/60 bg-card/85 shadow-sm backdrop-blur">
         <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
           <div className="rounded-full bg-primary/10 p-3 text-primary">
             <PenSquare className="h-5 w-5" />

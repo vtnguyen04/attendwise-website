@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ElementType } from 'react';
+import { useMemo, useState, type ElementType } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Post } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/lib/api-client';
 import { getNullableStringValue } from '@/lib/utils';
 import UserPosts from '@/components/profile/user-posts';
+import Link from 'next/link';
 import Mail from 'lucide-react/icons/mail';
 import Building from 'lucide-react/icons/building';
 import Briefcase from 'lucide-react/icons/briefcase';
@@ -41,6 +42,19 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
     year: 'numeric',
     month: 'short',
   });
+  const roleLabel = useMemo(() => {
+    if (position) return position;
+    const roleMap: Record<string, string> = {
+      community_admin: 'Community Admin',
+      moderator: 'Moderator',
+      member: 'Member',
+      pending: 'Pending Member',
+    };
+    if (profileUser?.role) {
+      return roleMap[profileUser.role] ?? profileUser.role.replace(/_/g, ' ');
+    }
+    return null;
+  }, [position, profileUser?.role]);
 
   const followMutation = useMutation({
     mutationFn: () => apiClient.post(`/api/v1/users/${profileUser.id}/follow`),
@@ -78,19 +92,21 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-8 p-4 sm:p-6 lg:p-8">
-      <Card className="overflow-hidden border-border/70 bg-background/90 shadow-md backdrop-blur">
+      <Card className="overflow-hidden border border-border/70 bg-card/90 shadow-lg backdrop-blur">
         <CardContent className="flex flex-col items-center gap-6 p-6 sm:p-8">
           <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-            <Avatar className="h-24 w-24 border-4 border-primary/60 shadow-[0_18px_45px_-24px_rgba(99,102,241,0.45)] sm:h-28 sm:w-28">
+            <Avatar className="h-24 w-24 border-4 border-primary/50 shadow-[0_18px_45px_-24px_rgba(99,102,241,0.45)] sm:h-28 sm:w-28">
               <AvatarImage src={getNullableStringValue(profileUser.profile_picture_url)} alt={displayName} />
               <AvatarFallback className="text-4xl sm:text-5xl">{displayInitial}</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <h1 className="text-3xl font-semibold text-foreground sm:text-4xl">{displayName}</h1>
-                <Badge variant="outline" className="rounded-full border-primary/40 bg-primary/10 text-xs uppercase tracking-[0.2em] text-primary">
-                  Member
-                </Badge>
+                {roleLabel && (
+                  <Badge variant="outline" className="rounded-full border-primary/40 bg-primary/10 text-xs uppercase tracking-[0.2em] text-primary">
+                    {roleLabel}
+                  </Badge>
+                )}
               </div>
               <p className="max-w-2xl text-sm text-muted-foreground">{bio}</p>
             </div>
@@ -98,18 +114,23 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
 
           <div className="grid w-full gap-4 sm:grid-cols-2">
             <ProfileInfo icon={Mail} label="Email" value={profileUser.email} />
-            <ProfileInfo icon={Briefcase} label="Role" value={position || 'Not specified'} />
+            <ProfileInfo icon={Briefcase} label="Role" value={roleLabel || 'Not specified'} />
             <ProfileInfo icon={Building} label="Company" value={company || 'Independent'} />
             <ProfileInfo icon={MapPin} label="Location" value={location || '—'} />
             <ProfileInfo icon={Calendar} label="Joined" value={joinedAt || '—'} />
             <ProfileInfo icon={Flame} label="Posts" value={String(posts.length)} />
           </div>
 
-          <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
             {isOwnProfile ? (
-              <Button variant="secondary" className="rounded-full px-6 shadow-sm">
-                Edit Profile
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button variant="secondary" asChild className="rounded-full px-6 shadow-sm">
+                  <Link href="/dashboard/settings">Edit profile</Link>
+                </Button>
+                <Button variant="outline" asChild className="rounded-full border-border/60 px-5">
+                  <Link href="/dashboard/settings/account">Account settings</Link>
+                </Button>
+              </div>
             ) : (
               <Button
                 onClick={handleFollow}
@@ -137,7 +158,7 @@ export default function ProfileClientPage({ profileUser, currentUser, posts, isF
 
 function ProfileInfo({ icon: Icon, label, value }: { icon: ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-border/50 bg-background/80 p-4 text-sm shadow-sm">
+    <div className="flex items-start gap-3 rounded-2xl border border-border/60 bg-card/80 p-4 text-sm shadow-sm">
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Icon className="h-4 w-4" />
       </div>
