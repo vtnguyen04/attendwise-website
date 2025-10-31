@@ -11,16 +11,19 @@ import { FeedItem, PaginatedResponse } from '@/lib/types';
 import { PostCard } from '@/components/community/feed/PostCard';
 import CreatePost from '@/components/community/shared/create-post-card';
 import { FeedSkeleton } from '@/components/skeletons/feed-skeleton';
+import { Button } from '@/components/ui/button';
+import Sparkles from 'lucide-react/icons/sparkles';
+import PenSquare from 'lucide-react/icons/pen-square';
+import { useRef } from 'react';
 
 interface FeedClientPageProps {
   initialFeed: PaginatedResponse<FeedItem>; // Changed from Post to FeedItem
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 export default function FeedClientPage({ initialFeed, searchParams }: FeedClientPageProps) {
   const { setUser } = useUser();
+  const composerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (searchParams?.user && searchParams?.token) {
@@ -66,33 +69,43 @@ export default function FeedClientPage({ initialFeed, searchParams }: FeedClient
   const feedItems = data?.pages.flatMap(page => page.data) ?? [];
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Home Feed</h1>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <section className="rounded-3xl border border-border/60 bg-background/85 px-6 py-7 shadow-sm backdrop-blur">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5" />
+              Global Updates
+            </div>
+            <h1 className="mt-2 text-3xl font-semibold text-foreground sm:text-4xl">Home Feed</h1>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Broadcast announcements and moments to everyone across the platform.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-sm"
+            onClick={() => {
+              composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              composerRef.current?.querySelector<HTMLButtonElement>('button[data-composer-trigger]')
+                ?.click();
+            }}
+          >
+            <PenSquare className="h-4 w-4" />
+            Start a post
+          </Button>
+        </div>
+      </section>
+
+      <section
+        id="global-feed-composer"
+        ref={composerRef}
+        className="overflow-hidden rounded-3xl border border-border/60 bg-background/85 shadow-sm backdrop-blur"
+      >
         <CreatePost />
-      </div>
-      <div className="flex justify-end items-center gap-4 mb-6">
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">Latest</SelectItem>
-            <SelectItem value="popular">Popular</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="posts">Posts</SelectItem>
-            <SelectItem value="events">Events</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-4 mt-4">
+      </section>
+
+      <div className="mt-2 space-y-4">
         {feedItems.map((item: FeedItem) => {
           if (item.type === 'post' && item.post) {
             return <PostCard key={item.post.id} post={item.post} />;

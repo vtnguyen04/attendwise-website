@@ -110,6 +110,7 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
                 toast({ title: 'Success', description: 'Your post is now live.' });
                 onPostCreated?.();
                 queryClient.invalidateQueries({ queryKey: ['feed'] });
+                queryClient.invalidateQueries({ queryKey: ['feed', 'global'] });
                 queryClient.invalidateQueries({ queryKey: ['posts', 'user', user.id] });
             } else {
                 toast({ title: 'Post Submitted', description: 'Your post is pending approval by an admin.' });
@@ -156,9 +157,10 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
                                 </p>
                             </div>
                         </div>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
+                            data-composer-trigger
                             className="flex-shrink-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8"
                         >
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

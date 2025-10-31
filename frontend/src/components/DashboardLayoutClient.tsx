@@ -7,7 +7,17 @@ import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Flame, Clock, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Flame,
+  Clock,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  PenSquare,
+  CalendarDays,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getMyEventsByStatus } from '@/lib/services/event.client.service';
 import { getFeed } from '@/lib/services/feed.client.service';
@@ -40,10 +50,10 @@ function HeaderLoadingSkeleton() {
   );
 }
 
-const quickShortcuts = [
-  { label: 'Create post', href: '/dashboard/communities/create' },
-  { label: 'Schedule event', href: '/dashboard/events/new' },
-  { label: 'Manage members', href: '/dashboard/communities' },
+const quickShortcuts: Array<{ label: string; href: string; icon: LucideIcon }> = [
+  { label: 'Start a post', href: '#global-feed-composer', icon: PenSquare },
+  { label: 'Browse events', href: '/dashboard/events', icon: CalendarDays },
+  { label: 'Explore communities', href: '/dashboard/communities', icon: Users },
 ];
 
 function FeedToolbar() {
@@ -220,13 +230,17 @@ function RightRail() {
           </h2>
           <nav className="mt-2 grid gap-2 text-sm">
             {quickShortcuts.map((shortcut) => (
-              <a
+              <Button
                 key={shortcut.label}
-                href={shortcut.href}
-                className="rounded-lg border border-border/50 bg-background/70 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                asChild
+                variant="ghost"
+                className="flex items-center justify-start gap-2 rounded-xl border border-transparent bg-background/60 px-3 py-2 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-background/80 hover:text-primary"
               >
-                {shortcut.label}
-              </a>
+                <a href={shortcut.href}>
+                  <shortcut.icon className="mr-2 inline-block h-4 w-4" />
+                  {shortcut.label}
+                </a>
+              </Button>
             ))}
           </nav>
         </section>
