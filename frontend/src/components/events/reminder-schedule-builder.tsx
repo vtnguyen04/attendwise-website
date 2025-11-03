@@ -6,10 +6,9 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card } from '@/components/ui/card';
 import { EventFormValues } from '@/lib/schemas/event-form.schema';
-import ControlledSelect from './controlled-select'; // Assuming this path is correct
 
 interface ReminderScheduleBuilderProps {
   // The 'name' prop is used by useFieldArray to locate the field in the form state.

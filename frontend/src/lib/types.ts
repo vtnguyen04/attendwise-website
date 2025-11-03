@@ -36,6 +36,8 @@ export interface User {
   email: string;
   phone: NullableString;
   profile_picture_url: NullableString;
+  image?: string;
+  picture?: string;
   company: NullableString;
   position: NullableString;
   bio: NullableString;
@@ -55,6 +57,41 @@ export interface User {
   updated_at: string; // ISO 8601 timestamp
   is_online?: boolean; // Optional: Client-side enriched property
   role?: 'community_admin' | 'moderator' | 'member' | 'pending'; // Added for community context
+}
+
+export interface UserExperience {
+  id: string;
+  user_id: string;
+  title: string;
+  company: string;
+  location: NullableString;
+  start_date: string;
+  end_date: NullableTime;
+  description: NullableString;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserEducation {
+  id: string;
+  user_id: string;
+  school: string;
+  degree: NullableString;
+  field_of_study: NullableString;
+  start_date: NullableTime;
+  end_date: NullableTime;
+  description: NullableString;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserSkill {
+  id: string;
+  user_id: string;
+  skill_name: string;
+  endorsement_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export type Community = {
@@ -116,7 +153,7 @@ export type AppEvent = {
   end_time: NullableTime;
   is_recurring: boolean;
   recurrence_pattern: NullableString;
-  recurrence_rule: Record<string, any> | null;
+  recurrence_rule: { rrule?: string } | null;
   recurrence_end_date: NullableTime;
   max_occurrences: NullableInt;
   max_attendees: NullableInt;
@@ -137,7 +174,7 @@ export type AppEvent = {
   fee: NullableFloat;
   currency: string;
   status: 'draft' | 'published' | 'cancelled';
-  reminder_schedule: Record<string, any> | null;
+  reminder_schedule: Record<string, unknown> | null;
   total_sessions: number;
   total_registrations: number;
   created_at: string;
@@ -176,7 +213,7 @@ export type EventSession = {
 export type Author = {
   id: string;
   name: string;
-  profile_picture_url: NullableString;
+  profile_picture_url?: NullableString;
 };
 
 export interface Attachment {
@@ -261,7 +298,7 @@ export type EventAttendee = {
   user_id: string;
   role: 'host' | 'attendee';
   status: 'registered' | 'pending' | 'cancelled' | 'attended' | 'no_show';
-  registration_form_data: Record<string, any> | null;
+  registration_form_data: Record<string, unknown> | null;
   registration_source: NullableString;
   payment_status: NullableString;
   payment_amount: NullableFloat;
@@ -334,7 +371,7 @@ export interface Message {
   content: string;
   message_type: 'text' | 'image' | 'file' | 'voice' | 'video';
   media_url: string | null;
-  file_metadata: Record<string, any> | null;
+  file_metadata: Record<string, unknown> | null;
   reply_to_message_id: NullableString;
   mentioned_user_ids: string[];
   is_edited: boolean;
@@ -343,6 +380,7 @@ export interface Message {
   deleted_at: string | null;
   sent_at: string;
   created_at: string;
+  updated_at: string;
   author?: Author;
 }
 
@@ -355,6 +393,13 @@ export interface Notification {
   link: NullableString;
   is_read: boolean;
   created_at: string;
+  related_user_id: NullableString;
+  related_post_id: NullableString;
+  related_comment_id: NullableString;
+  related_event_id: NullableString;
+  related_conversation_id: NullableString;
+  related_user_avatar: NullableString;
+  related_user_name: NullableString;
 }
 
 export type NotificationType =
@@ -364,7 +409,8 @@ export type NotificationType =
   | 'new_message'
   | 'registration_approved'
   | 'registration_pending'
-  | 'event_cancelled';
+  | 'event_cancelled'
+  | 'reaction';
 
 export interface NotificationChannelPreferences {
   enabled: boolean;

@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import BarChart3 from 'lucide-react/icons/bar-chart-3';
 import Building from 'lucide-react/icons/building';
@@ -7,51 +9,55 @@ import ScanFace from 'lucide-react/icons/scan-face';
 import Users from 'lucide-react/icons/users';
 import Image from 'next/image';
 
-const features = [
-  {
-    icon: CalendarDays,
-    title: 'Event Management',
-    description: 'Create, customize, and manage public or private events with ease. Set ticket prices, manage attendees, and track performance all in one place.',
-    image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxldmVudCUyMG1hbmFnZW1lbnR8ZW58MHx8fHwxNzU5ODk0Njc3fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'event management',
-  },
-  {
-    icon: QrCode,
-    title: 'QR Code Check-in',
-    description: 'Enable fast and seamless entry for your attendees. Generate unique QR codes for each participant and scan them at the door for instant verification.',
-    image: 'https://images.unsplash.com/photo-1593431107204-43c223a3e970?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxRUiUyMGNvZGUlMjBzY2FufGVufDB8fHx8MTc1OTg5NDc0N3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'QR code scan',
-  },
-  {
-    icon: ScanFace,
-    title: 'Face ID Verification (AI)',
-    description: 'Leverage the power of AI for secure, touchless check-in. Our system matches an attendee\'s live photo with their profile picture for robust identity verification.',
-    image: 'https://images.unsplash.com/photo-1614036128247-2349d9d3fe2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYWNpYWwlMjByZWNvZ25pdGlvbnxlbnwwfHx8fDE3NTk4OTQ4MDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'facial recognition',
-  },
-  {
-    icon: Building,
-    title: 'Community Management',
-    description: 'Build vibrant communities around your events or topics. Host discussions, share resources, and keep your members engaged before, during, and after events.',
-    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBlbmdhZ2VtZW50fGVufDB8fHx8MTc1OTg5NDg5MXww&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'community engagement',
-  },
-  {
-    icon: Users,
-    title: 'Live Event Interaction',
-    description: 'Engage your audience during live online events with integrated Chat, Q&A, and Polls. Create an interactive and dynamic virtual experience.',
-    image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsaXZlJTIwd2ViaW5hcnxlbnwwfHx8fDE3NTk4OTQ5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'live webinar',
-  },
-  {
-    icon: BarChart3,
-    title: 'Analytics Dashboard',
-    description: 'Gain valuable insights into your events. Track registrations, monitor check-in rates in real-time, and analyze attendee engagement to measure your success.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkYXNoYm9hcmQlMjBhbmFseXRpY3N8ZW58MHx8fHwxNzU5ODk1MDMxfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'dashboard analytics',
-  },
-];
+import { useTranslation } from '@/hooks/use-translation';
+
 export default function FeaturesPage() {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: CalendarDays,
+      title: t('features.event_management.title'),
+      description: t('features.event_management.description'),
+      image: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxldmVudCUyMG1hbmFnZW1lbnR8ZW58MHx8fHwxNzU5ODk0Njc3fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: 'event management',
+    },
+    {
+      icon: QrCode,
+      title: t('features.qr_checkin.title'),
+      description: t('features.qr_checkin.description'),
+      image: 'https://images.unsplash.com/photo-1593431107204-43c223a3e970?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxRUiUyMGNvZGUlMjBzY2FufGVufDB8fHx8MTc1OTg5NDc0N3ww&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: 'QR code scan',
+    },
+    {
+      icon: ScanFace,
+      title: t('features.face_id.title'),
+      description: t('features.face_id.description'),
+      image: 'https://images.unsplash.com/photo-1614036128247-2349d9d3fe2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYWNpYWwlMjByZWNvZ25pdGlvbnxlbnwwfHx8fDE3NTk4OTQ4MDV8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: 'facial recognition',
+    },
+    {
+      icon: Building,
+      title: t('features.community_management.title'),
+      description: t('features.community_management.description'),
+      image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBlbmdhZ2VtZW50fGVufDB8fHx8MTc1OTg5NDg5MXww&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: 'community engagement',
+    },
+    {
+      icon: Users,
+      title: t('features.live_interaction.title'),
+      description: t('features.live_interaction.description'),
+      image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsaXZlJTIwd2ViaW5hcnxlbnwwfHx8fDE3NTk4OTQ5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: 'live webinar',
+    },
+    {
+      icon: BarChart3,
+      title: t('features.analytics.title'),
+      description: t('features.analytics.description'),
+      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkYXNoYm9hcmQlMjBhbmFseXRpY3N8ZW58MHx8fHwxNzU5ODk1MDMxfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      imageHint: t('features.analytics.image_hint'),
+    },
+  ];
   return (
     <>
       {/* Hero Section - Giữ nguyên */}

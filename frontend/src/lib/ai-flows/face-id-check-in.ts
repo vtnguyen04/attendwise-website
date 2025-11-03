@@ -16,7 +16,6 @@ interface FaceIdCheckInResult {
 
 export async function faceIdCheckIn({
   livePhotoDataUri,
-  profilePhotoDataUri,
   eventId,
   userId,
   sessionId,
@@ -32,8 +31,12 @@ export async function faceIdCheckIn({
     } else {
       return { isMatch: false, confidence: 0, message: response.message || 'Face did not match.' };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error during face ID check-in:', error);
-    return { isMatch: false, confidence: 0, message: error.message || 'An error occurred during verification.' };
+    let message = 'An error occurred during verification.';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return { isMatch: false, confidence: 0, message };
   }
 }

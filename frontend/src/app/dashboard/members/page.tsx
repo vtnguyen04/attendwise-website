@@ -9,11 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Icons } from "@/components/ui/icons";
 import MemberDetailSidebar from "@/components/community/members/member-detail-sidebar";
 import CommunitySelector from "@/components/community/shared/community-selector";
-import MemberList from "@/components/member-list";
+import MemberList from '@/components/community/members/member-list';
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function CommunityMembersPage() {
   const { user } = useUser();
   const { toast } = useToast();
+  const { t } = useTranslation('community');
+  const { t: tCommon } = useTranslation('common');
   const [adminCommunities, setAdminCommunities] = useState<Community[]>([]);
   const [selectedCommunityId, setSelectedCommunityId] = useState<string | null>(
     null
@@ -27,17 +30,12 @@ export default function CommunityMembersPage() {
   const currentUserRoleForSelectedCommunity = useMemo(() => {
     if (!user || !selectedCommunityId) return undefined;
     const community = adminCommunities.find(comm => comm.id === selectedCommunityId);
-    console.log("DEBUG: Current User ID:", user.id);
-    console.log("DEBUG: Selected Community ID:", selectedCommunityId);
-    console.log("DEBUG: Admin Communities (filtered for selected):");
-    adminCommunities.filter(comm => comm.id === selectedCommunityId).forEach(comm => console.log(comm));
-    console.log("DEBUG: Current User Role for Selected Community:", community?.role);
     return community?.role;
   }, [user, selectedCommunityId, adminCommunities]);
 
   const fetchAdminCommunities = useCallback(async () => {
     try {
-      const response = await apiClient.get("/api/v1/my-communities");
+      const response = await apiClient.get("/my-communities");
       const communities = response.data.communities.filter(
         (comm: Community) => comm.role === "community_admin"
       );
@@ -46,20 +44,21 @@ export default function CommunityMembersPage() {
         setSelectedCommunityId(communities[0].id);
       }
     } catch (error) {
+      console.error("Failed to fetch admin communities:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch communities.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.fetch_communities_error'),
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, t, tCommon]);
 
   const fetchCommunityMembers = useCallback(async (communityId: string) => {
     try {
       const response = await apiClient.get(
-        `/api/v1/communities/${communityId}/members`
+        `/communities/${communityId}/members`
       );
       const membersWithRoles = (response.data.members || []).map((member: User) => ({
         ...member,
@@ -67,18 +66,19 @@ export default function CommunityMembersPage() {
       }));
       setActiveMembers(membersWithRoles);
     } catch (error) {
+      console.error("Failed to fetch community members:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch active members.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.fetch_members_error'),
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, t, tCommon]);
 
   const fetchPendingMembers = useCallback(async (communityId: string) => {
     try {
       const response = await apiClient.get(
-        `/api/v1/communities/${communityId}/members/pending`
+        `/communities/${communityId}/members/pending`
       );
       const membersWithRoles = (response.data.members || []).map((member: User) => ({
         ...member,
@@ -86,13 +86,14 @@ export default function CommunityMembersPage() {
       }));
       setPendingMembers(membersWithRoles);
     } catch (error) {
+      console.error("Failed to fetch pending members:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch pending members.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.fetch_pending_error'),
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, t, tCommon]);
 
   useEffect(() => {
     if (user) {
@@ -118,97 +119,101 @@ export default function CommunityMembersPage() {
     setIsUpdating(true);
     try {
       await apiClient.patch(
-        `/api/v1/communities/${selectedCommunityId}/members/${memberId}`,
+        `/communities/${selectedCommunityId}/members/${memberId}`,
         { role: newRole }
       );
-      toast({ title: "Success", description: "Member role updated." });
+      toast({ title: tCommon('toast.success'), description: t('members_manage.toast.update_role_success') });
       fetchCommunityMembers(selectedCommunityId); // Refresh list
       if (selectedMember && selectedMember.id === memberId) {
         setSelectedMember(prev => prev ? { ...prev, role: newRole } : null);
       }
     } catch (error) {
+      console.error("Failed to update member role:", error);
       toast({
-        title: "Error",
-        description: "Failed to update member role.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.update_role_error'),
         variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
     }
-  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers]);
+  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers, t, tCommon]);
 
   const handleRemoveMember = useCallback(async (memberId: string) => {
     if (!selectedCommunityId) return;
     setIsUpdating(true);
     try {
       await apiClient.delete(
-        `/api/v1/communities/${selectedCommunityId}/members/${memberId}`
+        `/communities/${selectedCommunityId}/members/${memberId}`
       );
-      toast({ title: "Success", description: "Member removed." });
+      toast({ title: tCommon('toast.success'), description: t('members_manage.toast.remove_success') });
       fetchCommunityMembers(selectedCommunityId); // Refresh list
       fetchPendingMembers(selectedCommunityId); // Also check pending if they were there
       if (selectedMember && selectedMember.id === memberId) {
         setSelectedMember(null); // Close sidebar if removed member was selected
       }
     } catch (error) {
+      console.error("Failed to remove member:", error);
       toast({
-        title: "Error",
-        description: "Failed to remove member.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.remove_error'),
         variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
     }
-  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers, fetchPendingMembers]);
+  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers, fetchPendingMembers, t, tCommon]);
 
   const handleApproveMember = useCallback(async (memberId: string) => {
     if (!selectedCommunityId) return;
     setIsUpdating(true);
     try {
       await apiClient.post(
-        `/api/v1/communities/${selectedCommunityId}/members/${memberId}/approve`
+        `/communities/${selectedCommunityId}/members/${memberId}/approve`
       );
-      toast({ title: "Success", description: "Member approved." });
+      toast({ title: tCommon('toast.success'), description: t('members_manage.toast.approve_success') });
       fetchPendingMembers(selectedCommunityId); // Refresh pending list
       fetchCommunityMembers(selectedCommunityId); // Refresh active list
       if (selectedMember && selectedMember.id === memberId) {
         setSelectedMember(null); // Close sidebar if approved member was selected (they move to active)
       }
     } catch (error) {
+      console.error("Failed to approve member:", error);
       toast({
-        title: "Error",
-        description: "Failed to approve member.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.approve_error'),
         variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
     }
-  }, [selectedCommunityId, selectedMember, toast, fetchPendingMembers, fetchCommunityMembers]);
+  }, [selectedCommunityId, selectedMember, toast, fetchPendingMembers, fetchCommunityMembers, t, tCommon]);
 
   const handleBanMember = useCallback(async (memberId: string) => {
     if (!selectedCommunityId) return; // Ban is a community-specific action in this context
     setIsUpdating(true);
     try {
       // For simplicity, a basic ban without reason/duration for now
-      await apiClient.post(`/api/v1/users/${memberId}/ban`, {}); 
-      toast({ title: "Success", description: "Member banned." });
+      await apiClient.post(`/users/${memberId}/ban`, {});
+      toast({ title: tCommon('toast.success'), description: t('members_manage.toast.ban_success') });
       // Refresh all lists to reflect ban status
       fetchCommunityMembers(selectedCommunityId);
       fetchPendingMembers(selectedCommunityId);
       if (selectedMember && selectedMember.id === memberId) {
         // Update selected member's ban status in sidebar
-        setSelectedMember(prev => prev ? { ...prev, is_banned: true, ban_reason: { String: "Banned by admin", Valid: true } } : null);
+        setSelectedMember(prev => prev ? { ...prev, is_banned: true, ban_reason: { String: t('members_manage.default_ban_reason'), Valid: true } } : null);
       }
     } catch (error) {
+      console.error("Failed to ban member:", error);
       toast({
-        title: "Error",
-        description: "Failed to ban member.",
+        title: tCommon('toast.error'),
+        description: t('members_manage.toast.ban_error'),
         variant: "destructive",
       });
     } finally {
       setIsUpdating(false);
     }
-  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers, fetchPendingMembers]);
+  }, [selectedCommunityId, selectedMember, toast, fetchCommunityMembers, fetchPendingMembers, t, tCommon]);
 
   const handleSelectMember = useCallback((member: User) => {
     setSelectedMember(member);
@@ -219,20 +224,20 @@ export default function CommunityMembersPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen">
-      <div className="flex-1 container mx-auto py-8 pr-4">
+    <div className="flex min-h-screen" data-primary-content>
+      <div className="flex-1 container mx-auto py-8 pr-4" data-scroll-anchor>
         <h1 className="text-3xl font-bold text-glow mb-6">
-          Community Member Management
+          {t('members_manage.page_title')}
         </h1>
 
         {isLoading ? (
           <GlassCard className="p-6 text-center">
-            <Icons.spinner className="mr-2 h-6 w-6 animate-spin inline-block" />{" "}
-            Loading communities...
+            <Icons.spinner className="mr-2 h-6 w-6 animate-spin inline-block" />{' '}
+            {t('members_manage.loading')}
           </GlassCard>
         ) : adminCommunities.length === 0 ? (
           <GlassCard className="p-6 text-center">
-            You don't administer any communities.
+            {t('members_manage.no_admin')}
           </GlassCard>
         ) : (
           <div className="space-y-8">
@@ -246,17 +251,18 @@ export default function CommunityMembersPage() {
             {selectedCommunityId && (
               <>
                 <MemberList
-                  title="Active Members"
+                  title={t('members_manage.active_title')}
                   members={activeMembers}
                   isUpdating={isUpdating}
                   onRoleChange={handleRoleChange}
                   onRemoveMember={handleRemoveMember}
                   onSelectMember={handleSelectMember}
                   currentUserId={user?.id}
+                  viewerRole={currentUserRoleForSelectedCommunity}
                 />
 
                 <MemberList
-                  title="Pending Join Requests"
+                  title={t('members_manage.pending_title')}
                   members={pendingMembers}
                   isUpdating={isUpdating}
                   onRemoveMember={handleRemoveMember}
@@ -264,6 +270,7 @@ export default function CommunityMembersPage() {
                   onSelectMember={handleSelectMember}
                   currentUserId={user?.id}
                   isPending={true}
+                  viewerRole={currentUserRoleForSelectedCommunity}
                 />
               </>
             )}

@@ -1,3 +1,5 @@
+// ./src/components/profile/user-posts-modal.tsx
+
 import React, { useState, useEffect, useCallback } from "react";
 import { User, Post, Comment } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -6,7 +8,6 @@ import { Icons } from "@/components/ui/icons";
 import { useToast } from "@/hooks/use-toast";
 import apiClient from "@/lib/api-client";
 import { GlassCard } from "@/components/ui/glass-card";
-import { getNullableStringValue } from "@/lib/utils";
 import Link from "next/link";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -37,7 +38,7 @@ export default function UserPostsModal({
   const [commentsVisibleState, setCommentsVisibleState] = useState<Map<string, boolean>>(new Map());
 
   const postsHasMoreRef = React.useRef(postsHasMore);
-  postsHasMoreRef.current = postsHasMore; // Keep ref updated
+  postsHasMoreRef.current = postsHasMore;
 
   const canManagePost = (post: Post) => {
     const isAuthor = post.author_id === currentUserId;
@@ -50,19 +51,19 @@ export default function UserPostsModal({
   };
 
   const fetchUserPostsInCommunity = useCallback(async (page: number) => {
-    if (!selectedCommunityId || !member.id || (!postsHasMoreRef.current && page > 1)) return; // Use ref for latest value
+    if (!selectedCommunityId || !member.id || (!postsHasMoreRef.current && page > 1)) return;
 
     setPostsLoading(true);
     try {
-      const limit = 5; // Posts per page
+      const limit = 5;
       const offset = (page - 1) * limit;
       const response = await apiClient.get(
-        `/api/v1/communities/${selectedCommunityId}/posts/user/${member.id}`,
+        `/communities/${selectedCommunityId}/posts/user/${member.id}`,
         { params: { limit, offset } }
       );
       setUserPosts(prev => page === 1 ? (response.data.posts || []) : [...prev, ...(response.data.posts || [])]);
       setPostsHasMore(response.data.posts.length === limit);
-    } catch (error) {
+    } catch { // ✅ Đã sửa: Xóa (error)
       toast({
         title: "Error",
         description: "Failed to fetch user posts.",
@@ -78,9 +79,9 @@ export default function UserPostsModal({
   const fetchCommentsForPost = useCallback(async (postId: string) => {
     setCommentsLoadingState(prev => new Map(prev).set(postId, true));
     try {
-      const response = await apiClient.get(`/api/v1/posts/${postId}/comments`);
+      const response = await apiClient.get(`/posts/${postId}/comments`);
       setPostComments(prev => new Map(prev).set(postId, response.data.comments || []));
-    } catch (error) {
+    } catch { // ✅ Đã sửa: Xóa (error)
       toast({
         title: "Error",
         description: `Failed to fetch comments for post ${postId}.`,
@@ -94,12 +95,12 @@ export default function UserPostsModal({
 
   useEffect(() => {
     if (isOpen) {
-      setUserPosts([]); // Clear posts on modal open
+      setUserPosts([]);
       setPostsPage(1);
       setPostsHasMore(true);
-      setPostComments(new Map()); // Clear comments
-      setCommentsLoadingState(new Map()); // Clear comments loading state
-      setCommentsVisibleState(new Map()); // Clear comments visibility state
+      setPostComments(new Map());
+      setCommentsLoadingState(new Map());
+      setCommentsVisibleState(new Map());
       fetchUserPostsInCommunity(1);
     }
   }, [isOpen, fetchUserPostsInCommunity]);
@@ -111,36 +112,35 @@ export default function UserPostsModal({
 
   const handleEditPost = (postId: string) => {
     toast({ title: "Info", description: `Edit post ${postId}` });
-    // Implement actual edit logic, e.g., open another modal or redirect
   };
 
   const handleDeletePost = async (postId: string) => {
     try {
-      await apiClient.delete(`/api/v1/posts/${postId}`);
+      await apiClient.delete(`/posts/${postId}`);
       toast({ title: "Success", description: "Post deleted." });
       setUserPosts(prev => prev.filter(post => post.id !== postId));
       setPostComments(prev => { const newMap = new Map(prev); newMap.delete(postId); return newMap; });
-    } catch (error) {
+    } catch { // ✅ Đã sửa: Xóa (error)
       toast({ title: "Error", description: "Failed to delete post.", variant: "destructive" });
     }
   };
 
   const handleApprovePost = async (postId: string) => {
     try {
-      await apiClient.post(`/api/v1/posts/${postId}/approve`);
+      await apiClient.post(`/posts/${postId}/approve`);
       toast({ title: "Success", description: "Post approved." });
       setUserPosts(prev => prev.map(post => post.id === postId ? { ...post, status: 'approved' } : post));
-    } catch (error) {
+    } catch { // ✅ Đã sửa: Xóa (error)
       toast({ title: "Error", description: "Failed to approve post.", variant: "destructive" });
     }
   };
 
   const handleRejectPost = async (postId: string) => {
     try {
-      await apiClient.post(`/api/v1/posts/${postId}/reject`);
+      await apiClient.post(`/posts/${postId}/reject`);
       toast({ title: "Success", description: "Post rejected." });
       setUserPosts(prev => prev.map(post => post.id === postId ? { ...post, status: 'rejected' } : post));
-    } catch (error) {
+    } catch { // ✅ Đã sửa: Xóa (error)
       toast({ title: "Error", description: "Failed to reject post.", variant: "destructive" });
     }
   };
@@ -178,14 +178,7 @@ export default function UserPostsModal({
               {userPosts.map(post => {
                 const canManage = canManagePost(post);
                 const canApproveReject = canApproveRejectPost();
-
-                console.log("DEBUG UserPostsModal: Post ID:", post.id);
-                console.log("DEBUG UserPostsModal: Post Author ID:", post.author_id);
-                console.log("DEBUG UserPostsModal: Current User ID:", currentUserId);
-                console.log("DEBUG UserPostsModal: Current User Role:", currentUserRole);
-                console.log("DEBUG UserPostsModal: Can Manage Post:", canManage);
-                console.log("DEBUG UserPostsModal: Can Approve/Reject Post:", canApproveReject);
-
+                
                 return (
                   <GlassCard key={post.id} className="p-4 liquid-glass-card">
                     <Link href={`/post/${post.id}`} className="block">
@@ -199,47 +192,46 @@ export default function UserPostsModal({
                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                       <span className="capitalize">Status: {post.status}</span>
                       {canApproveReject && post.status === 'pending' && (
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleApprovePost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
-                          Approve
-                        </Button>
-                      )}
-                      {canApproveReject && post.status === 'pending' && (
-                        <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); handleRejectPost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
-                          Reject
-                        </Button>
-                      )}
-                      {canManage && (
-                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleEditPost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
-                          Edit
-                        </Button>
+                        <>
+                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleApprovePost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
+                            Approve
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); handleRejectPost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
+                            Reject
+                          </Button>
+                        </>
                       )}
                       {canManage && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" disabled={postsLoading} className="liquid-glass-button">
-                              Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="dialog-glass">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete this post.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="liquid-glass-button">Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeletePost(post.id)}
-                                className="liquid-glass-button bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Confirm Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleEditPost(post.id); }} disabled={postsLoading} className="liquid-glass-button">
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" disabled={postsLoading} className="liquid-glass-button">
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="dialog-glass">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete this post.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="liquid-glass-button">Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeletePost(post.id)}
+                                  className="liquid-glass-button bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Confirm Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
                       )}
-
                       <Button variant="ghost" size="sm" onClick={() => toggleCommentsVisibility(post.id)} disabled={commentsLoadingState.get(post.id)} className="liquid-glass-button">
                         {commentsVisibleState.get(post.id) ? 'Hide Comments' : 'View Comments'}
                         {commentsLoadingState.get(post.id) && <Icons.spinner className="ml-2 h-3 w-3 animate-spin" />}

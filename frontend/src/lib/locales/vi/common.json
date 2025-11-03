@@ -1,8 +1,7 @@
 {
+  "common": {
     "dashboard": "Bảng điều khiển",
-    "analytics": "Phân tích",
     "classroom": "Lớp học",
-    "events": "Sự kiện",
     "calendar": "Lịch",
     "map": "Bản đồ",
     "leaderboards": "Bảng xếp hạng",
@@ -11,16 +10,9 @@
     "all": "Tất cả",
     "admin": "Quản trị",
     "member": "Thành viên",
-    "all_events": "Tất cả sự kiện",
-    "upcoming": "Sắp diễn ra",
-    "ongoing": "Đang diễn ra",
-    "attending_live": "Đang tham gia",
-    "completed": "Đã kết thúc",
     "overview": "Tổng quan",
     "discussion": "Thảo luận",
     "share": "Chia sẻ",
-    "about_this_event": "Về sự kiện này",
-    "sessions": "Các phiên",
     "create_a_post": "Tạo bài đăng",
     "ask_a_question_or_share_something": "Đặt câu hỏi hoặc chia sẻ điều gì đó...",
     "post": "Đăng",
@@ -32,25 +24,131 @@
     "send": "Gửi",
     "no_discussions_yet": "Chưa có thảo luận nào",
     "be_the_first_to_share": "Hãy là người đầu tiên đặt câu hỏi hoặc chia sẻ suy nghĩ của bạn!",
-    "share_event": "Chia sẻ sự kiện",
-    "share_event_description": "Chia sẻ sự kiện này với người khác bằng mã QR hoặc liên kết bên dưới.",
-    "or_copy_link": "Hoặc sao chép liên kết",
     "loading": "Đang tải...",
     "hosted_by": "Tổ chức bởi",
     "checked_in": "Đã điểm danh",
     "register_now": "Đăng ký ngay",
     "you_are_registered": "Bạn đã đăng ký",
     "check_in_to_join": "Điểm danh để tham gia",
-    "join_event": "Tham gia sự kiện",
-    "start_event": "Bắt đầu sự kiện",
-    "registration_closed": "Đã đóng đăng ký",
-    "view_resources": "Xem tài nguyên",
     "view": "Xem",
     "edit": "Chỉnh sửa",
     "delete": "Xóa",
-    "common.optional": "Không bắt buộc",
-    "toast.success": "Thành công",
-    "toast.error": "Lỗi",
+    "optional": "Không bắt buộc",
+    "close": "Đóng",
     "load_more": "Tải thêm",
-    "unknown_date": "Ngày không xác định"
+    "unknown_date": "Ngày không xác định",
+    "not_found_title": "Không tìm thấy trang",
+    "not_found_description": "Trang bạn đang tìm kiếm không tồn tại.",
+    "go_back_home": "Quay về trang chủ",
+    "dialog": {
+      "close": "Đóng"
+    },
+    "password": {
+      "hide": "Ẩn mật khẩu",
+      "show": "Hiện mật khẩu"
+    },
+    "social": {
+      "auth": {
+        "separator": "Hoặc tiếp tục với"
+      }
+    },
+    "language": {
+      "toggle": "Chuyển đổi ngôn ngữ",
+      "english": "Tiếng Anh",
+      "vietnamese": "Tiếng Việt"
+    },
+    "home": "Trang chủ",
+    "members": "Thành viên",
+    "messages": "Tin nhắn",
+    "app": {
+      "tagline": "Nền tảng sự kiện"
+    },
+    "plan": {
+      "pro": "Gói Pro",
+      "pro_description": "Sự kiện & tính năng không giới hạn"
+    },
+    "dashboard_title": "Bảng điều khiển",
+    "theme": {
+      "toggle": "Chuyển đổi giao diện"
+    },
+    "feed": {
+      "posts": "Bài viết",
+      "events": "Sự kiện",
+      "communities": "Cộng đồng",
+      "best": "Tốt nhất",
+      "new": "Mới nhất",
+      "top": "Hàng đầu"
+    },
+    "header": {
+      "create": "Tạo mới"
+    },
+    "toast": {
+      "success": "Thành công",
+      "error": "Lỗi"
+    },
+    "footer": {
+      "tagline": "Cách thông minh nhất để quản lý sự kiện, check-in và xây dựng cộng đồng phát triển.",
+      "product": {
+        "features": "Tính năng",
+        "pricing": "Giá",
+        "use_cases": "Trường hợp sử dụng",
+        "integrations": "Tích hợp"
+      },
+      "company": {
+        "about": "Về chúng tôi",
+        "blog": "Blog",
+        "careers": "Tuyển dụng",
+        "contact": "Liên hệ"
+      },
+      "resources": {
+        "documentation": "Tài liệu",
+        "help_center": "Trung tâm trợ giúp",
+        "community": "Cộng đồng",
+        "api_reference": "Tham chiếu API"
+      },
+      "legal": {
+        "privacy": "Quyền riêng tư",
+        "terms": "Điều khoản",
+        "security": "Bảo mật",
+        "cookies": "Cookie"
+      },
+      "social": {
+        "twitter": "Twitter",
+        "github": "GitHub",
+        "linkedin": "LinkedIn",
+        "email": "Email"
+      },
+      "copyright_prefix": "AttendWise, Inc. Được tạo bằng",
+      "copyright_suffix": "tại Việt Nam",
+      "privacy_policy": "Chính sách quyền riêng tư",
+      "terms_of_service": "Điều khoản dịch vụ",
+      "cookie_policy": "Chính sách Cookie"
+    },
+    "search": {
+      "placeholder": {
+        "default": "Tìm kiếm..."
+      }
+    },
+    "sidebar": {
+      "mood": "Truyền cảm hứng và xây dựng cộng đồng chuyên nghiệp",
+      "quick_actions": "Thao tác nhanh",
+      "menu": "Menu",
+      "browse": "Khám phá",
+      "communities_nav": "Cộng đồng",
+      "create_community_short": "Tạo",
+      "main_navigation": "Điều hướng chính",
+      "actions": {
+        "community": "Tạo cộng đồng",
+        "community_hint": "Khởi tạo không gian mới chỉ trong vài giây.",
+        "event": "Lên lịch sự kiện",
+        "event_hint": "Tổ chức buổi gặp gỡ hoặc buổi học."
+      },
+      "toggle_collapse": "Thu gọn sidebar",
+      "toggle_expand": "Mở rộng sidebar",
+      "joined_heading": "Cộng đồng đã tham gia",
+      "members_count": "{count} thành viên",
+      "joined_empty": "Bạn chưa tham gia cộng đồng nào.",
+      "joined_subtitle": "Tạo, quản lý và truy cập nhanh cộng đồng yêu thích"
+    }
+  }
 }

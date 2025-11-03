@@ -11,8 +11,14 @@ export function useNotifications(limit: number = 10, offset: number = 0) {
   return useQuery<Notification[]>({ 
     queryKey: ['notifications', limit, offset],
     queryFn: async () => {
-      const response = await NotificationService.getNotifications(limit, offset);
-      return response.notifications;
+      try {
+        const response = await NotificationService.getNotifications(limit, offset);
+        return response.notifications;
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        // Ném lại lỗi để React Query có thể xử lý và đưa vào trạng thái `isError`
+        throw error;
+      }
     },
   });
 }
@@ -27,6 +33,8 @@ export function useMarkNotificationAsRead() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error: Error) => {
+      // Best practice: Log lỗi chi tiết để debug
+      console.error("Failed to mark notification as read:", error);
       toast({
         title: 'Error',
         description: `Failed to mark notification as read: ${error.message}`,
@@ -46,6 +54,8 @@ export function useMarkAllNotificationsAsRead() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error: Error) => {
+      // Best practice: Log lỗi chi tiết để debug
+      console.error("Failed to mark all notifications as read:", error);
       toast({
         title: 'Error',
         description: `Failed to mark all notifications as read: ${error.message}`,
@@ -75,6 +85,8 @@ export function useUpdateNotificationPreferences() {
       toast({ title: 'Success', description: 'Notification preferences updated.' });
     },
     onError: (error: Error) => {
+      // Best practice: Log lỗi chi tiết để debug
+      console.error("Failed to update notification preferences:", error);
       toast({
         title: 'Error',
         description: `Failed to update preferences: ${error.message}`,

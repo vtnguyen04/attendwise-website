@@ -1,6 +1,6 @@
 
 import apiClient from '@/lib/api-client';
-import type { User, NullableString, NullableTime } from '@/lib/types';
+import type { User } from '@/lib/types';
 
 // =================================================================================
 // User Profile & Actions
@@ -15,9 +15,9 @@ import type { User, NullableString, NullableTime } from '@/lib/types';
 export async function getUserById(userId: string): Promise<User | null> {
   if (!userId) return null;
   try {
-    const response = await apiClient.get(`/api/v1/users/${userId}`);
+    const response = await apiClient.get(`/users/${userId}`);
     return response.data.user;
-  } catch (error) {
+  } catch {
     // console.error(`Failed to fetch user ${userId}:`, error);
     return null;
   }
@@ -29,7 +29,7 @@ export async function getUserById(userId: string): Promise<User | null> {
  * @returns The updated user object.
  */
 export async function updateUserProfile(data: Partial<User>): Promise<User> {
-  const response = await apiClient.patch(`/api/v1/users/me`, data);
+  const response = await apiClient.patch(`/users/me`, data);
   return response.data.user;
 }
 
@@ -37,28 +37,28 @@ export async function updateUserProfile(data: Partial<User>): Promise<User> {
  * Allows the authenticated user to change their password.
  */
 export async function changePassword(payload: { old_password: string; new_password: string }): Promise<void> {
-  await apiClient.post('/api/v1/users/change-password', payload);
+  await apiClient.post('/users/change-password', payload);
 }
 
 /**
  * Creates a follow relationship from the authenticated user to another user.
  */
 export async function followUser(userId: string): Promise<void> {
-  await apiClient.post(`/api/v1/users/${userId}/follow`);
+  await apiClient.post(`/users/${userId}/follow`);
 }
 
 /**
  * Removes a follow relationship.
  */
 export async function unfollowUser(userId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/users/${userId}/follow`);
+  await apiClient.delete(`/users/${userId}/follow`);
 }
 
 /**
  * Retrieves a list of suggested users to follow.
  */
 export async function getUserSuggestions(): Promise<User[]> {
-  const response = await apiClient.get<{ suggestions: User[] }>('/api/v1/users/suggestions');
+  const response = await apiClient.get<{ suggestions: User[] }>('/users/suggestions');
   return response.data.suggestions || [];
 }
 
@@ -75,7 +75,7 @@ interface BanUserPayload {
  * Bans a specific user. Requires administrative privileges.
  */
 export async function banUser(userId: string, payload: BanUserPayload): Promise<void> {
-  await apiClient.post(`/api/v1/users/${userId}/ban`, payload);
+  await apiClient.post(`/users/${userId}/ban`, payload);
 }
 
 // =================================================================================
@@ -104,7 +104,7 @@ interface SubmitLivenessFrameResponse {
  * Starts a liveness session and returns a session ID and a list of challenges.
  */
 export async function getLivenessChallenges(): Promise<LivenessChallengeResponse> {
-  const response = await apiClient.get<LivenessChallengeResponse>('/api/v1/users/enroll-challenge');
+  const response = await apiClient.get<LivenessChallengeResponse>('/users/enroll-challenge');
   return response.data;
 }
 
@@ -112,6 +112,6 @@ export async function getLivenessChallenges(): Promise<LivenessChallengeResponse
  * Submits a single frame for a liveness challenge.
  */
 export async function submitLivenessFrame(payload: SubmitLivenessFramePayload): Promise<SubmitLivenessFrameResponse> {
-  const response = await apiClient.post<SubmitLivenessFrameResponse>('/api/v1/users/me/enroll-face', payload);
+  const response = await apiClient.post<SubmitLivenessFrameResponse>('/users/me/enroll-face', payload);
   return response.data;
 }

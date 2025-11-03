@@ -7,6 +7,9 @@ import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Icons } from '@/components/ui/icons';
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getSafeImageUrl } from '@/lib/utils';
+
 interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
@@ -23,6 +26,39 @@ const NotificationIcon = ({ type }: { type: string }) => {
     
     return <Icon className="h-5 w-5 text-primary" />;
 }
+
+const renderContent = (notification: Notification) => {
+  switch (notification.type) {
+    case 'new_message':
+      return (
+        <div className="flex items-start gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={getSafeImageUrl(notification.related_user_avatar)} />
+            <AvatarFallback>{notification.related_user_name?.String?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm font-medium text-foreground">{notification.title}</p>
+            <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
+          </div>
+        </div>
+      );
+    case 'new_comment':
+    case 'reaction':
+      return (
+        <div>
+          <p className="text-sm font-medium text-foreground">{notification.title}</p>
+          <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
+        </div>
+      );
+    default:
+      return (
+        <div>
+          <p className="text-sm font-medium text-foreground">{notification.title}</p>
+          <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: notification.message }} />
+        </div>
+      );
+  }
+};
 
 export function NotificationItem({ notification, onClick, className }: NotificationItemProps) {
   return (
@@ -43,7 +79,7 @@ export function NotificationItem({ notification, onClick, className }: Notificat
         <NotificationIcon type={notification.type} />
       </div>
       <div className="flex-1">
-        <p className="text-sm font-medium text-foreground" dangerouslySetInnerHTML={{ __html: notification.message }} />
+        {renderContent(notification)}
         <p className="text-xs text-muted-foreground mt-1">
           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
         </p>

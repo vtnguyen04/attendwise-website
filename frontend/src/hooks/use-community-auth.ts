@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/lib/api-client';
 import type { Community, PaginatedResponse, User } from '@/lib/types';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
+import { useTranslation } from '@/hooks/use-translation';
 
 export type CommunityAction = 'VIEW' | 'MANAGE' | 'JOIN' | 'REQUEST_TO_JOIN' | 'PENDING' | 'LOGIN_TO_JOIN' | 'HIDDEN' | 'LEAVE';
 
 // Helper function to perform optimistic updates on community queries
-const updateCommunityInQueries = (queryClient: any, communityId: string, updateFn: (community: Community) => Community) => {
+const updateCommunityInQueries = (queryClient: QueryClient, communityId: string, updateFn: (community: Community) => Community) => {
   const queryKeys = [
     ['communities', 'browse'],
     ['communities', 'search'],
@@ -18,14 +19,14 @@ const updateCommunityInQueries = (queryClient: any, communityId: string, updateF
   ];
 
   queryKeys.forEach(queryKey => {
-    queryClient.setQueryData(queryKey, (oldData: any) => {
+    queryClient.setQueryData(queryKey, (oldData: PaginatedResponse<Community> | Community[] | undefined) => {
       if (!oldData) return oldData;
 
       // Handle paginated data (useInfiniteQuery)
-      if (oldData.pages) {
+      if ('pages' in oldData) {
         return {
           ...oldData,
-          pages: oldData.pages.map((page: any) => ({
+          pages: (oldData as { pages: { communities: Community[] }[] }).pages.map((page: { communities: Community[] }) => ({
             ...page,
             communities: page.communities.map((community: Community) => 
               community.id === communityId ? updateFn(community) : community
@@ -50,9 +51,10 @@ const updateCommunityInQueries = (queryClient: any, communityId: string, updateF
 const useJoinCommunity = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation('community');
 
   return useMutation({
-    mutationFn: (community: Community) => apiClient.post(`/api/v1/communities/${community.id}/members`),
+    mutationFn: (community: Community) => apiClient.post(`/communities/${community.id}/members`),
     onMutate: async (community) => {
       await queryClient.cancelQueries({ queryKey: ['communities'] });
       await queryClient.cancelQueries({ queryKey: ['community_suggestions'] });
@@ -71,9 +73,9 @@ const useJoinCommunity = () => {
     },
     onSuccess: (data, community) => {
         const successMessage = community.type === 'private'
-          ? 'Your request to join has been sent.'
-          : 'You have successfully joined the community.';
-        toast({ title: 'Success', description: successMessage });
+          ? t('toast.join_request_sent')
+          : t('toast.join_success');
+        toast({ title: t('toast.success'), description: successMessage });
         
         // Manually update the community in the cache
         if (data.data.community) {
@@ -83,12 +85,11 @@ const useJoinCommunity = () => {
             }));
         }
 
-        // Invalidate queries on success to refetch data
-        queryClient.invalidateQueries({ queryKey: ['communities'] });
-        queryClient.invalidateQueries({ queryKey: ['community_suggestions'] });
+        // Mark related queries as stale without forcing an immediate refetch to avoid layout jumps
+        queryClient.invalidateQueries({ queryKey: ['community_suggestions'], refetchType: 'inactive' });
     },
     onError: (err, variables, context) => {
-      toast({ title: 'Error', description: 'Failed to join community.', variant: 'destructive' });
+      toast({ title: t('toast.error'), description: t('toast.join_fail'), variant: 'destructive' });
       // Rollback
       if (context) {
         updateCommunityInQueries(queryClient, context.communityId, (c) => ({
@@ -99,9 +100,10 @@ const useJoinCommunity = () => {
         }));
       }
     },
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['communities', variables.id] });
-    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['communities', 'browse'], refetchType: 'inactive' });
+      queryClient.invalidateQueries({ queryKey: ['communities', 'search'], refetchType: 'inactive' });
+    }
   });
 };
 
@@ -109,9 +111,10 @@ const useJoinCommunity = () => {
 const useLeaveCommunity = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation('community');
 
   return useMutation({
-    mutationFn: (communityId: string) => apiClient.delete(`/api/v1/communities/${communityId}/members/me`),
+    mutationFn: (communityId: string) => apiClient.delete(`/communities/${communityId}/members/me`),
     onMutate: async (communityId) => {
       await queryClient.cancelQueries({ queryKey: ['communities'] });
       await queryClient.cancelQueries({ queryKey: ['community_suggestions'] });
@@ -125,16 +128,12 @@ const useLeaveCommunity = () => {
 
       return { communityId };
     },
-    onSuccess: (data, communityId) => {
-        toast({ title: 'Success', description: 'You have left the community.' });
-        // Invalidate queries on success to refetch data
-        queryClient.invalidateQueries({ queryKey: ['communities', 'browse'] });
-        queryClient.invalidateQueries({ queryKey: ['communities', 'search'] });
-        queryClient.invalidateQueries({ queryKey: ['community_suggestions'] });
-        queryClient.invalidateQueries({ queryKey: ['communities', communityId] });
+    onSuccess: () => {
+        toast({ title: t('toast.success'), description: t('toast.leave_success') });
+        queryClient.invalidateQueries({ queryKey: ['community_suggestions'], refetchType: 'inactive' });
     },
     onError: (err, variables, context) => {
-      toast({ title: 'Error', description: 'Failed to leave community.', variant: 'destructive' });
+      toast({ title: t('toast.error'), description: t('toast.leave_fail'), variant: 'destructive' });
       // Rollback
       updateCommunityInQueries(queryClient, context!.communityId, (c) => ({
         ...c,
@@ -143,11 +142,10 @@ const useLeaveCommunity = () => {
         member_count: c.member_count + 1,
       }));
     },
-    onSettled: (data, error, communityId) => {
-      queryClient.invalidateQueries({ queryKey: ['communities', 'browse'] });
-      queryClient.invalidateQueries({ queryKey: ['communities', 'search'] });
-      queryClient.invalidateQueries({ queryKey: ['community_suggestions'] });
-    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['communities', 'browse'], refetchType: 'inactive' });
+      queryClient.invalidateQueries({ queryKey: ['communities', 'search'], refetchType: 'inactive' });
+    }
   });
 };
 
@@ -161,6 +159,7 @@ export function useCommunityAuth({ community, currentUser }: UseCommunityAuthPro
   const router = useRouter();
   const joinMutation = useJoinCommunity();
   const leaveMutation = useLeaveCommunity();
+  const { t } = useTranslation('community');
 
   const handleAction = () => {
     if (!community) return;
@@ -180,11 +179,9 @@ export function useCommunityAuth({ community, currentUser }: UseCommunityAuthPro
     if (!community) {
       return {
         isMember: false, isAdmin: false, isPending: false, canViewContent: false,
-        action: 'VIEW' as CommunityAction, actionLabel: 'Loading...',
+        action: 'VIEW' as CommunityAction, actionLabel: t('action.loading'),
       };
     }
-
-    console.log('Community object in useCommunityAuth:', JSON.stringify(community, null, 2));
 
     const role = community.role;
     const status = community.status;
@@ -195,29 +192,29 @@ export function useCommunityAuth({ community, currentUser }: UseCommunityAuthPro
     const canViewContent = isMember || isAdmin || community.type === 'public';
 
     let action: CommunityAction = 'VIEW';
-    let actionLabel = 'View';
+    let actionLabel = t('action.view');
 
     if (!currentUser) {
       action = 'LOGIN_TO_JOIN';
-      actionLabel = 'Login to Join';
+      actionLabel = t('action.login_to_join');
     } else if (isAdmin) {
       action = 'MANAGE';
-      actionLabel = 'Manage';
+      actionLabel = t('action.manage');
     } else if (isMember) {
       action = 'LEAVE';
-      actionLabel = 'Leave';
+      actionLabel = t('action.leave');
     } else if (isPending) {
       action = 'PENDING';
-      actionLabel = 'Request Sent';
+      actionLabel = t('action.request_sent');
     } else {
       switch (community.type) {
         case 'public':
           action = 'JOIN';
-          actionLabel = 'Join';
+          actionLabel = t('action.join');
           break;
         case 'private':
           action = 'REQUEST_TO_JOIN';
-          actionLabel = 'Request to Join';
+          actionLabel = t('action.request_to_join');
           break;
         case 'secret':
         default:
@@ -227,8 +224,8 @@ export function useCommunityAuth({ community, currentUser }: UseCommunityAuthPro
       }
     }
 
-    return { isMember, isAdmin, isPending, canViewContent, action, actionLabel };
-  }, [community, currentUser]);
+    return { isMember, isAdmin, isPending, canViewContent, action, actionLabel, viewerRole: role };
+  }, [community, currentUser, t]);
 
   return {
     ...authState,

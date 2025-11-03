@@ -35,12 +35,14 @@ export function InviteMemberModal({ communityId, open, onOpenChange }: InviteMem
     setIsLoading(true);
     try {
       // NOTE: Assuming this API endpoint exists for sending invitations.
-      await apiClient.post(`/api/v1/communities/${communityId}/invites`, { email });
+      await apiClient.post(`/communities/${communityId}/invites`, { email });
       toast({ title: 'Success', description: `Invitation sent to ${email}.` });
       onOpenChange(false); // Close modal on success
       setEmail('');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to send invitation.';
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } }).response?.data?.error ||
+        'Failed to send invitation.';
       toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoading(false);

@@ -11,10 +11,12 @@ export default async function CommunityDetailLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   const [community, currentUser] = await Promise.all([
-    getCommunityById(params.id),
+    getCommunityById(id),
     getCurrentUser(),
   ]);
 

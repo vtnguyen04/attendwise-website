@@ -1,17 +1,20 @@
-
 // components/events/event-grid.tsx
+'use client';
+
 import Link from 'next/link';
 import { PlusCircle, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EventListCard from './event-list-card'; // Assuming this component exists
 import { DisplayEvent } from '@/lib/adapters/event-list.adapter';
+import { useTranslation } from '@/hooks/use-translation';
 
 const EmptyState = ({ status }: { status: string }) => {
+  const { t } = useTranslation('events');
   const messages = {
-    upcoming: { title: "No Upcoming Events", description: "Check back later or create a new event!" },
-    ongoing: { title: "No Ongoing Events", description: "There are no events currently in progress." },
-    attending: { title: "You are not attending any events", description: "Register for an event to see it here." },
-    past: { title: "No Past Events", description: "You have no past events to display." },
+    upcoming: { title: t('empty.upcoming.title'), description: t('empty.upcoming.description') },
+    ongoing: { title: t('empty.ongoing.title'), description: t('empty.ongoing.description') },
+    attending: { title: t('empty.attending.title'), description: t('empty.attending.description') },
+    past: { title: t('empty.past.title'), description: t('empty.past.description') },
   };
   const { title, description } = messages[status as keyof typeof messages] || messages.upcoming;
 
@@ -23,7 +26,7 @@ const EmptyState = ({ status }: { status: string }) => {
       <Button asChild className="glass-button px-5 py-2 text-sm font-semibold uppercase tracking-wide">
         <Link href="/dashboard/events/create">
           <PlusCircle className="mr-2 h-5 w-5" />
-          Create New Event
+          {t('empty.create_new_event')}
         </Link>
       </Button>
     </div>

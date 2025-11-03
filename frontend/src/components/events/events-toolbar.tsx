@@ -9,19 +9,21 @@ import { useDebounce } from 'use-debounce';
 
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const TABS = [
-  { value: 'upcoming', label: 'Upcoming' },
-  { value: 'ongoing', label: 'Ongoing' },
-  { value: 'attending', label: 'Attending' },
-  { value: 'past', label: 'Past' },
-];
+import { useTranslation } from '@/hooks/use-translation';
 
 export function EventsToolbar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const { t } = useTranslation('events');
+
+  const TABS = [
+    { value: 'upcoming', label: t('toolbar.upcoming') },
+    { value: 'ongoing', label: t('toolbar.ongoing') },
+    { value: 'attending', label: t('toolbar.attending') },
+    { value: 'past', label: t('toolbar.past') },
+  ];
 
   const currentStatus = searchParams.get('status') || 'upcoming';
   const currentSearchTerm = searchParams.get('q') || '';
@@ -60,7 +62,7 @@ export function EventsToolbar() {
       <div className="relative flex-1">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground/80 transition-opacity duration-300" />
         <Input
-          placeholder="Search your events by name..."
+          placeholder={t('toolbar.search_placeholder')}
           className="h-12 liquid-glass-input pl-12 text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

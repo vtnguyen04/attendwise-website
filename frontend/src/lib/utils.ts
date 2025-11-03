@@ -2,8 +2,15 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import { NullableString, NullableBoolean, NullableFloat, NullableInt  } from '@/lib/types';
+import { formatInTimeZone } from 'date-fns-tz';
 
-export function getNullableStringValue(nullableString: NullableString | undefined | null, defaultValue: string = ''): string {
+export function getNullableStringValue(
+  nullableString: NullableString | string | undefined | null,
+  defaultValue: string = ''
+): string {
+  if (typeof nullableString === 'string') {
+    return nullableString || defaultValue;
+  }
   if (nullableString && nullableString.Valid) {
     return nullableString.String;
   }
@@ -46,6 +53,19 @@ export function parseUtcTime(timeStr: string | undefined): Date | undefined {
   }
   return new Date(localDate.toISOString()); // Convert local date to UTC string and then to Date object
 }
+
+export function formatInTimezone(
+  dateInput: Date | string | undefined | null,
+  timezone: string,
+  formatStr: string
+): string {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return formatInTimeZone(date, timezone, formatStr);
+}
 /** 
  * Extracts the integer value from a Go backend NullableInt.
  * Returns the number if Valid is true, otherwise returns undefined.
@@ -81,7 +101,7 @@ export const getAbsoluteUrl = (path: string | null | undefined): string => {
     return path;
   }
   // Use NEXT_PUBLIC_ASSET_URL for a more generic name
-  const baseUrl = process.env.NEXT_PUBLIC_ASSET_URL || 'http://localhost:9000';
+  const baseUrl = process.env.NEXT_PUBLIC_ASSET_URL;
   return `${baseUrl}${path}`;
 };
 
@@ -97,4 +117,11 @@ export const getSafeImageUrl = (urlSource: NullableString | string | null | unde
   
   // If we have a valid path, convert it to an absolute URL
   return path ? getAbsoluteUrl(path) : '';
+};
+
+export const getAccessToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('accessToken');
+  }
+  return null;
 };

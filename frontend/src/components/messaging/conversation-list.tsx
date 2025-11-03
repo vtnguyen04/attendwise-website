@@ -2,7 +2,7 @@
 // conversation-list.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getConversations } from '@/lib/services/messaging.service';
 import type { Conversation } from '@/lib/types';
@@ -13,21 +13,44 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Pencil, Search } from 'lucide-react';
 import { NewConversationDialog } from './new-conversation-dialog';
-import { useUser } from '@/context/user-provider';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { getNullableStringValue } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
+import { useUser } from '@/context/user-provider';
+import Link from 'next/link';
+import { useChatWebSocket } from "@/hooks/use-chat-websocket";
 
-const ConversationListItem = ({ 
-  conversation, 
-  isSelected, 
-  onSelect 
-}: { 
+interface ConversationListItemProps {
   conversation: Conversation;
   isSelected: boolean;
   onSelect: () => void;
-}) => {
-  const displayName = conversation.name || 'Conversation';
+  onlineUsers: { [userId: string]: boolean };
+}
+
+const ConversationListItem = ({
+  conversation,
+  isSelected,
+  onSelect,
+  onlineUsers
+}: ConversationListItemProps) => {
+  const { t } = useTranslation('messenger');
+  const { user: currentUser } = useUser();
+
+  console.log("ConversationListItem - conversation:", conversation);
+  console.log("ConversationListItem - conversation.participants:", conversation.participants);
+  console.log("ConversationListItem - currentUser:", currentUser);
+  console.log("ConversationListItem - onlineUsers:", onlineUsers);
+
+  const otherParticipant = conversation.participants?.find(
+    (p) => p.user_id !== currentUser?.id
+  );
+  const otherUserId = otherParticipant?.user_id || "";
+
+  console.log("ConversationListItem - otherParticipant:", otherParticipant);
+  console.log("ConversationListItem - otherUserId:", otherUserId);
+
+  const displayName = conversation.name || t('conversation');
   const displayAvatar = getNullableStringValue(conversation.avatar_url, `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`);
 
   return (
@@ -41,12 +64,31 @@ const ConversationListItem = ({
       whileTap={{ scale: 0.98 }}
     >
       <div className="relative">
-        <Avatar className="h-10 w-10 border-2 border-border/50">
-          <AvatarImage src={displayAvatar} alt={displayName} />
-          <AvatarFallback className="text-xs font-medium bg-muted/50">
-            {displayName.charAt(0)}
-          </AvatarFallback>
-        </Avatar>
+        {conversation.type === "direct" && otherUserId ? (
+          <Link href={`/dashboard/profile/${otherUserId}`} onClick={(e) => e.stopPropagation()}>
+            <Avatar className="h-10 w-10 border-2 border-border/50">
+              <AvatarImage src={displayAvatar} alt={displayName} />
+              <AvatarFallback className="text-xs font-medium bg-muted/50">
+                {displayName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            {onlineUsers[otherUserId] && (
+              <div
+                className={cn(
+                  "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background",
+                  "bg-emerald-500"
+                )}
+              />
+            )}
+          </Link>
+        ) : (
+          <Avatar className="h-10 w-10 border-2 border-border/50">
+            <AvatarImage src={displayAvatar} alt={displayName} />
+            <AvatarFallback className="text-xs font-medium bg-muted/50">
+              {displayName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+        )}
         {conversation.unread_count > 0 && (
           <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-bold bg-primary text-primary-foreground shadow-md">
             {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
@@ -55,24 +97,26 @@ const ConversationListItem = ({
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-0.5">
-          <p className="font-medium truncate text-sm text-foreground">
+        <div className="flex flex-wrap items-center gap-y-0.5 gap-x-2 mb-0.5">
+          <p className="font-medium truncate text-sm text-foreground flex-1 min-w-0">
             {displayName}
           </p>
           {conversation.last_message_at && (
-            <time className="text-xs font-medium whitespace-nowrap text-muted-foreground">
+            <time className="text-xs font-medium whitespace-nowrap text-muted-foreground hidden lg:block">
               {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
             </time>
           )}
         </div>
         <p className={cn(
-          "text-xs truncate",
-          conversation.unread_count > 0
-            ? 'text-foreground/90 font-medium'
-            : 'text-muted-foreground'
+          "text-xs truncate text-muted-foreground"
         )}>
-          {conversation.last_message || 'No messages yet'}
+          {conversation.last_message || t('noMessagesYet')}
         </p>
+        {conversation.last_message_at && (
+          <time className="text-[11px] font-medium text-muted-foreground/80 lg:hidden block mt-0.5">
+            {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+          </time>
+        )}
       </div>
     </motion.button>
   );
@@ -102,8 +146,11 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
     queryKey: ['conversations'], 
     queryFn: getConversations 
   });
+  console.log("Conversations in ConversationList:", conversations);
+  const { onlineUsers } = useChatWebSocket();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { t } = useTranslation('messenger');
 
   const filteredConversations = conversations?.filter(convo => 
     convo.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,7 +162,7 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
   if (isError) return (
     <div className="p-4 h-full flex items-center justify-center">
       <p className="text-sm text-center text-destructive">
-        Failed to load conversations
+        {t('failedToLoad')}
       </p>
     </div>
   );
@@ -126,11 +173,11 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
       <div className="p-3 border-b border-border/50 space-y-2">
         <Button 
           variant="outline" 
-          className="w-full h-9 text-sm font-medium"
+          className="w-full h-9 text-sm font-medium liquid-glass-button"
           onClick={() => setIsDialogOpen(true)}
         >
           <Pencil className="h-4 w-4 mr-2" />
-          New Message
+          {t('newMessage')}
         </Button>
 
         {/* Search */}
@@ -138,7 +185,7 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-8 pl-8 text-sm bg-transparent border-border/50"
@@ -155,12 +202,13 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
               conversation={convo}
               isSelected={selectedConversationId === convo.id}
               onSelect={() => onSelectConversation(convo.id)}
+              onlineUsers={onlineUsers}
             />
           ))
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-6">
             <p className="text-sm text-center text-muted-foreground">
-              {searchQuery ? 'No conversations found' : 'No conversations yet'}
+              {searchQuery ? t('noConversationsFound') : t('noConversationsYet')}
             </p>
           </div>
         )}

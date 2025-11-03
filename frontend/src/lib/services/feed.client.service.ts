@@ -1,9 +1,10 @@
+
 // lib/services/feed.client.service.ts
 'use client';
 
 import apiClient from '@/lib/api-client';
-import type { FeedItem } from '@/lib/types';
-import { mapFeedItems, FeedScope } from './feed.service';
+import type { FeedItem, Post } from '@/lib/types';
+import { mapFeedItems, FeedScope, FeedApiItem } from './feed.service';
 
 /**
  * [CLIENT] Fetches the personalized feed for the current user.
@@ -11,7 +12,7 @@ import { mapFeedItems, FeedScope } from './feed.service';
  */
 export const getFeed = async (scope: FeedScope = 'global'): Promise<FeedItem[]> => {
   try {
-    const response = await apiClient.get<{ feed?: any[] }>('/api/v1/feed', {
+    const response = await apiClient.get<{ feed?: FeedApiItem[] }>('/feed', {
       params: { scope },
     });
     return mapFeedItems(response.data?.feed);
@@ -20,3 +21,26 @@ export const getFeed = async (scope: FeedScope = 'global'): Promise<FeedItem[]> 
     return [];
   }
 };
+
+export const createPost = async (
+  content: string,
+  mediaFiles: { url: string; name: string; type: string }[],
+  communityId?: string
+): Promise<Post> => {
+  try {
+    const url = communityId ? `communities/${communityId}/posts` : '/feed/posts';
+
+    const response = await apiClient.post<{ post: Post }>(url, {
+      content,
+      file_attachments: mediaFiles,
+    });
+    return response.data.post;
+  } catch (error) {
+    console.error('Failed to create post:', error);
+    throw error;
+  }
+};
+
+
+
+

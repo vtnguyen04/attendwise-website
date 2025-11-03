@@ -25,9 +25,16 @@ export function useMarkNotificationAsRead() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-    onError: (error: any) => {
-      const errorMessage =
-        error.response?.data?.error || 'Failed to mark notification as read.';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to mark notification as read.';
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const response = (error as { response?: { data?: { error?: string } } }).response;
+        if (response?.data?.error) {
+          errorMessage = response.data.error;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({
         title: 'Error',
         description: errorMessage,
@@ -45,9 +52,16 @@ export function useMarkAllNotificationsAsRead() {
       toast({ title: 'All notifications marked as read' });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-    onError: (error: any) => {
-      const errorMessage =
-        error.response?.data?.error || 'Failed to mark all notifications as read.';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to mark all notifications as read.';
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const response = (error as { response?: { data?: { error?: string } } }).response;
+        if (response?.data?.error) {
+          errorMessage = response.data.error;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
     },
   });

@@ -13,5 +13,10 @@
     "save_success_title": "Preferences Saved",
     "save_success_description": "Your notification settings have been updated.",
     "save_error_title": "Error",
-    "save_error_description": "Failed to save preferences."
+    "save_error_description": "Failed to save preferences.",
+    "bell.title": "Notifications",
+    "bell.mark_all_as_read": "Mark all as read",
+    "bell.load_failed": "Failed to load notifications.",
+    "bell.no_notifications": "You have no new notifications.",
+    "bell.view_all": "View all notifications"
 }

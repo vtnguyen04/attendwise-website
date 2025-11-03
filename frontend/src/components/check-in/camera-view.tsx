@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from '../ui/button';
 import Camera from 'lucide-react/icons/camera';
 import RefreshCcw from 'lucide-react/icons/refresh-ccw';
@@ -81,7 +82,7 @@ export default function CameraView({ onCapture, onClear, capturedImage }: Camera
                     className={`w-full h-full object-cover ${capturedImage ? 'hidden' : 'block'}`}
                 />
                 {capturedImage && (
-                    <img src={capturedImage} alt="Captured" className="w-full h-full object-cover" />
+                    <Image src={capturedImage} alt="Captured" width={400} height={400} className="w-full h-full object-cover" />
                 )}
             </>
         )}

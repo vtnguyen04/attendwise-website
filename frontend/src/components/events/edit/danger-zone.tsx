@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { cancelEvent, deleteEvent } from '@/lib/services/event.client.service';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { GlassCard } from '@/components/ui/glass-card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +23,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-import { GlassCard } from '@/components/ui/glass-card';
 interface DangerZoneProps {
   eventId: string;
   isActionDisabled: boolean;
@@ -79,7 +79,7 @@ const DangerAction = ({
         <AlertDialogFooter>
           <AlertDialogCancel>Back</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-destructive hover:bg-destructive/90">
-            Yes, I'm sure
+            Yes, I&apos;m sure
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

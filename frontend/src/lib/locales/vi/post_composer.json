@@ -1,0 +1,15 @@
+{
+    "writing": "Đang viết...",
+    "whats_on_your_mind": "Bạn đang nghĩ gì?",
+    "add_images": "Thêm hình ảnh",
+    "add_files": "Thêm tệp",
+    "posting": "Đang đăng...",
+    "post_button": "Đăng",
+    "upload_failed_title": "Tải lên thất bại cho {fileName}",
+    "upload_failed_description": "Không thể tải lên tệp.",
+    "upload_success_description": "{count} tệp đã được tải lên thành công.",
+    "post_live_success": "Bài đăng của bạn hiện đã trực tiếp.",
+    "post_submitted_title": "Bài đăng đã gửi",
+    "post_pending_approval": "Bài đăng của bạn đang chờ quản trị viên phê duyệt.",
+    "create_post_error_description": "Không thể tạo bài đăng của bạn. Vui lòng thử lại."
+}

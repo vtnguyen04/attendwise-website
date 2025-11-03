@@ -1,16 +1,17 @@
+// ./src/components/messaging/message-list.tsx
+
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { getMessages } from '@/lib/services/messaging.service';
+// Đã xóa các import không cần thiết: useQuery, getMessages, Skeleton
+import { useEffect, useRef, useState, useCallback } from 'react';
 import type { Message, User } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import { MessageItem } from './message-item';
-import { useEffect, useRef, useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import Loader2 from 'lucide-react/icons/loader-2';
+import { MessageItem } from './message-item';
+
 
 interface MessageListProps {
+  // Đã xóa prop 'conversationId' không cần thiết
   messages: Message[];
   currentUser: User;
   fetchNextPage: () => void;
@@ -18,55 +19,93 @@ interface MessageListProps {
   isFetchingNextPage: boolean;
 }
 
-// ... (Skeleton component remains the same)
-
 export function MessageList({ messages, currentUser, fetchNextPage, hasNextPage, isFetchingNextPage }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [isAtTop, setIsAtTop] = useState(false);
+    const [isUserScrollingUp, setIsUserScrollingUp] = useState(false);
+    const prevScrollHeight = useRef(0);
 
-    // Scroll to bottom when new messages are added, but only if the user is near the bottom.
+    // Auto-scroll to bottom on initial load
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, []); // Chỉ chạy một lần khi component được mount
+
+    // Auto-scroll when new messages arrive from the current user or user is near the bottom
     useEffect(() => {
         if (scrollRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-            // If user is near the bottom, auto-scroll. 100px threshold.
-            if (scrollHeight - scrollTop - clientHeight < 100) {
+            const lastMessage = messages[messages.length - 1];
+
+            if (lastMessage?.sender_id === currentUser.id || (scrollHeight - scrollTop - clientHeight < 100 && !isUserScrollingUp)) {
                 scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }
         }
-    }, [messages]);
+    }, [messages, currentUser.id, isUserScrollingUp]);
 
-    const handleScroll = () => {
-        if (scrollRef.current) {
-            setIsAtTop(scrollRef.current.scrollTop === 0);
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop } = scrollRef.current;
+      console.log("Scrolling:", { scrollTop, hasNextPage, isFetchingNextPage });
+      if (scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    }
+  };
+
+    // Adjust scroll position to maintain view when new messages are loaded at the top
+    useEffect(() => {
+        if (scrollRef.current && isFetchingNextPage) {
+            const currentScrollHeight = scrollRef.current.scrollHeight;
+            const heightDifference = currentScrollHeight - prevScrollHeight.current;
+            if (heightDifference > 0) { // Ensure scroll only adjusts when height actually increases
+                scrollRef.current.scrollTop += heightDifference;
+            }
         }
-    };
+        if (!isFetchingNextPage && scrollRef.current) {
+             prevScrollHeight.current = scrollRef.current.scrollHeight;
+        }
+    }, [isFetchingNextPage, messages]);
+
 
     return (
         <div ref={scrollRef} onScroll={handleScroll} className="flex-1 p-4 space-y-4 overflow-y-auto flex flex-col-reverse">
+            {isFetchingNextPage && (
+                <div className="text-center py-2">
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                </div>
+            )}
             <div className="space-y-4">
                 {messages.length > 0 ? (
-                    messages.map(msg => (
-                        <MessageItem 
-                            key={msg.id}
-                            message={msg}
-                            currentUser={currentUser}
-                        />
-                    ))
+                    messages.slice().reverse().map((msg, index) => {
+                        const previousMessage = messages[index + 1];
+                        const isSameSenderAsPrevious = previousMessage && msg.sender_id === previousMessage.sender_id;
+                        const isFirstInGroup = !isSameSenderAsPrevious;
+
+                        return (
+                            <MessageItem
+                                key={msg.id}
+                                message={msg}
+                                currentUser={currentUser}
+                                isFirstInGroup={isFirstInGroup}
+                            />
+                        );
+                    })
                 ) : (
                     <div className="flex h-full items-center justify-center">
                         <p className="text-center text-sm text-muted-foreground">No messages yet. Start the conversation!</p>
                     </div>
                 )}
             </div>
-            {hasNextPage && (
-                <div className="text-center">
+             {/* This part seems redundant if you already have infinite scroll on top, but keeping as per original logic */}
+            {hasNextPage && !isFetchingNextPage && (
+                <div className="text-center py-2">
                     <Button
                         onClick={() => fetchNextPage()}
-                        disabled={isFetchingNextPage}
                         variant="outline"
                         size="sm"
                     >
-                        {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Load More'}
+                        Load More
                     </Button>
                 </div>
             )}

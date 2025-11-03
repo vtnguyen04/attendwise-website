@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Hàm này sẽ được gọi cho MỌI request đến server.
 export function middleware(request: NextRequest) {
-  // 1. Lấy token từ cookie của request
-  // Chúng ta sẽ dùng cookie thay vì localStorage vì middleware chạy trên server, không có quyền truy cập localStorage.
   const accessToken = request.cookies.get('accessToken')?.value;
 
-  // 2. Lấy URL người dùng đang cố gắng truy cập
   const { pathname } = request.nextUrl;
   if (pathname.startsWith('/dashboard') && !accessToken) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirected', 'true');
     return NextResponse.redirect(loginUrl);
   }
-
-  // 4. Logic cho người đã đăng nhập:
-  // Nếu người dùng đã đăng nhập (có accessToken) và họ đang cố vào trang /login hoặc /register
-  // thì chuyển hướng họ vào dashboard.
   if (accessToken && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

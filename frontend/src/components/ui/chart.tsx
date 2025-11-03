@@ -4,7 +4,6 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import dynamic from "next/dynamic"
 
-import { ResponsiveContainer, Tooltip, Legend } from '@/components/analytics/recharts-wrappers';
 import { TooltipProps } from 'recharts';
 
 const RechartsResponsiveContainer = dynamic(
@@ -73,7 +72,7 @@ const ChartContainer = React.forwardRef<
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsResponsiveContainer>{children as any}</RechartsResponsiveContainer>
+        <RechartsResponsiveContainer><>{children}</></RechartsResponsiveContainer>
       </div>
     </ChartContext.Provider>
   )
@@ -117,7 +116,7 @@ const ChartTooltip = RechartsTooltip
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  TooltipProps<any, any> &
+  TooltipProps<number | string, string> &
     React.ComponentProps<"div"> & {
       hideLabel?: boolean
       hideIndicator?: boolean
@@ -271,10 +270,16 @@ ChartTooltipContent.displayName = "ChartTooltip"
 
 const ChartLegend = RechartsLegend
 
+interface LegendPayload {
+  dataKey: string;
+  value: string;
+  color: string;
+}
+
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-      payload?: Array<any>;
+      payload?: Array<LegendPayload>;
       verticalAlign?: "top" | "middle" | "bottom";
       hideIcon?: boolean
       nameKey?: string

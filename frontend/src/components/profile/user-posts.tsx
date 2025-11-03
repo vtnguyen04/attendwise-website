@@ -43,7 +43,7 @@ export default function UserPosts({ posts, isOwnProfile = false }: UserPostsProp
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-xl font-semibold text-foreground">Posts</h2>
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs caps-label text-primary">
           {posts.length} {posts.length === 1 ? 'post' : 'posts'}
         </span>
       </div>

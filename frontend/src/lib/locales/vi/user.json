@@ -1,0 +1,13 @@
+{
+    "default_name": "Người dùng",
+    "toggle_menu": "Chuyển đổi menu người dùng",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất",
+    "login": "Đăng nhập",
+    "menu.account_settings": "Cài đặt tài khoản",
+    "menu.account_settings.subtitle": "Quản lý cài đặt tài khoản của bạn",
+    "menu.notifications": "Thông báo",
+    "menu.notifications.subtitle": "Quản lý tùy chọn thông báo của bạn",
+    "menu.logout.subtitle": "Đăng xuất khỏi tài khoản của bạn"
+}

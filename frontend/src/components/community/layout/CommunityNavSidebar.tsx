@@ -10,7 +10,6 @@ import Calendar from 'lucide-react/icons/calendar';
 import Settings from 'lucide-react/icons/settings';
 import { cn } from '@/lib/utils';
 import { Community } from '@/lib/types';
-import { useTheme } from '@/hooks/use-theme'; // 👈 Import hook
 
 interface CommunityNavSidebarProps {
   community: Community;
@@ -18,7 +17,6 @@ interface CommunityNavSidebarProps {
 
 export function CommunityNavSidebar({ community }: CommunityNavSidebarProps) {
   const pathname = usePathname();
-  const theme = useTheme(); // 👈 Lấy theme hiện tại
   const basePath = `/dashboard/communities/${community.id}`;
 
   const navLinks = [

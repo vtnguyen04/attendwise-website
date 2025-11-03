@@ -41,8 +41,8 @@ export function ChangePasswordForm() {
       });
       toast({ title: 'Password Updated', description: 'Your password has been changed successfully.' });
       form.reset();
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Failed to change password.';
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to change password.';
       toast({ title: 'Update Failed', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoading(false);

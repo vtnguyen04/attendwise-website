@@ -8,14 +8,18 @@ interface VerifyCheckinPayload {
     scanner_device_fingerprint?: string;
 }
 
+interface Attendee {
+    user_name: string;
+}
+
 interface VerifyCheckinResponse {
     message: string;
     status: boolean;
-    attendee: any; // You might want to define a more specific type for attendee
+    attendee: Attendee;
 }
 
 export async function verifyCheckin(payload: VerifyCheckinPayload): Promise<VerifyCheckinResponse> {
-    const response = await apiClient.post<VerifyCheckinResponse>('/api/v1/checkin', payload);
+    const response = await apiClient.post<VerifyCheckinResponse>('/checkin', payload);
     return response.data;
 }
 
@@ -39,6 +43,6 @@ interface SyncOfflineCheckinsResponse {
 }
 
 export async function syncOfflineCheckins(payload: SyncOfflineCheckinsPayload): Promise<SyncOfflineCheckinsResponse> {
-    const response = await apiClient.post<SyncOfflineCheckinsResponse>('/api/v1/checkin/sync', payload);
+    const response = await apiClient.post<SyncOfflineCheckinsResponse>('/checkin/sync', payload);
     return response.data;
 }

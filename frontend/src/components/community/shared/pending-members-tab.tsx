@@ -4,15 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import MemberList from './member-list';
+import MemberList from '@/components/community/members/member-list';
 
 async function getPendingMembers(communityId: string): Promise<User[]> {
-  const response = await apiClient.get(`/api/v1/communities/${communityId}/members/pending`);
+  const response = await apiClient.get(`/communities/${communityId}/members/pending`);
   return response.data.members;
 }
 
 async function approveMember({ communityId, userId }: { communityId: string, userId: string }) {
-  await apiClient.post(`/api/v1/communities/${communityId}/members/${userId}/approve`);
+  await apiClient.post(`/communities/${communityId}/members/${userId}/approve`);
 }
 
 // We can add a reject API later if needed, for now we just focus on approve
@@ -36,7 +36,7 @@ export function PendingMembersTab({ communityId }: { communityId: string }) {
       queryClient.invalidateQueries({ queryKey: ['pending-members', communityId] });
       queryClient.invalidateQueries({ queryKey: ['community', communityId] }); // To update member count
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { error?: string } } }) => {
       toast({ title: 'Error', description: error.response?.data?.error || 'Failed to approve member.' });
     },
   });

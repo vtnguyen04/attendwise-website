@@ -9,9 +9,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "border bg-card text-card-foreground shadow-lg hover:shadow-xl transition-all duration-300 transform-gpu",
-      "dark:border-white/5 dark:bg-slate-900/80",
-      "light:border-gray-200 light:bg-white/80",
+      "rounded-lg border bg-card/80 text-card-foreground backdrop-glass shadow-glass transition-all duration-300 ease-in-out hover:shadow-glass-hover",
       className
     )}
     {...props}
@@ -26,9 +24,7 @@ const CardHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-col space-y-2 p-6 border-b",
-      "dark:border-white/5",
-      "light:border-gray-200",
+      "flex flex-col space-y-2 p-6 border-b border-border",
       className
     )}
     {...props}
@@ -43,9 +39,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-bold leading-none tracking-tight",
-      "dark:text-white",
-      "light:text-gray-900",
+      "text-2xl font-bold leading-none tracking-tight text-card-foreground",
       className
     )}
     {...props}
@@ -60,9 +54,7 @@ const CardDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "text-sm",
-      "dark:text-gray-400",
-      "light:text-gray-600",
+      "text-sm text-muted-foreground",
       className
     )}
     {...props}
@@ -92,9 +84,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center justify-between p-6 border-t",
-      "dark:border-white/5",
-      "light:border-gray-200",
+      "flex items-center justify-between p-6 border-t border-border",
       className
     )}
     {...props}

@@ -1,10 +1,12 @@
-// message-view.tsx
+// ./src/components/messaging/message-view.tsx
+
 'use client';
 
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getConversationDetails, getMessages } from '@/lib/services/messaging.service';
-import { useSendMessage } from '@/hooks/use-messaging';
+import { useSendMessage, useMarkConversationAsRead } from '@/hooks/use-messaging';
 import type { Conversation } from '@/lib/types';
 import { MessageList } from './message-list';
 import { MessageComposer } from './message-composer';
@@ -13,6 +15,7 @@ import { MessageViewHeader } from './message-view-header';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import AlertCircle from 'lucide-react/icons/alert-circle';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface MessageViewProps {
   conversationId: string;
@@ -21,49 +24,62 @@ interface MessageViewProps {
 export function MessageView({ conversationId }: MessageViewProps) {
   const { user: currentUser, isLoading: isLoadingUser } = useUser();
   const theme = useTheme();
-  
-  const sendMessageMutation = useSendMessage();
+  const { t } = useTranslation('messenger');
+  const queryClient = useQueryClient();
+  console.log("QueryClient instance from MessageView:", queryClient);
 
-  const { 
-    data: conversation, 
+  const sendMessageMutation = useSendMessage();
+  const markAsReadMutation = useMarkConversationAsRead();
+
+  useEffect(() => {
+    if (conversationId) {
+      markAsReadMutation.mutate(conversationId);
+    }
+  }, [conversationId]);
+
+  const {
+    data: conversation,
     isLoading: isLoadingConversation,
-    isError: isConversationError 
+    isError: isConversationError
   } = useQuery<Conversation | null>({
     queryKey: ['conversation', conversationId],
     queryFn: () => getConversationDetails(conversationId),
     enabled: !!conversationId,
   });
 
-  const { 
-    data: paginatedMessages, 
-    isLoading: isLoadingMessages, 
+  const {
+    data: paginatedMessages,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
   } = useInfiniteQuery({
     queryKey: ['messages', conversationId],
+    // ✅ ĐÃ SỬA LỖI: Truyền trực tiếp hàm getMessages
     queryFn: getMessages,
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length < 50) return undefined;
-      return allPages.reduce((acc, page) => acc + page.length, 0);
+      return allPages.flat().length;
     },
   });
 
-  const messages = paginatedMessages?.pages.flat().reverse() || [];
+  console.log("Infinite query state:", { hasNextPage, isFetchingNextPage });
 
-  const handleSendMessage = (content: string) => {
-    sendMessageMutation.mutate({ conversationId, content });
+  const messages = paginatedMessages?.pages.flat() || [];
+
+  const handleSendMessage = (content: string, messageType?: "text" | "image" | "file") => {
+    if (!content.trim()) return;
+    sendMessageMutation.mutate({ conversationId, content, messageType });
   };
 
   const isLoading = isLoadingUser || isLoadingConversation;
 
-  // Loading State
+  // Trạng thái tải ban đầu
   if (isLoading) {
     return (
       <div className={cn(
         "flex flex-col h-full",
-        theme === 'dark' ? 'bg-slate-950' : 'bg-white'
+        "bg-transparent"
       )}>
         <div className={cn(
           "flex items-center justify-between px-4 py-3 border-b",
@@ -86,10 +102,10 @@ export function MessageView({ conversationId }: MessageViewProps) {
             </div>
           </div>
         </div>
-        
+
         <div className={cn(
           "flex-1 flex items-center justify-center",
-          theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'
+          "bg-transparent"
         )}>
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
@@ -110,12 +126,12 @@ export function MessageView({ conversationId }: MessageViewProps) {
     );
   }
 
-  // Not Logged In State
+  // Trạng thái chưa đăng nhập
   if (!currentUser) {
     return (
       <div className={cn(
         "flex h-full items-center justify-center",
-        theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'
+        "bg-transparent"
       )}>
         <div className="text-center space-y-2">
           <div className={cn(
@@ -131,19 +147,19 @@ export function MessageView({ conversationId }: MessageViewProps) {
             "text-sm font-medium",
             theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
           )}>
-            Please log in to view messages
+            {t('pleaseLogIn')}
           </p>
         </div>
       </div>
     );
   }
 
-  // Error State
+  // Trạng thái lỗi
   if (isConversationError || !conversation) {
     return (
       <div className={cn(
         "flex h-full items-center justify-center",
-        theme === 'dark' ? 'bg-slate-950' : 'bg-slate-50'
+        "bg-transparent"
       )}>
         <div className="text-center space-y-2">
           <div className={cn(
@@ -159,36 +175,37 @@ export function MessageView({ conversationId }: MessageViewProps) {
             "text-sm font-medium",
             theme === 'dark' ? 'text-red-400' : 'text-red-600'
           )}>
-            Failed to load conversation
+            {t('failedToLoadConversation')}
           </p>
           <p className={cn(
             "text-xs",
             theme === 'dark' ? 'text-slate-500' : 'text-slate-500'
           )}>
-            Please try again later
+            {t('pleaseTryAgain')}
           </p>
         </div>
       </div>
     );
   }
 
-  // Success State
+  // Trạng thái thành công
   return (
     <div className={cn(
       "flex flex-col h-full",
-      theme === 'dark' ? 'bg-slate-950' : 'bg-white'
+      "bg-transparent"
     )}>
       <MessageViewHeader conversation={conversation} />
-      <MessageList 
-        messages={messages} 
-        currentUser={currentUser} 
+      <MessageList
+        messages={messages}
+        currentUser={currentUser}
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
       />
-      <MessageComposer 
-        onSendMessage={handleSendMessage} 
-        isLoading={sendMessageMutation.isPending} 
+      <MessageComposer
+        onSendMessage={handleSendMessage}
+        isLoading={sendMessageMutation.isPending}
+        conversationId={conversationId}
       />
     </div>
   );

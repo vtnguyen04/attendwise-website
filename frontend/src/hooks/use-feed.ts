@@ -16,22 +16,33 @@ export function useFeed(): UseFeedResult {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchFeed = useCallback(async () => {
+  const fetchFeedData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const fetchedFeed = await fetchFeedService();
-      setFeed(fetchedFeed); // Directly set the fetchedFeed as it's already mapped
-    } catch (err: any) {
-      setError(err.response?.data || new Error('Failed to fetch feed'));
+      return fetchedFeed;
+    } catch (err: unknown) {
+      let errorMessage = 'Failed to fetch feed';
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        const response = (err as { response?: { data?: { message?: string } } }).response;
+        if (response?.data?.message) {
+          errorMessage = response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(new Error(errorMessage));
+      return []; // Return empty array on error
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchFeed();
-  }, [fetchFeed]);
+    fetchFeedData().then(data => setFeed(data));
+  }, [fetchFeedData]);
 
-  return { feed, isLoading, error, refetch: fetchFeed };
+  return { feed, isLoading, error, refetch: fetchFeedData };
 }
 

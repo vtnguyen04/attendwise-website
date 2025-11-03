@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import EventForm from '@/components/events/event-form/event-form';
 import { getEventById } from '@/lib/services/event.client.service';
 import { Skeleton } from '@/components/ui/skeleton';
-import Breadcrumbs from '@/components/breadcrumbs';
+import Breadcrumbs from '@/components/ui/breadcrumb';
 import { useParams } from 'next/navigation';
 import AlertCircle from 'lucide-react/icons/alert-circle';
 import Loader from 'lucide-react/icons/loader';
@@ -58,7 +58,7 @@ export default function EditEventPage() {
                         <div>
                             <h3 className="font-semibold text-red-900 dark:text-red-200">Failed to Load Event</h3>
                             <p className="text-sm text-red-800 dark:text-red-300 mt-1">
-                                The event data could not be loaded. It may have been deleted or you don't have permission to access it.
+                                The event data could not be loaded. It may have been deleted or you don&apos;t have permission to access it.
                             </p>
                         </div>
                     </div>
@@ -76,7 +76,7 @@ export default function EditEventPage() {
             <div className="space-y-3">
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Manage Event</h1>
                 <p className="text-lg text-gray-600 dark:text-gray-400">
-                    Editing <span className="font-semibold text-blue-600 dark:text-blue-400">"{event.name}"</span>
+                    Editing <span className="font-semibold text-blue-600 dark:text-blue-400">&quot;{event.name}&quot;</span>
                 </p>
             </div>
 

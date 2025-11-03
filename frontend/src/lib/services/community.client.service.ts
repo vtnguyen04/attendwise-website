@@ -12,7 +12,7 @@ import type { Community, Post, Comment, User } from '@/lib/types';
  * [CLIENT] Creates a new community.
  */
 export const createCommunity = async (data: Partial<Community>): Promise<Community> => {
-  const response = await apiClient.post('/api/v1/communities', data);
+  const response = await apiClient.post('/communities', data);
   return response.data.community;
 };
 
@@ -20,7 +20,7 @@ export const createCommunity = async (data: Partial<Community>): Promise<Communi
  * [CLIENT] Updates a community's details.
  */
 export const updateCommunity = async (id: string, data: Partial<Community>): Promise<Community> => {
-    const response = await apiClient.patch(`/api/v1/communities/${id}`, data);
+    const response = await apiClient.patch(`/communities/${id}`, data);
     return response.data.community;
 }
 
@@ -29,7 +29,7 @@ export const updateCommunity = async (id: string, data: Partial<Community>): Pro
  */
 export const getCommunitySuggestions = async (): Promise<Community[]> => {
   try {
-    const response = await apiClient.get('/api/v1/communities/suggestions');
+    const response = await apiClient.get('/communities/suggestions');
     return response.data.suggestions || [];
   } catch (error) {
     console.error("Failed to fetch community suggestions:", error);
@@ -42,7 +42,7 @@ export const getCommunitySuggestions = async (): Promise<Community[]> => {
  */
 export const getMyCommunitiesClient = async (): Promise<Community[]> => {
   try {
-    const response = await apiClient.get('/api/v1/my-communities');
+    const response = await apiClient.get('/my-communities');
     return response.data.communities || [];
   } catch (error) {
     console.error('Failed to fetch my communities:', error);
@@ -58,35 +58,35 @@ export const getMyCommunitiesClient = async (): Promise<Community[]> => {
  * [CLIENT] Joins a community by its ID.
  */
 export const joinCommunity = async (communityId: string): Promise<void> => {
-  await apiClient.post(`/api/v1/communities/${communityId}/members`);
+  await apiClient.post(`/communities/${communityId}/members`);
 };
 
 /**
  * [CLIENT] Leaves a community by its ID.
  */
 export const leaveCommunity = async (communityId: string): Promise<void> => {
-  await apiClient.delete(`/api/v1/communities/${communityId}/members/me`);
+  await apiClient.delete(`/communities/${communityId}/members/me`);
 };
 
 /**
  * [CLIENT] Updates the role of a member in a community.
  */
 export const updateMemberRole = async (communityId: string, userId: string, role: string): Promise<void> => {
-    await apiClient.patch(`/api/v1/communities/${communityId}/members/${userId}`, { role });
+    await apiClient.patch(`/communities/${communityId}/members/${userId}`, { role });
 }
 
 /**
  * [CLIENT] Removes a member from a community.
  */
 export const removeMember = async (communityId: string, userId: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/communities/${communityId}/members/${userId}`);
+    await apiClient.delete(`/communities/${communityId}/members/${userId}`);
 }
 
 /**
  * [CLIENT] Lists all active members of a community.
  */
 export const listCommunityMembers = async (communityId: string): Promise<User[]> => {
-    const response = await apiClient.get(`/api/v1/communities/${communityId}/members`);
+    const response = await apiClient.get(`/communities/${communityId}/members`);
     return response.data.members || [];
 }
 
@@ -94,7 +94,7 @@ export const listCommunityMembers = async (communityId: string): Promise<User[]>
  * [CLIENT] Lists all pending members for a community.
  */
 export const listPendingMembers = async (communityId: string): Promise<User[]> => {
-    const response = await apiClient.get(`/api/v1/communities/${communityId}/members/pending`);
+    const response = await apiClient.get(`/communities/${communityId}/members/pending`);
     return response.data.members || [];
 }
 
@@ -102,7 +102,7 @@ export const listPendingMembers = async (communityId: string): Promise<User[]> =
  * [CLIENT] Approves a pending member's join request.
  */
 export const approveMember = async (communityId: string, userId: string): Promise<void> => {
-    await apiClient.post(`/api/v1/communities/${communityId}/members/${userId}/approve`);
+    await apiClient.post(`/communities/${communityId}/members/${userId}/approve`);
 }
 
 // =================================================================================
@@ -113,7 +113,7 @@ export const approveMember = async (communityId: string, userId: string): Promis
  * [CLIENT] Creates a new post in a community.
  */
 export const createPost = async (communityId: string, data: { content: string; visibility?: string; media_urls?: string[] }): Promise<Post> => {
-    const response = await apiClient.post(`/api/v1/communities/${communityId}/posts`, data);
+    const response = await apiClient.post(`/communities/${communityId}/posts`, data);
     return response.data.post;
 }
 
@@ -121,7 +121,7 @@ export const createPost = async (communityId: string, data: { content: string; v
  * [CLIENT] Lists posts for a community with pagination.
  */
 export const listCommunityPosts = async (communityId: string, page: number = 1, limit: number = 10): Promise<{ posts: Post[], has_more: boolean }> => {
-    const response = await apiClient.get(`/api/v1/communities/${communityId}/posts`, { params: { page, limit } });
+    const response = await apiClient.get(`/communities/${communityId}/posts`, { params: { page, limit } });
     return {
         posts: response.data.posts || [],
         has_more: response.data.pagination?.has_more || false,
@@ -132,7 +132,7 @@ export const listCommunityPosts = async (communityId: string, page: number = 1, 
  * [CLIENT] Updates a post.
  */
 export const updatePost = async (postId: string, data: { content?: string; visibility?: string; media_urls?: string[] }): Promise<Post> => {
-    const response = await apiClient.patch(`/api/v1/posts/${postId}`, data);
+    const response = await apiClient.patch(`/posts/${postId}`, data);
     return response.data.post;
 }
 
@@ -140,42 +140,42 @@ export const updatePost = async (postId: string, data: { content?: string; visib
  * [CLIENT] Deletes a post.
  */
 export const deletePost = async (postId: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/posts/${postId}`);
+    await apiClient.delete(`/posts/${postId}`);
 }
 
 /**
  * [CLIENT] Approves a pending post.
  */
 export const approvePost = async (postId: string): Promise<void> => {
-    await apiClient.post(`/api/v1/posts/${postId}/approve`);
+    await apiClient.post(`/posts/${postId}/approve`);
 }
 
 /**
  * [CLIENT] Rejects a pending post.
  */
 export const rejectPost = async (postId: string): Promise<void> => {
-    await apiClient.post(`/api/v1/posts/${postId}/reject`);
+    await apiClient.post(`/posts/${postId}/reject`);
 }
 
 /**
  * [CLIENT] Pins or unpins a post.
  */
 export const pinPost = async (postId: string, is_pinned: boolean): Promise<void> => {
-    await apiClient.post(`/api/v1/posts/${postId}/pin`, { is_pinned });
+    await apiClient.post(`/posts/${postId}/pin`, { is_pinned });
 }
 
 /**
  * [CLIENT] Reacts to a post.
  */
 export const reactToPost = async (postId: string, reaction_type: string): Promise<void> => {
-    await apiClient.post(`/api/v1/posts/${postId}/reactions`, { reaction_type });
+    await apiClient.post(`/posts/${postId}/reactions`, { reaction_type });
 }
 
 /**
  * [CLIENT] Deletes a reaction from a post.
  */
 export const deleteReaction = async (postId: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/posts/${postId}/reactions`);
+    await apiClient.delete(`/posts/${postId}/reactions`);
 }
 
 // =================================================================================
@@ -186,7 +186,7 @@ export const deleteReaction = async (postId: string): Promise<void> => {
  * [CLIENT] Creates a new comment on a post.
  */
 export const createComment = async (postId: string, data: { content: string; parent_comment_id?: string }): Promise<Comment> => {
-    const response = await apiClient.post(`/api/v1/posts/${postId}/comments`, data);
+    const response = await apiClient.post(`/posts/${postId}/comments`, data);
     return response.data.comment;
 }
 
@@ -194,7 +194,7 @@ export const createComment = async (postId: string, data: { content: string; par
  * [CLIENT] Lists all comments for a post.
  */
 export const listComments = async (postId: string): Promise<Comment[]> => {
-    const response = await apiClient.get(`/api/v1/posts/${postId}/comments`);
+    const response = await apiClient.get(`/posts/${postId}/comments`);
     return response.data.comments || [];
 }
 
@@ -202,7 +202,7 @@ export const listComments = async (postId: string): Promise<Comment[]> => {
  * [CLIENT] Updates a comment.
  */
 export const updateComment = async (commentId: string, content: string): Promise<Comment> => {
-    const response = await apiClient.patch(`/api/v1/comments/${commentId}`, { content });
+    const response = await apiClient.patch(`/comments/${commentId}`, { content });
     return response.data.comment;
 }
 
@@ -210,5 +210,5 @@ export const updateComment = async (commentId: string, content: string): Promise
  * [CLIENT] Deletes a comment.
  */
 export const deleteComment = async (commentId: string): Promise<void> => {
-    await apiClient.delete(`/api/v1/comments/${commentId}`);
+    await apiClient.delete(`/comments/${commentId}`);
 }

@@ -39,7 +39,7 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
   const { toast } = useToast();
   const router = useRouter();
   const theme = useTheme();
-  const [community, setCommunity] = useState<Community | null>(null);
+  const [, setCommunity] = useState<Community | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -54,7 +54,7 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
     if (!communityId) return;
     const fetchCommunity = async () => {
       try {
-        const response = await apiClient.get(`/api/v1/communities/${communityId}`);
+        const response = await apiClient.get(`/communities/${communityId}`);
         const fetchedCommunity = response.data.community;
         setCommunity(fetchedCommunity);
         form.reset({
@@ -62,7 +62,7 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
           description: fetchedCommunity.description,
           cover_image_url: fetchedCommunity.cover_image_url || ''
         });
-      } catch (error) {
+      } catch {
         toast({ 
           title: "Error", 
           description: "Failed to fetch community details.", 
@@ -104,7 +104,7 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
     setPreviewUrl(URL.createObjectURL(file));
 
     try {
-      const presignedUrlResponse = await apiClient.post("/api/v1/media/upload", {
+      const presignedUrlResponse = await apiClient.post("/media/upload", {
         file_name: file.name,
         content_type: file.type,
       });
@@ -146,13 +146,13 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await apiClient.patch(`/api/v1/communities/${communityId}`, values);
+      await apiClient.patch(`/communities/${communityId}`, values);
       toast({ 
         title: "Success", 
         description: "Community details updated successfully." 
       });
       router.refresh();
-    } catch (error) {
+    } catch {
       toast({ 
         title: "Error", 
         description: "Failed to update community.", 

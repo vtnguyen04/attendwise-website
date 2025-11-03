@@ -4,7 +4,7 @@ import { EventAttendanceReport, CommunityEngagementReport } from '@/lib/types';
 
 /** Fetches the attendance report summary for a specific event. */
 export const getEventAttendanceReport = async (eventId: string): Promise<EventAttendanceReport> => {
-  const response = await apiClient.get<EventAttendanceReport>(`/api/v1/reports/events/${eventId}/attendance`);
+  const response = await apiClient.get<EventAttendanceReport>(`/reports/events/${eventId}/attendance`);
   return response.data;
 };
 
@@ -16,7 +16,7 @@ export const getEventAttendanceReport = async (eventId: string): Promise<EventAt
  * @returns A Blob containing the file data.
  */
 export const downloadEventReport = async (eventId: string, format: 'csv' | 'pdf'): Promise<Blob> => {
-  const response = await apiClient.get(`/api/v1/reports/events/${eventId}/attendance.${format}`, {
+  const response = await apiClient.get(`/reports/events/${eventId}/attendance.${format}`, {
     responseType: 'blob',
   });
   return response.data;
@@ -24,12 +24,17 @@ export const downloadEventReport = async (eventId: string, format: 'csv' | 'pdf'
 
 /** Fetches the engagement report for a specific community. */
 export const getCommunityEngagementReport = async (communityId: string): Promise<CommunityEngagementReport> => {
-    const response = await apiClient.get<CommunityEngagementReport>(`/api/v1/reports/communities/${communityId}/engagement`);
+    const response = await apiClient.get<CommunityEngagementReport>(`/reports/communities/${communityId}/engagement`);
     return response.data;
 };
 
 /** Fetches the monthly attendance summary. */
-export const getMonthlyAttendanceSummary = async (): Promise<any> => {
-    const response = await apiClient.get('/api/v1/reports/summary/monthly');
+interface MonthlyAttendanceSummary {
+    month: string;
+    count: number;
+}
+
+export const getMonthlyAttendanceSummary = async (): Promise<MonthlyAttendanceSummary[]> => {
+    const response = await apiClient.get('/reports/summary/monthly');
     return response.data;
 };

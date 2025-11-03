@@ -17,6 +17,7 @@ const TrendChart = dynamic(() => import('@/components/analytics/trend-chart').th
 });
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface MonthlySummary {
   month: string;
@@ -42,10 +43,11 @@ const DashboardSkeleton = () => (
 );
 
 export default function GlobalAnalyticsPage() {
+  const { t } = useTranslation();
 
   const { data: summary, isLoading } = useQuery<MonthlySummary>({
     queryKey: ['global_monthly_summary'],
-    queryFn: async () => (await apiClient.get('/api/v1/reports/summary/monthly')).data,
+    queryFn: async () => (await apiClient.get('/reports/summary/monthly')).data,
   });
 
   const containerVariants = {
@@ -68,6 +70,7 @@ export default function GlobalAnalyticsPage() {
   return (
     <MotionDiv 
         className="space-y-8"
+        data-scroll-anchor
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -75,25 +78,25 @@ export default function GlobalAnalyticsPage() {
         <MotionDiv variants={itemVariants} className="space-y-2">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <BarChart className="h-10 w-10"/>
-            Analytics Dashboard
+            {t('analytics.dashboard_title')}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            A high-level overview of platform activity.
+          {t('analytics.dashboard_description')}
           </p>
         </MotionDiv>
 
         {summary ? (
             <MotionDiv variants={itemVariants} className="space-y-6">
-                <h2 className="text-2xl font-semibold">Monthly Summary ({summary.month})</h2>
+                <h2 className="text-2xl font-semibold">{t('analytics.monthly_summary', { month: summary.month })}</h2>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    <AnimatedStatCard title="Total Events" value={summary.total_events.toLocaleString()} icon={Calendar} description="All events created this month" />
-                    <AnimatedStatCard title="Total Attendees" value={summary.total_attendees.toLocaleString()} icon={Users} description="Total check-ins this month" />
-                    <AnimatedStatCard title="Avg. Attendance Rate" value={`${summary.average_attendance_rate.toFixed(1)}%`} icon={Percent} description="Across all events this month" />
-                    <AnimatedStatCard title="New Users" value="N/A" icon={Users} description="Data not available" />
+                    <AnimatedStatCard title={t('analytics.total_events')} value={summary.total_events.toLocaleString()} icon={Calendar} description={t('analytics.total_events_description')} />
+                    <AnimatedStatCard title={t('analytics.total_attendees')} value={summary.total_attendees.toLocaleString()} icon={Users} description={t('analytics.total_attendees_description')} />
+                    <AnimatedStatCard title={t('analytics.avg_attendance_rate')} value={`${summary.average_attendance_rate.toFixed(1)}%`} icon={Percent} description={t('analytics.avg_attendance_rate_description')} />
+                    <AnimatedStatCard title={t('analytics.new_users')} value="N/A" icon={Users} description={t('analytics.new_users_description')} />
                 </div>
             </MotionDiv>
         ) : (
-            <p className="text-muted-foreground">Could not load monthly summary data.</p>
+            <p className="text-muted-foreground">{t('analytics.monthly_summary_error')}</p>
         )}
 
         {/* Placeholder for new components */}
@@ -102,7 +105,7 @@ export default function GlobalAnalyticsPage() {
                 <TrendChart />
             </div>
             <Card className="lg:col-span-3 h-96 flex items-center justify-center">
-                <p className="text-muted-foreground">Top Lists will be here</p>
+                <p className="text-muted-foreground">{t('analytics.top_lists_placeholder')}</p>
             </Card>
         </MotionDiv>
     </MotionDiv>

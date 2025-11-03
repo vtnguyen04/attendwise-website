@@ -8,12 +8,16 @@ import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 
+// STEP 1: Add the 'alt' prop to the interface.
+// It's best to make it optional with `?`.
 interface ImageUploaderProps {
   value?: string;
   onUploadSuccess: (url: string) => void;
+  alt?: string; // 👈 ADD THIS LINE
 }
 
-export function ImageUploader({ onUploadSuccess, value }: ImageUploaderProps) {
+// STEP 2: Destructure 'alt' from the props.
+export function ImageUploader({ onUploadSuccess, value, alt }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
@@ -25,7 +29,7 @@ export function ImageUploader({ onUploadSuccess, value }: ImageUploaderProps) {
     formData.append('file', file);
 
     try {
-      const response = await apiClient.post('/api/v1/media/upload', formData);
+      const response = await apiClient.post('/media/upload', formData);
       onUploadSuccess(response.data.final_url);
       toast({ title: 'Success', description: 'Image uploaded successfully.' });
     } catch (error) {
@@ -40,7 +44,14 @@ export function ImageUploader({ onUploadSuccess, value }: ImageUploaderProps) {
     <div className="space-y-2">
       <div className="relative flex h-48 w-full items-center justify-center rounded-lg liquid-glass-interactive">
         {value ? (
-          <Image src={value} alt="Cover preview" fill className="object-cover rounded-lg" />
+          // STEP 3: Use the 'alt' prop here with a fallback.
+          <Image
+            src={value}
+            // 👇 CHANGE THIS LINE
+            alt={alt || 'Image preview'}
+            fill
+            className="object-cover rounded-lg"
+          />
         ) : (
           <div className="text-center text-muted-foreground">
             <UploadCloud className="mx-auto h-12 w-12" />

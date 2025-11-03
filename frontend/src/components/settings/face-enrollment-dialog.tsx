@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,7 +10,6 @@ import User from 'lucide-react/icons/user';
 import Eye from 'lucide-react/icons/eye';
 import CheckCircle from 'lucide-react/icons/check-circle';
 import XCircle from 'lucide-react/icons/x-circle';
-import Loader2 from 'lucide-react/icons/loader-2';
 
 type EnrollmentStatus = 'idle' | 'starting' | 'streaming' | 'success' | 'error';
 
@@ -45,7 +42,6 @@ export default function FaceEnrollmentDialog({ open, onOpenChange }: FaceEnrollm
   const [status, setStatus] = useState<EnrollmentStatus>('idle');
   const [feedbackMessage, setFeedbackMessage] = useState('Get ready to position your face in the frame.');
   const [progress, setProgress] = useState(0);
-  const [hasFlowStarted, setHasFlowStarted] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState<string | null>(null);
 
   const cleanup = useCallback(() => {
@@ -58,100 +54,103 @@ export default function FaceEnrollmentDialog({ open, onOpenChange }: FaceEnrollm
     }
   }, []);
 
+  const startFlow = useCallback(async () => {
+    setStatus('starting');
+    setFeedbackMessage('Starting camera...');
+
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        await videoRef.current.play();
+      }
+    } catch (err) {
+      console.error("[ENROLLMENT] Camera error:", err);
+      setFeedbackMessage('Could not access camera. Please check permissions.');
+      setStatus('error');
+      return;
+    }
+
+    let sessionId: string;
+    let challenges: string[];
+    try {
+      setFeedbackMessage('Preparing enrollment session...');
+      const response = await apiClient.get('api/v1/users/enroll-challenge');
+      sessionId = response.data.session_id;
+      challenges = response.data.challenges;
+      setStatus('streaming');
+    } catch (error: unknown) {
+      console.error("[ENROLLMENT] Challenge fetch error:", error);
+      setFeedbackMessage('Could not start enrollment session.');
+      setStatus('error');
+      cleanup();
+      return;
+    }
+
+    let isSuccess = false;
+    let finalMessage = 'Enrollment failed. Please try again.';
+
+    for (let i = 0; i < challenges.length; i++) {
+      const challenge = challenges[i];
+      setCurrentChallenge(challenge);
+      if (!streamRef.current) {
+          finalMessage = "Camera stream was interrupted.";
+          break;
+      }
+
+      const progressValue = (i / challenges.length) * 100;
+      setProgress(progressValue);
+      setFeedbackMessage(`Please ${challenge} for the camera.`);
+      await sleep(2000);
+
+      if (!videoRef.current || !canvasRef.current) break;
+
+      const context = canvasRef.current.getContext('2d');
+      if (!context) break;
+      canvasRef.current.width = videoRef.current.videoWidth;
+      canvasRef.current.height = videoRef.current.videoHeight;
+      context.drawImage(videoRef.current, 0, 0);
+      const frame = canvasRef.current.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+      try {
+        await apiClient.post('api/v1/users/me/enroll-face', { session_id: sessionId, video_data: frame, consent_given: true });
+        isSuccess = true;
+        finalMessage = 'Face ID enrolled successfully!';
+        break;
+      } catch (error: unknown) {
+        const errorMsg = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || '';
+        if (errorMsg.includes('CHALLENGE_PASSED_CONTINUE')) {
+          continue;
+        } else {
+          isSuccess = false;
+          finalMessage = errorMsg || 'An unexpected error occurred.';
+          break;
+        }
+      }
+    }
+    
+    setProgress(isSuccess ? 100 : progress);
+    setStatus(isSuccess ? 'success' : 'error');
+    setFeedbackMessage(finalMessage);
+    if (isSuccess && user) {
+      setUser({ ...user, face_id_enrolled: true });
+    }
+    cleanup();
+  }, [cleanup, setUser, user, progress]);
+
+  const startFlowRef = useRef(startFlow);
+
   useEffect(() => {
-    if (open && !hasFlowStarted) {
-      setHasFlowStarted(true); 
-      
-      const startFlow = async () => {
-        setStatus('starting');
-        setFeedbackMessage('Starting camera...');
+    startFlowRef.current = startFlow;
+  }, [startFlow]);
 
-        try {
-          streamRef.current = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-          if (videoRef.current) {
-            videoRef.current.srcObject = streamRef.current;
-            await videoRef.current.play();
-          }
-        } catch (err) {
-          console.error("[ENROLLMENT] Camera error:", err);
-          setFeedbackMessage('Could not access camera. Please check permissions.');
-          setStatus('error');
-          return;
-        }
-
-        let sessionId: string;
-        let challenges: string[];
-        try {
-          setFeedbackMessage('Preparing enrollment session...');
-          const response = await apiClient.get('api/v1/users/enroll-challenge');
-          sessionId = response.data.session_id;
-          challenges = response.data.challenges;
-          setStatus('streaming');
-        } catch (error) {
-          console.error("[ENROLLMENT] Challenge fetch error:", error);
-          setFeedbackMessage('Could not start enrollment session.');
-          setStatus('error');
-          cleanup();
-          return;
-        }
-
-        let isSuccess = false;
-        let finalMessage = 'Enrollment failed. Please try again.';
-
-        for (let i = 0; i < challenges.length; i++) {
-          const challenge = challenges[i];
-          setCurrentChallenge(challenge);
-          if (!streamRef.current) {
-              finalMessage = "Camera stream was interrupted.";
-              break;
-          }
-
-          const progressValue = (i / challenges.length) * 100;
-          setProgress(progressValue);
-          setFeedbackMessage(`Please ${challenge} for the camera.`);
-          await sleep(2000);
-
-          if (!videoRef.current || !canvasRef.current) break;
-
-          const context = canvasRef.current.getContext('2d');
-          if (!context) break;
-          canvasRef.current.width = videoRef.current.videoWidth;
-          canvasRef.current.height = videoRef.current.videoHeight;
-          context.drawImage(videoRef.current, 0, 0);
-          const frame = canvasRef.current.toDataURL('image/jpeg', 0.8).split(',')[1];
-
-          try {
-            await apiClient.post('api/v1/users/me/enroll-face', { session_id: sessionId, video_data: frame, consent_given: true });
-            isSuccess = true;
-            finalMessage = 'Face ID enrolled successfully!';
-            break;
-          } catch (error: any) {
-            const errorMsg = error.response?.data?.error || '';
-            if (errorMsg.includes('CHALLENGE_PASSED_CONTINUE')) {
-              continue;
-            } else {
-              isSuccess = false;
-              finalMessage = errorMsg || 'An unexpected error occurred.';
-              break;
-            }
-          }
-        }
-        
-        setProgress(isSuccess ? 100 : progress);
-        setStatus(isSuccess ? 'success' : 'error');
-        setFeedbackMessage(finalMessage);
-        if (isSuccess && user) {
-          setUser({ ...user, face_id_enrolled: true });
-        }
-        cleanup();
-      };
-
-      startFlow();
-    } else if (!open && hasFlowStarted) {
-      setHasFlowStarted(false);
+  useEffect(() => {
+    if (open) {
+      startFlowRef.current();
+    } else {
       cleanup();
     }
-  }, [open, hasFlowStarted, cleanup, setUser, user]);
+  }, [open, cleanup]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

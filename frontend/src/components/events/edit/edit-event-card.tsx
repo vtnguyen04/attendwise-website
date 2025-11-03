@@ -3,8 +3,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DetailedAppEvent } from '@/lib/types';
-import EventForm from '@/components/events/event-form/event-form'; // Assuming EventForm is in the same directory
-import { Lock } from 'lucide-react';
+import EventForm from '@/components/events/event-form/event-form';
+import { Lock, Settings } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface EditEventCardProps {
   event: DetailedAppEvent;
@@ -12,33 +13,44 @@ interface EditEventCardProps {
 }
 
 const LockedState = ({ status }: { status: string }) => (
-  <div className="flex flex-col items-center justify-center text-center py-12">
-    <div className="p-4 bg-red-500/10 rounded-full mb-4">
-      <Lock className="h-8 w-8 text-red-500" />
+  <motion.div
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.3 }}
+    className="flex flex-col items-center justify-center text-center py-16"
+  >
+    <div className="w-20 h-20 rounded-full bg-destructive/10 backdrop-glass flex items-center justify-center mb-6 relative">
+      <Lock className="h-10 w-10 text-destructive/80" />
+      <div className="absolute inset-0 rounded-full bg-destructive/5 animate-pulse" />
     </div>
-    <h3 className="text-lg font-semibold mb-2">Editing is Disabled</h3>
-    <p className="text-muted-foreground max-w-md">
-      This event has been marked as &quot;{status}&quot; and can no longer be edited.
+    <h3 className="text-xl font-bold mb-3">Editing is Disabled</h3>
+    <p className="text-muted-foreground max-w-md leading-relaxed">
+      This event has been marked as &quot;<span className="font-semibold text-foreground">{status}</span>&quot; and can no longer be edited.
     </p>
-  </div>
+  </motion.div>
 );
 
 export function EditEventCard({ event, isEditingDisabled }: EditEventCardProps) {
   return (
-    <Card className="glass-card border-border shadow-lg rounded-2xl overflow-hidden">
-      <CardHeader className="pb-4 border-b border-border">
+    <Card className="dashboard-panel border-0 shadow-none overflow-hidden">
+      <CardHeader className="pb-6">
         <div className="flex items-center gap-3">
-          <div className="h-1.5 w-1.5 bg-primary rounded-full"></div>
+          <div className="w-10 h-10 rounded-lg bg-primary/10 backdrop-glass flex items-center justify-center">
+            {isEditingDisabled ? (
+              <Lock className="h-5 w-5 text-destructive" />
+            ) : (
+              <Settings className="h-5 w-5 text-primary" />
+            )}
+          </div>
           <CardTitle className="text-xl font-bold">
             {isEditingDisabled ? 'Settings Locked' : 'Edit Event Details'}
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="pt-0">
         {isEditingDisabled ? (
           <LockedState status={event.status} />
         ) : (
-          // key prop is important to re-initialize the form when the event data changes
           <EventForm key={event.id} mode="edit" initialData={event} />
         )}
       </CardContent>

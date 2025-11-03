@@ -22,8 +22,12 @@ export default async function MyCommunitiesPage() {
   }));
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <MyCommunitiesDataTable data={myCommunities} />
-    </Suspense>
+    <div data-primary-content>
+      <Suspense fallback={<div>Loading...</div>}>
+        <div data-scroll-anchor>
+          <MyCommunitiesDataTable data={myCommunities} />
+        </div>
+      </Suspense>
+    </div>
   );
 }

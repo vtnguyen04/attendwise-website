@@ -32,7 +32,7 @@ export type LoginResponse = {
  * @returns The newly created user object.
  */
 export const register = async (payload: RegisterPayload): Promise<User> => {
-    const response = await publicApiClient.post('/api/v1/auth/register', payload);
+    const response = await publicApiClient.post('/auth/register', payload);
     return response.data.user;
 };
 
@@ -42,6 +42,6 @@ export const register = async (payload: RegisterPayload): Promise<User> => {
  * @returns The login response containing tokens and user data.
  */
 export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
-    const response = await publicApiClient.post('/api/v1/auth/login', payload);
+    const response = await publicApiClient.post('/auth/login', payload);
     return response.data;
 };

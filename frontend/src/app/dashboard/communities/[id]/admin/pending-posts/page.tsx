@@ -14,6 +14,9 @@ import ListTodo from 'lucide-react/icons/list-todo';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
+import Link from 'next/link';
+import { useTranslation } from '@/hooks/use-translation';
+
 export default function PendingPostsPage() {
   const params = useParams();
   const communityId = params.id as string;
@@ -22,19 +25,20 @@ export default function PendingPostsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const { t } = useTranslation('community');
 
   const fetchPendingPosts = useCallback(async () => {
     if (!communityId) return;
     setIsLoading(true);
     try {
-      const response = await apiClient.get(`/api/v1/communities/${communityId}/posts?status=pending`);
+      const response = await apiClient.get(`/communities/${communityId}/posts?status=pending`);
       setPendingPosts(response.data.posts || []);
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to fetch pending posts.', variant: 'destructive' });
+    } catch {
+      toast({ title: t('error'), description: t('admin.pending_posts.toast.fetch_error'), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
-  }, [communityId, toast]);
+  }, [communityId, toast, t]);
 
   useEffect(() => {
     fetchPendingPosts();
@@ -43,11 +47,11 @@ export default function PendingPostsPage() {
   const handleAction = async (postId: string, action: 'approve' | 'reject') => {
     setActionLoading(prev => ({ ...prev, [postId]: true }));
     try {
-      await apiClient.post(`/api/v1/posts/${postId}/${action}`);
-      toast({ title: 'Success', description: `Post has been ${action}d.` });
+      await apiClient.post(`/posts/${postId}/${action}`);
+      toast({ title: t('toast.success'), description: t('admin.pending_posts.toast.action_success', { action }) });
       setPendingPosts(prev => prev.filter(post => post.id !== postId));
-    } catch (error) {
-      toast({ title: 'Error', description: `Failed to ${action} post.`, variant: 'destructive' });
+    } catch {
+      toast({ title: t('error'), description: t('admin.pending_posts.toast.action_error', { action }), variant: 'destructive' });
     } finally {
       setActionLoading(prev => ({ ...prev, [postId]: false }));
     }
@@ -73,8 +77,8 @@ export default function PendingPostsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Pending Posts</CardTitle>
-        <CardDescription>Review and approve or reject posts from members.</CardDescription>
+        <CardTitle>{t('admin.pending_posts.title')}</CardTitle>
+        <CardDescription>{t('admin.pending_posts.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
@@ -88,12 +92,16 @@ export default function PendingPostsPage() {
             pendingPosts.map(post => (
               <Card key={post.id}>
                 <CardHeader className="flex flex-row items-center gap-4">
-                    <Avatar>
-                        <AvatarImage src={post.author.profile_picture_url} />
-                        <AvatarFallback>{post.author.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <Link href={`/dashboard/profile/${post.author_id}`}>
+                        <Avatar>
+                            <AvatarImage src={post.author.profile_picture_url} />
+                            <AvatarFallback>{post.author.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                     <div>
-                        <p className="font-semibold">{post.author.name || 'Unnamed User'}</p>
+                        <Link href={`/dashboard/profile/${post.author_id}`}>
+                            <p className="font-semibold hover:underline">{post.author.name || t('admin.pending_posts.unnamed_user')}</p>
+                        </Link>
                         <p className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
@@ -110,7 +118,7 @@ export default function PendingPostsPage() {
                     disabled={actionLoading[post.id]}
                   >
                     {actionLoading[post.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4 mr-2" />}
-                    Reject
+                    {t('admin.pending_posts.reject_button')}
                   </Button>
                   <Button
                     size="sm"
@@ -118,7 +126,7 @@ export default function PendingPostsPage() {
                     disabled={actionLoading[post.id]}
                   >
                     {actionLoading[post.id] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                    Approve
+                    {t('admin.pending_posts.approve_button')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -126,8 +134,8 @@ export default function PendingPostsPage() {
         ) : (
             <div className="flex flex-col items-center justify-center text-center text-muted-foreground py-16">
                 <ListTodo className="h-12 w-12 mb-4" />
-                <h3 className="text-lg font-semibold">No Pending Posts</h3>
-                <p className="mt-2">There are no posts awaiting review at this time.</p>
+                <h3 className="text-lg font-semibold">{t('admin.pending_posts.no_pending_posts_title')}</h3>
+                <p className="mt-2">{t('admin.pending_posts.no_pending_posts_description')}</p>
             </div>
         )}
       </CardContent>

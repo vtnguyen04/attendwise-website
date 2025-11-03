@@ -1,0 +1,13 @@
+{
+    "default_name": "User",
+    "toggle_menu": "Toggle user menu",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "menu.account_settings": "Account Settings",
+    "menu.account_settings.subtitle": "Manage your account settings",
+    "menu.notifications": "Notifications",
+    "menu.notifications.subtitle": "Manage your notification preferences",
+    "menu.logout.subtitle": "Log out from your account"
+}

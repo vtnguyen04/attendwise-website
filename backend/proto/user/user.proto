@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/attendwise/backend/generated/go/user";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+
+// ===================================================================
+// MESSAGE DEFINITIONS
+// ===================================================================
+
+// User đại diện cho đối tượng người dùng được trả về trong các response.
+// Quan trọng: Không bao giờ chứa các trường nhạy cảm như password_hash.
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string profile_picture_url = 4;
+  string company = 5;
+  string position = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  bool face_id_enrolled = 9; // New field to indicate FaceID enrollment status
+}
+
+// --- Register ---
+message RegisterRequest {
+  string name = 1;
+  string email = 2;
+  string password = 3;
+  // object_name nhận được sau khi upload ảnh lên MinIO thành công.
+  // Client sẽ gửi object_name này lên, service sẽ xử lý di chuyển file sau.
+  // Dùng optional để phân biệt giữa không gửi và gửi chuỗi rỗng.
+  string profile_picture_object_name = 4;
+  string company = 5;
+  string position = 6;
+}
+
+message RegisterResponse {
+  User user = 1;
+}
+
+// --- Login ---
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+// --- Get User Profile ---
+message GetUserProfileRequest {
+  string user_id = 1;
+}
+
+message GetUserProfileResponse {
+  User user = 1;
+}
+
+// --- Update User Profile ---
+message UpdateUserProfileRequest {
+  // ID của người dùng cần cập nhật (lấy từ JWT token ở API Gateway).
+  string user_id = 1;
+
+  // Các trường có thể được cập nhật.
+  // Dùng optional để server biết chính xác client muốn cập nhật trường nào,
+  // kể cả khi giá trị là chuỗi rỗng (ví dụ: muốn xóa company).
+  string name = 2;
+  string company = 3;
+  string position = 4;
+  string profile_picture_url = 5; // Có thể cập nhật URL trực tiếp
+
+  // FieldMask là cách chuẩn để xử lý partial update.
+  // API Gateway sẽ xây dựng mask này dựa trên các trường có trong JSON payload.
+  // Ví dụ: { "paths": ["name", "company"] }
+  google.protobuf.FieldMask update_mask = 6;
+}
+
+message UpdateUserProfileResponse {
+  User user = 1;
+}
+
+// --- Enroll Face for Authentication ---
+message EnrollFaceForAuthenticationRequest {
+  string user_id = 1; // User ID from authenticated context
+  bytes image_data = 2; // Live captured image for enrollment
+  string liveness_challenge_type = 3; // Type of liveness challenge
+  bool consent_given = 4; // Explicit consent from user
+}
+
+message EnrollFaceForAuthenticationResponse {
+  bool success = 1;
+  string message = 2;
+  bool face_id_enrolled = 3; // Current FaceID enrollment status
+}
+
+
+// ===================================================================
+// SERVICE DEFINITION
+// ===================================================================
+
+// UserService định nghĩa tất cả các hành động (RPC) liên quan đến người dùng.
+service UserService {
+  // Đăng ký một người dùng mới.
+  // Có thể bao gồm `profile_picture_object_name` nếu người dùng đã upload ảnh trước đó.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Đăng nhập và trả về token cùng thông tin chi tiết người dùng.
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Lấy thông tin chi tiết của một người dùng dựa trên ID.
+  rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
+
+  // Cập nhật thông tin người dùng. Chỉ cập nhật các trường được chỉ định trong `update_mask`.
+  // Có thể bao gồm `profile_picture_object_name` nếu người dùng đã upload ảnh trước đó.
+  rpc UpdateUserProfile(UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
+
+  // Đăng ký khuôn mặt của người dùng để xác thực FaceID.
+  // Yêu cầu chụp ảnh trực tiếp và kiểm tra liveness.
+  rpc EnrollFaceForAuthentication(EnrollFaceForAuthenticationRequest) returns (EnrollFaceForAuthenticationResponse);
+}

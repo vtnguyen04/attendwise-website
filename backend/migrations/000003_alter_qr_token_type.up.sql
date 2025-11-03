@@ -1,0 +1,1 @@
+ALTER TABLE event_attendees ALTER COLUMN qr_code_token TYPE TEXT;

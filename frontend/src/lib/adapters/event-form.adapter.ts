@@ -36,10 +36,10 @@ export const mapApiEventToFormValues = (event: AppEvent): Partial<EventFormValue
     face_verification_required: event.face_verification_required,
     liveness_check_required: event.liveness_check_required,
     is_paid: event.is_paid,
-    fee: extractFloatValue(event.fee as any), // Assuming fee is NullableFloat
+    fee: extractFloatValue(event.fee), // Assuming fee is NullableFloat
     currency: event.currency,
     status: event.status,
-    reminder_schedule: event.reminder_schedule as any, // Assuming reminder_schedule from API matches form structure
+    reminder_schedule: (event.reminder_schedule ? (Array.isArray(event.reminder_schedule) ? event.reminder_schedule : [event.reminder_schedule]) : []) as { offset_minutes: number; channels: string[]; }[],
   };
 };
 
@@ -83,7 +83,7 @@ export const mapFormValuesToApiPayload = (values: EventFormValues): CreateEventP
     fee: toNullFloat(values.fee),
     currency: values.currency,
     status: values.status,
-    reminder_schedule: values.reminder_schedule || null,
+    reminder_schedule: values.reminder_schedule ? values.reminder_schedule[0] : null,
   };
 
   console.log("DEBUG: Event Payload to be sent:", { is_recurring: eventPayload.is_recurring, recurrence_rule: eventPayload.recurrence_rule, form_is_recurring: values.is_recurring, form_recurrence_rule: values.recurrence_rule });

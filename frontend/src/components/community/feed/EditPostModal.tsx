@@ -53,11 +53,11 @@ export function EditPostModal({ post, isOpen, onOpenChange, onPostUpdated }: Edi
   const onSubmit = async (values: EditPostFormValues) => {
     setIsLoading(true);
     try {
-      const response = await apiClient.patch(`/api/v1/posts/${post.id}`, values);
+      const response = await apiClient.patch(`/posts/${post.id}`, values);
       toast({ title: 'Success', description: 'Post updated successfully.' });
       onPostUpdated(response.data.post);
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to update post.', variant: 'destructive' });
     } finally {
       setIsLoading(false);

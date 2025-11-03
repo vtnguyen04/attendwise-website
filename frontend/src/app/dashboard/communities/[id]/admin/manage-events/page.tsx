@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { AppEvent } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PlusCircle from 'lucide-react/icons/plus-circle';
 import MoreHorizontal from 'lucide-react/icons/more-horizontal';
@@ -12,6 +11,8 @@ import Edit from 'lucide-react/icons/edit';
 import Trash2 from 'lucide-react/icons/trash-2';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import Ban from 'lucide-react/icons/ban';
+import Sparkles from 'lucide-react/icons/sparkles';
+import AlertCircle from 'lucide-react/icons/alert-circle';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -19,6 +20,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -31,6 +33,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { format, isValid } from 'date-fns';
+import {
+  useTranslation
+} from '@/hooks/use-translation';
+import { Trans } from 'react-i18next';
 
 const safeFormatDate = (date: string | Date) => {
   const d = new Date(date);
@@ -44,21 +50,22 @@ export default function ManageEventsPage() {
   const [events, setEvents] = useState<AppEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [eventToDelete, setEventToDelete] = useState<AppEvent | null>(null);
+  const { t } = useTranslation('community');
   const { toast } = useToast();
 
   const fetchEvents = useCallback(async () => {
     if (!communityId) return;
     setIsLoading(true);
     try {
-      const response = await apiClient.get(`/api/v1/events/by-community/${communityId}`);
+      const response = await apiClient.get(`/events/by-community/${communityId}`);
       console.log('API Response:', response.data);
       setEvents(response.data.events || []);
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to fetch events.', variant: 'destructive' });
+    } catch {
+      toast({ title: t('error'), description: t('admin.manage_events.toast.fetch_error'), variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
-  }, [communityId, toast]);
+  }, [communityId, toast, t]);
 
   useEffect(() => {
     fetchEvents();
@@ -71,11 +78,11 @@ export default function ManageEventsPage() {
   const handleHardDeleteEvent = async () => {
     if (!eventToDelete) return;
     try {
-      await apiClient.delete(`/api/v1/events/${eventToDelete.id}/hard`);
-      toast({ title: 'Success', description: 'Event deleted successfully.' });
+      await apiClient.delete(`/events/${eventToDelete.id}/hard`);
+      toast({ title: t('toast.success'), description: t('admin.manage_events.toast.delete_success') });
       setEvents(prev => prev.filter(event => event.id !== eventToDelete.id));
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to delete event.', variant: 'destructive' });
+    } catch {
+      toast({ title: t('error'), description: t('admin.manage_events.toast.delete_error'), variant: 'destructive' });
     } finally {
       setEventToDelete(null);
     }
@@ -83,123 +90,187 @@ export default function ManageEventsPage() {
 
   const handleSoftDeleteEvent = async (eventId: string) => {
     try {
-      await apiClient.delete(`/api/v1/events/${eventId}`);
-      toast({ title: 'Success', description: 'Event cancelled successfully.' });
-      fetchEvents(); // Refetch events to update the list
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to cancel event.', variant: 'destructive' });
+      await apiClient.delete(`/events/${eventId}`);
+      toast({ title: t('toast.success'), description: t('admin.manage_events.toast.cancel_success') });
+      fetchEvents();
+    } catch {
+      toast({ title: t('error'), description: t('admin.manage_events.toast.cancel_error'), variant: 'destructive' });
     }
   };
   
   const EventSkeleton = () => (
-    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-      <div className="space-y-2 flex-1">
-        <Skeleton className="h-5 w-48 rounded-lg" />
-        <Skeleton className="h-4 w-32 rounded-lg" />
+    <div className="dashboard-mini-card p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2 flex-1">
+          <Skeleton className="h-6 w-48 rounded-lg bg-muted/50" />
+          <Skeleton className="h-4 w-32 rounded-lg bg-muted/40" />
+        </div>
+        <Skeleton className="h-10 w-10 rounded-xl bg-muted/50" />
       </div>
-      <Skeleton className="h-10 w-10 rounded-lg" />
     </div>
   );
 
   return (
     <>
-      <Card className="border-gray-200 dark:border-gray-800 shadow-lg rounded-2xl overflow-hidden">
-        <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
+      <div className="dashboard-panel overflow-hidden">
+        <div className="relative px-8 py-8 border-b border-border/30">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="h-1.5 w-1.5 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full"></div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Manage Events</CardTitle>
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm shadow-lg shadow-primary /10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  {t('admin.manage_events.title')}
+                </h2>
               </div>
-              <CardDescription className="text-gray-600 dark:text-gray-400">Create, edit, or remove events for this community.</CardDescription>
+              <p className="text-muted-foreground max-w-2xl">
+                {t('admin.manage_events.description')}
+              </p>
             </div>
             <Button 
               onClick={handleCreateEvent}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="cta-button gap-2 font-semibold shadow-lg hover:shadow-xl whitespace-nowrap"
             >
-              <PlusCircle className="h-5 w-5 mr-2" />
-              Create Event
+              <PlusCircle className="h-5 w-5" />
+              {t('admin.manage_events.create_button')}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-3">
+        </div>
+        
+        <div className="p-8">
+          <div className="space-y-4">
             {isLoading ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {[...Array(3)].map((_, index) => <EventSkeleton key={index} />)}
               </div>
             ) : events.length > 0 ? (
               events.map((event) => (
                 <div 
                   key={event.id} 
-                  className="flex items-center justify-between p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all duration-200 group"
+                  className="feed-card p-5 group cursor-pointer transition-all duration-300"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {event.name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-                      <CalendarDays className="h-4 w-4 flex-shrink-0" />
-                      <span>{safeFormatDate(event.created_at)}</span>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <h3 className="font-bold text-lg text-foreground truncate group-hover:text-primary transition-colors duration-300">
+                        {event.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="p-1.5 rounded-lg bg-muted/50">
+                          <CalendarDays className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium">{safeFormatDate(event.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="liquid-glass-button h-10 w-10 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        >
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent 
+                        align="end" 
+                        className="w-56 dashboard-panel-muted border-border/50 backdrop-blur-xl"
                       >
-                        <MoreHorizontal className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem onSelect={() => router.push(`/dashboard/events/${event.id}/edit`)} className="rounded-lg cursor-pointer text-gray-700 dark:text-gray-300 focus:bg-blue-100 dark:focus:bg-blue-900/30 focus:text-blue-600 dark:focus:text-blue-400">
-                        <Edit className="h-4 w-4 mr-2" /> Edit Event
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleSoftDeleteEvent(event.id)} className="rounded-lg cursor-pointer text-amber-600 dark:text-amber-400 focus:bg-amber-100 dark:focus:bg-amber-900/20 focus:text-amber-700 dark:focus:text-amber-300">
-                        <Ban className="h-4 w-4 mr-2" /> Cancel Event
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setEventToDelete(event)} className="rounded-lg cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-100 dark:focus:bg-red-900/20 focus:text-red-700 dark:focus:text-red-300">
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete Event
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem 
+                          onSelect={() => router.push(`/dashboard/events/${event.id}/edit`)} 
+                          className="cursor-pointer rounded-lg py-3 px-3 font-medium transition-all duration-200 focus:bg-primary/10 focus:text-primary"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-primary/10">
+                              <Edit className="h-4 w-4 text-primary" />
+                            </div>
+                            {t('admin.manage_events.edit_button')}
+                          </div>
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuSeparator className="bg-border/50" />
+                        
+                        <DropdownMenuItem 
+                          onSelect={() => handleSoftDeleteEvent(event.id)} 
+                          className="cursor-pointer rounded-lg py-3 px-3 font-medium transition-all duration-200 focus:bg-amber-500/10 focus:text-amber-600 dark:focus:text-amber-400"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-amber-500/10">
+                              <Ban className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                            </div>
+                            {t('admin.manage_events.cancel_button')}
+                          </div>
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem 
+                          onSelect={() => setEventToDelete(event)} 
+                          className="cursor-pointer rounded-lg py-3 px-3 font-medium transition-all duration-200 focus:bg-destructive/10 focus:text-destructive"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-destructive/10">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </div>
+                            {t('admin.manage_events.delete_button')}
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               ))
             ) : (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors duration-200">
-                <div className="flex justify-center mb-4">
-                  <div className="p-3 bg-gray-200 dark:bg-gray-700 rounded-full">
-                    <CalendarDays className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+              <div className="dashboard-panel-muted text-center py-20 rounded-2xl border-2 border-dashed border-border/50 transition-all duration-300 hover:border-primary/30 hover:bg-muted/20">
+                <div className="flex justify-center mb-6">
+                  <div className="p-6 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/30 backdrop-blur-sm shadow-lg">
+                    <CalendarDays className="h-12 w-12 text-muted-foreground/50" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">No Events Found</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Create your first event for this community to get started.</p>
+                <h3 className="text-2xl font-bold text-foreground mb-2">{t('admin.manage_events.no_events_title')}</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  {t('admin.manage_events.no_events_description')}
+                </p>
                 <Button 
                   onClick={handleCreateEvent}
-                  className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg"
+                  className="cta-button gap-2 font-semibold shadow-lg hover:shadow-xl"
                 >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create First Event
+                  <PlusCircle className="h-5 w-5" />
+                  {t('admin.manage_events.create_first_button')}
                 </Button>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
       <AlertDialog open={!!eventToDelete} onOpenChange={() => setEventToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the event <span className="font-bold">{eventToDelete?.name}</span>. This action cannot be undone.
+        <AlertDialogContent className="dashboard-panel max-w-lg border-destructive/20">
+          <AlertDialogHeader className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-destructive/10 backdrop-blur-sm">
+                <AlertCircle className="h-6 w-6 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-2xl">{t('admin.manage_events.delete_dialog_title')}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base leading-relaxed">
+              <Trans
+                i18nKey="admin.manage_events.delete_dialog_description"
+                values={{ eventName: eventToDelete?.name }}
+                components={{ 1: <span className="font-bold text-foreground" /> }}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleHardDeleteEvent} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+          <AlertDialogFooter className="gap-3 pt-6 border-t border-border/30">
+            <AlertDialogCancel className="liquid-glass-button font-semibold">
+              {t('admin.manage_events.delete_dialog_cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleHardDeleteEvent} 
+              className="bg-gradient-to-br from-destructive to-destructive/90 text-destructive-foreground font-semibold shadow-lg shadow-destructive/30 hover:shadow-xl hover:shadow-destructive/40 hover:scale-102 transition-all duration-300"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t('admin.manage_events.delete_dialog_confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

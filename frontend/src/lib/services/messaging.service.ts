@@ -7,7 +7,7 @@ import type { QueryFunctionContext } from '@tanstack/react-query';
  * Can be used on server or client.
  */
 export async function getConversations(): Promise<Conversation[]> {
-  const response = await apiClient.get('/api/v1/conversations');
+  const response = await apiClient.get('/conversations');
   return response.data.conversations || [];
 }
 
@@ -16,9 +16,10 @@ export async function getConversations(): Promise<Conversation[]> {
  * Can be used on server or client.
  */
 export async function getMessages({ pageParam = 0, queryKey }: QueryFunctionContext): Promise<Message[]> {
-  const [_key, conversationId] = queryKey;
+  const [, conversationId] = queryKey;
   const limit = 50;
-  const response = await apiClient.get(`/api/v1/conversations/${conversationId}/messages?limit=${limit}&offset=${pageParam}`);
+  console.log('Fetching messages with limit:', limit, 'offset:', pageParam);
+  const response = await apiClient.get(`/conversations/${conversationId}/messages?limit=${limit}&offset=${pageParam}`);
   return response.data.messages || [];
 }
 
@@ -27,7 +28,7 @@ export async function getMessages({ pageParam = 0, queryKey }: QueryFunctionCont
  * Can be used on server or client.
  */
 export async function getConversationDetails(conversationId: string): Promise<Conversation | null> {
-  const response = await apiClient.get(`/api/v1/conversations/${conversationId}`);
+  const response = await apiClient.get(`/conversations/${conversationId}`);
   return response.data.conversation || null;
 }
 
@@ -35,10 +36,19 @@ export async function getConversationDetails(conversationId: string): Promise<Co
  * Sends a message to a conversation.
  * Can be used on server or client.
  */
-export async function sendMessage({ conversationId, content }: { conversationId: string, content: string }): Promise<Message> {
-  const payload = { content, type: 'text' };
-  const response = await apiClient.post(`/api/v1/conversations/${conversationId}/messages`, payload);
-  return response.data.message;
+export async function sendMessage(
+  conversationId: string,
+  content: string,
+  messageType: "text" | "image" | "file" = "text"
+): Promise<Message> {
+  const response = await apiClient.post(
+    `/conversations/${conversationId}/messages`,
+    {
+      content,
+      message_type: messageType,
+    }
+  );
+  return response.data;
 }
 
 /**
@@ -47,7 +57,7 @@ export async function sendMessage({ conversationId, content }: { conversationId:
  */
 export async function updateMessage({ messageId, content }: { messageId: string, content: string }): Promise<Message> {
   const payload = { content };
-  const response = await apiClient.patch(`/api/v1/messages/${messageId}`, payload);
+  const response = await apiClient.patch(`/messages/${messageId}`, payload);
   return response.data.message;
 }
 
@@ -56,7 +66,7 @@ export async function updateMessage({ messageId, content }: { messageId: string,
  * Can be used on server or client.
  */
 export async function deleteMessage(messageId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/messages/${messageId}`);
+  await apiClient.delete(`/messages/${messageId}`);
 }
 
 
@@ -71,7 +81,7 @@ export async function deleteMessage(messageId: string): Promise<void> {
 
 export async function getTotalUnreadMessageCount(): Promise<number> {
 
-  const response = await apiClient.get('/api/v1/conversations/unread-count');
+  const response = await apiClient.get('/conversations/unread-count');
 
   return response.data.count;
 
@@ -109,7 +119,7 @@ export type CreateConversationPayload = {
 
 export async function createConversation(payload: CreateConversationPayload): Promise<Conversation> {
 
-    const response = await apiClient.post('/api/v1/conversations', payload);
+    const response = await apiClient.post('/conversations', payload);
 
     return response.data.conversation;
 

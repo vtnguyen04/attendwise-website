@@ -1,0 +1,36 @@
+{
+    "insights.show": "Hiển thị thông tin chi tiết",
+    "insights.title": "Thông tin chi tiết",
+    "insights.collapse_sidebar": "Thu gọn thanh bên",
+    "insights.upcoming_events": "Sự kiện sắp tới",
+    "insights.no_upcoming_events": "Chưa có sự kiện sắp tới nào.",
+    "insights.recent_posts": "Bài viết gần đây",
+    "insights.no_posts_yet": "Chưa có bài viết nào trong nguồn cấp dữ liệu của bạn.",
+    "shortcuts.title": "Phím tắt",
+    "shortcuts.start_post": "Bắt đầu một bài viết",
+    "shortcuts.browse_events": "Duyệt sự kiện",
+    "shortcuts.explore_communities": "Khám phá cộng đồng",
+    "post.view": "Xem bài viết",
+    "post.unknown_author": "Tác giả không xác định",
+    "event.date_to_be_announced": "Ngày sẽ được công bố",
+    "insights": {
+        "personalized_feed": "Nguồn cấp dữ liệu cá nhân",
+        "upcoming_events": "Sự Kiện Sắp Tới",
+        "recent_posts": "Bài Viết Gần Đây",
+        "no_upcoming_events_title": "Không có sự kiện sắp tới",
+        "no_upcoming_events": "Tham gia sự kiện để xem tại đây",
+        "no_posts_title": "Chưa có bài viết"
+    },
+    "shortcuts": {
+    "start_post_desc": "Chia sẻ suy nghĩ của bạn",
+    "browse_events_desc": "Khám phá các hoạt động",
+    "explore_cmmunities": "Khám Phá Cộng Đồng",
+    "explore_communities_desc": "Tìm nhóm của bạn"
+    },
+    "post": {
+        "unknown_author": "Người dùng ẩn danh"
+    }
+}
+
+
+  

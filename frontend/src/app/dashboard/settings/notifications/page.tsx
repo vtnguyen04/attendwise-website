@@ -24,7 +24,7 @@ type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
 
 function NotificationsSkeleton() {
     return (
-        <Card>
+        <Card data-scroll-skip="true">
             <CardHeader>
                 <Skeleton className="h-6 w-1/2" />
                 <Skeleton className="h-4 w-3/4" />
@@ -81,7 +81,7 @@ export default function NotificationsSettingsPage() {
         if (response.data.preferences) {
           form.reset(response.data.preferences);
         }
-      } catch (error) {
+      } catch {
         toast({ title: t('fetch_error_title'), description: t('fetch_error_description'), variant: 'destructive' });
       } finally {
         setIsLoading(false);
@@ -97,7 +97,7 @@ export default function NotificationsSettingsPage() {
       await apiClient.put('/notifications/preferences', data);
       toast({ title: t('save_success_title'), description: t('save_success_description') });
       form.reset(data, { keepValues: true });
-    } catch (error) {
+    } catch {
       toast({ title: t('save_error_title'), description: t('save_error_description'), variant: 'destructive' });
     } finally {
       setIsSaving(false);
@@ -109,7 +109,7 @@ export default function NotificationsSettingsPage() {
   }
 
     return (
-    <GlassCard>
+    <GlassCard data-scroll-anchor>
       <CardHeader>
         <CardTitle>{t('title')}</CardTitle>
         <CardDescription>{t('description')}</CardDescription>

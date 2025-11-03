@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from '@/hooks/use-translation';
 
 interface CommunitySelectorProps {
   adminCommunities: Community[];
@@ -18,16 +19,17 @@ interface CommunitySelectorProps {
 
 const CommunitySelector = React.memo(
   ({ adminCommunities, selectedCommunityId, setSelectedCommunityId, isUpdating }: CommunitySelectorProps) => {
+    const { t } = useTranslation('community');
     return (
       <GlassCard className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Select Community</h2>
+        <h2 className="text-xl font-semibold mb-4">{t('selector.title')}</h2>
         <Select
           onValueChange={setSelectedCommunityId}
           value={selectedCommunityId || undefined}
           disabled={isUpdating}
         >
           <SelectTrigger className="liquid-glass-input w-full md:w-1/2">
-            <SelectValue placeholder="Select a community" />
+            <SelectValue placeholder={t('selector.placeholder')} />
           </SelectTrigger>
           <SelectContent className="liquid-glass-nav">
             {adminCommunities.map((community) => (

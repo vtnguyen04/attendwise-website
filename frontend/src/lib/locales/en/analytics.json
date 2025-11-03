@@ -1,0 +1,18 @@
+{
+  "analytics": {
+    "no_data": "No analytics data available.",
+    "total_members": "Total Members",
+    "new_members_last_month": "{count} new members last month",
+    "total_posts": "Total Posts",
+    "new_posts_last_month": "{count} new posts last month",
+    "total_events": "Total Events",
+    "avg_event_attendance": "Avg. Event Attendance: {rate}%",
+    "engagement_rate": "Engagement Rate",
+    "engagement_description": "Overall community engagement",
+    "member_growth_chart_title": "Member Growth Over Time",
+    "member_growth_chart_description": "Visual representation of new members joining the community.",
+    "chart_placeholder": "Chart will be displayed here",
+    "post_engagement_chart_title": "Post Engagement Over Time",
+    "post_engagement_chart_description": "Trends in likes, comments, and shares on posts."
+  }
+}

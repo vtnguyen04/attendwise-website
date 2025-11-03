@@ -5,13 +5,15 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/ui/icons';
+import { useTranslation } from '@/hooks/use-translation';
 
-export interface PasswordInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export type PasswordInputProps =
+  React.InputHTMLAttributes<HTMLInputElement>;
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
+    const { t } = useTranslation();
 
     return (
       <div className="relative">
@@ -35,7 +37,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
             <Icons.eye className="h-4 w-4" aria-hidden="true" />
           )}
           <span className="sr-only">
-            {showPassword ? 'Hide password' : 'Show password'}
+            {showPassword ? t('common.password.hide') : t('common.password.show')}
           </span>
         </Button>
       </div>

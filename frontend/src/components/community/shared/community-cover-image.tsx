@@ -1,20 +1,24 @@
 
+'use client';
+
 import Image from 'next/image';
 import { Community } from '@/lib/types';
-import { getNullableStringValue } from '@/lib/utils';
+import { getSafeImageUrl } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface CommunityCoverImageProps {
   community: Community;
 }
 
 export function CommunityCoverImage({ community }: CommunityCoverImageProps) {
-  const coverImageUrl = getNullableStringValue(community.cover_image_url) || `http://localhost:9000/attendwise/405a368a0202885cd11310.jpg`;
+  const { t } = useTranslation('community');
+  const coverImageUrl = getSafeImageUrl(community.cover_image_url);
 
   return (
     <div className="h-80 md:h-96 w-full relative">
       <Image
         src={coverImageUrl}
-        alt={`${community.name} cover image`}
+        alt={t('cover_image.alt', { communityName: community.name })}
         fill
         className="object-cover blur-xs"
         priority

@@ -10,7 +10,7 @@ import type { Community, Post } from '@/lib/types';
  * @returns The community object or null if not found.
  */
 export async function getCommunityById(id: string): Promise<Community | null> {
-  const data = await serverFetch<{ community: Community }>(`/api/v1/communities/${id}`, [
+  const data = await serverFetch<{ community: Community }>(`/communities/${id}`, [
     `community:${id}`,
   ]);
   return data?.community || null;
@@ -21,7 +21,7 @@ export async function getCommunityById(id: string): Promise<Community | null> {
  * @returns An array of community objects.
  */
 export async function getMyCommunities(): Promise<Community[]> {
-  const data = await serverFetch<{ communities: Community[] }>('/api/v1/my-communities', [
+  const data = await serverFetch<{ communities: Community[] }>('/my-communities', [
     'my-communities',
   ]);
   return data?.communities || [];
@@ -46,7 +46,7 @@ export async function listCommunityPosts(
   limit: number = 10
 ): Promise<{ posts: Post[]; has_more: boolean }> {
   const data = await serverFetch<{ posts: Post[]; pagination?: { has_more?: boolean } }>(
-    `/api/v1/communities/${communityId}/posts?page=${page}&limit=${limit}`,
+    `/communities/${communityId}/posts?page=${page}&limit=${limit}`,
     [`community:${communityId}:posts`]
   );
   return {

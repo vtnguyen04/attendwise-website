@@ -1,0 +1,2 @@
+-- Downgrading from this version is not supported as it would require complex type manipulation.
+-- The 'pending' value will remain in the event_attendee_status enum.

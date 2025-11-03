@@ -4,6 +4,7 @@ import { Community, EventItem } from '@/lib/types';
 import { getCurrentUser } from '@/lib/session';
 import { cookies } from 'next/headers';
 import AlertCircle from 'lucide-react/icons/alert-circle';
+import Link from 'next/link';
 
 async function getCommunity(id: string): Promise<Community | null> {
   const cookieStore = await cookies();
@@ -11,7 +12,7 @@ async function getCommunity(id: string): Promise<Community | null> {
   if (!token) return null;
 
   try {
-    const response = await apiClient.get(`/api/v1/communities/${id}`, {
+    const response = await apiClient.get(`/communities/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.community;
@@ -27,7 +28,7 @@ async function getCommunityEvents(id: string): Promise<EventItem[]> {
   if (!token) return [];
 
   try {
-    const response = await apiClient.get(`/api/v1/events/by-community/${id}`, {
+    const response = await apiClient.get(`/events/by-community/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.events || [];
@@ -40,9 +41,9 @@ async function getCommunityEvents(id: string): Promise<EventItem[]> {
 export default async function CommunityEventsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   // Fetch data in parallel
   const [community, events, user] = await Promise.all([
@@ -65,14 +66,14 @@ export default async function CommunityEventsPage({
                   Community Not Found
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  The community you're looking for doesn't exist or has been deleted.
+                  The community you&apos;re looking for doesn&apos;t exist or has been deleted.
                 </p>
-                <a
+                <Link
                   href="/dashboard/communities"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition-all duration-200"
                 >
                   Back to Communities
-                </a>
+                </Link>
               </div>
             </div>
           </div>

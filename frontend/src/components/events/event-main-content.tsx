@@ -1,22 +1,22 @@
-// app/events/[eventId/components/event-main-content.tsx
+// app/events/[eventId]/components/event-main-content.tsx
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppEvent } from '@/lib/types';
-import { extractTimeValue } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const Countdown = dynamic(() => import('./countdown').then(mod => mod.Countdown), { ssr: false });
 import { VirtualizedSessionSelector } from './virtualized-session-selector';
-import { BarChart3, MessageSquare, Users, Settings, Loader2 } from 'lucide-react';
+import { BarChart3, MessageSquare, Users, Settings, Loader2, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getEventAttendees } from '@/lib/services/event.client.service';
+
 // --- Dynamic Imports for Tab Content ---
 const LoadingSkeleton = () => (
-  <div className="glass-card p-6 rounded-2xl min-h-[300px] flex items-center justify-center">
+  <div className="dashboard-panel p-8 rounded-2xl min-h-[300px] flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
@@ -51,6 +51,13 @@ export function EventMainContent({
   console.log('isHost in EventMainContent:', isHost);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [eventHasStarted, setEventHasStarted] = useState(false);
+
+  useEffect(() => {
+    if (eventHasStarted) {
+      router.refresh();
+    }
+  }, [eventHasStarted, router]);
 
   // --- Handlers for URL State ---
   const handleUrlStateChange = useCallback((key: string, value: string) => {
@@ -60,9 +67,8 @@ export function EventMainContent({
   }, [searchParams, router]);
 
   const handleEventStart = useCallback(() => {
-    // Refresh server components to get the new dynamic status
-    router.refresh();
-  }, [router]);
+    setEventHasStarted(true);
+  }, []);
 
   const { data: attendees, isLoading: areAttendeesLoading } = useQuery({
     queryKey: ['event-attendees', event.id, selectedSessionId],
@@ -78,99 +84,172 @@ export function EventMainContent({
     { value: 'analytics', label: 'Analytics', icon: BarChart3, visible: isHost },
     { value: 'settings', label: 'Settings', icon: Settings, visible: isHost && !isEventFinished },
   ].filter(tab => tab.visible);
-  console.log('EventMainContent - tabItems:', tabItems);
-  console.log('EventMainContent - tabItems.length:', tabItems.length);
 
   return (
-    <div className="space-y-6 mt-6">
-      {/* Countdown Banner */}
+    <div className="space-y-8 mt-8">
+      {/* Countdown Banner - Enhanced Design */}
       {isRegistered && !isHost && dynamicStatus === 'upcoming' && (
         <motion.div
-          className="glass-card p-6 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
+          className="dashboard-panel-accent p-8 rounded-3xl relative overflow-hidden"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-semibold">Event Starts In</h3>
+          {/* Decorative background pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent rounded-full blur-3xl" />
           </div>
-          <Countdown
-            targetDate={relevantStartTime!.toISOString()}
-            onEventStart={handleEventStart}
-          />
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Event Starts In
+              </h3>
+            </div>
+            <Countdown
+              targetDate={relevantStartTime!.toISOString()}
+              onEventStart={handleEventStart}
+            />
+          </div>
         </motion.div>
       )}
 
-      {/* Session Selector */}
+      {/* Session Selector - Enhanced */}
       {event.is_recurring && (event.sessions?.length ?? 0) > 1 && (
-        <div>
-          <label className="block text-sm font-semibold mb-3">Select Session</label>
+        <motion.div
+          className="dashboard-panel p-6 rounded-2xl"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <label className="block text-sm font-bold mb-4 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary" />
+            Select Session
+          </label>
           <VirtualizedSessionSelector
             sessions={event.sessions || []}
             selectedSessionId={selectedSessionId}
             onSessionChange={(value) => handleUrlStateChange('session', value)}
+            timezone={event.timezone}
           />
-        </div>
+        </motion.div>
       )}
 
-      {/* Tabs Navigation & Content */}
-      <Tabs value={activeTab} onValueChange={(value) => handleUrlStateChange('tab', value)} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 glass-card p-1.5 gap-1 rounded-xl h-auto">
-          {tabItems.map(tab => {
-            const Icon = tab.icon;
-            return (
-              <TabsTrigger key={tab.value} value={tab.value} className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm rounded-lg py-2.5 px-3">
-                <div className="flex items-center justify-center gap-2">
-                  <Icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="font-medium text-sm">{tab.label}</span>
-                </div>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+      {/* Tabs Navigation & Content - Redesigned */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Tabs value={activeTab} onValueChange={(value) => handleUrlStateChange('tab', value)} className="w-full">
+          {/* Modern Tab Navigation */}
+          <div className="dashboard-toolbar mb-8">
+            <TabsList className="w-full grid gap-2 bg-transparent p-0 h-auto" style={{ 
+              gridTemplateColumns: `repeat(${tabItems.length}, minmax(0, 1fr))` 
+            }}>
+              {tabItems.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.value;
+                
+                return (
+                  <TabsTrigger 
+                    key={tab.value} 
+                    value={tab.value} 
+                    className="toolbar-pill data-[state=active]:scale-105 transition-all duration-300"
+                    data-active={isActive}
+                  >
+                    <div className="flex items-center justify-center gap-2.5">
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="font-semibold text-sm hidden sm:inline">{tab.label}</span>
+                    </div>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
 
-        <div className="mt-6">
-          <TabsContent value="overview">
-            <OverviewTab event={event} />
-          </TabsContent>
-
-          {(isRegistered || isHost) && (
-            <TabsContent value="discussion">
-              <EventDiscussionTab eventId={event.id} communityId={event.community_id} />
+          {/* Tab Content with Animations */}
+          <div className="min-h-[400px]">
+            <TabsContent value="overview" className="mt-0">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <OverviewTab event={event} />
+              </motion.div>
             </TabsContent>
-          )}
 
-          {isHost && (
-            <>
-              <TabsContent value="attendees">
-                {/* AttendeeDataTable needs its own query logic, so we pass props */}
-               <div className="glass-card p-6 rounded-2xl">
-                <h2 className="text-2xl font-semibold mb-6">Event Attendees</h2>
-                {areAttendeesLoading ? (
-                  <LoadingSkeleton />
-                ) : (
-                  // FIX: Pass the fetched attendees data as a prop
-                  <AttendeeDataTable
-                    attendees={attendees || []}
-                    eventId={event.id}
-                    sessionId={selectedSessionId}
-                    canManage={isHost}
-                  />
-                )}
-              </div>
+            {(isRegistered || isHost) && (
+              <TabsContent value="discussion" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <EventDiscussionTab eventId={event.id} communityId={event.community_id} />
+                </motion.div>
               </TabsContent>
-              <TabsContent value="analytics">
-                 <AnalyticsDashboard event={event} />
-              </TabsContent>
-              {!isEventFinished && (
-                <TabsContent value="settings">
-                  <EventSettingsTab event={event} isEventFinished={isEventFinished} />
+            )}
+
+            {isHost && (
+              <>
+                <TabsContent value="attendees" className="mt-0">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="dashboard-panel p-8 rounded-2xl"
+                  >
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      <h2 className="text-2xl font-bold">Event Attendees</h2>
+                    </div>
+                    {areAttendeesLoading ? (
+                      <LoadingSkeleton />
+                    ) : (
+                      <AttendeeDataTable
+                        attendees={attendees || []}
+                        eventId={event.id}
+                        sessionId={selectedSessionId}
+                        canManage={isHost}
+                      />
+                    )}
+                  </motion.div>
                 </TabsContent>
-              )}
-            </>
-          )}
-        </div>
-      </Tabs>
+
+                <TabsContent value="analytics" className="mt-0">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <AnalyticsDashboard event={event} />
+                  </motion.div>
+                </TabsContent>
+
+                {!isEventFinished && (
+                  <TabsContent value="settings" className="mt-0">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <EventSettingsTab event={event} isEventFinished={isEventFinished} />
+                    </motion.div>
+                  </TabsContent>
+                )}
+              </>
+            )}
+          </div>
+        </Tabs>
+      </motion.div>
     </div>
   );
 }

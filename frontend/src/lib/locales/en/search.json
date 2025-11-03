@@ -1,0 +1,9 @@
+{
+    "placeholder": {
+        "communities": "Search communities...",
+        "events": "Search events..."
+    },
+    "searching": "Searching…",
+    "pressEnter": "Press Enter to search quickly.",
+    "searchingFor": "Searching for"
+}

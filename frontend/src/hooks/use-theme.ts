@@ -9,6 +9,7 @@ export function useTheme() {
   useEffect(() => {
     const html = document.documentElement;
     const isLight = html.classList.contains('light');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(isLight ? 'light' : 'dark');
     
     // Watch for theme changes

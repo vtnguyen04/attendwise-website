@@ -2,10 +2,10 @@
 'use client';
 
 import * as React from 'react';
-import { isAfter, isBefore } from 'date-fns';
+import { isBefore } from 'date-fns';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
-import { cn, parseUtcTime } from '@/lib/utils';
+import { cn, parseUtcTime, formatInTimezone } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,24 +15,17 @@ interface SessionSelectorProps {
   sessions: EventSession[];
   selectedSessionId: string;
   onSessionChange: (sessionId: string) => void;
+  timezone?: string;
 }
 
 // Helper to format date string for display
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleString(undefined, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+const formatDate = (dateString: string, timezone: string): string => {
+  return formatInTimezone(dateString, timezone, 'EEEE, MMMM d, yyyy • h:mm a');
 };
 
 // NOTE: Renamed component to remove "Virtualized" as it's not implemented.
 // If virtualization is needed for many sessions, `@tanstack/react-virtual` can be added.
-export function VirtualizedSessionSelector({ sessions, selectedSessionId, onSessionChange }: SessionSelectorProps) {
+export function VirtualizedSessionSelector({ sessions, selectedSessionId, onSessionChange, timezone = 'UTC' }: SessionSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
   // Find the currently selected session object
@@ -55,7 +48,7 @@ export function VirtualizedSessionSelector({ sessions, selectedSessionId, onSess
     
     // Sort the list for consistent display
     return list.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
-  }, [sessions, filter]);
+  }, [sessions, filter, nowForComparison]);
   
   const handleSelect = (sessionId: string) => {
     onSessionChange(sessionId);
@@ -82,7 +75,7 @@ export function VirtualizedSessionSelector({ sessions, selectedSessionId, onSess
           className="w-full justify-between h-11 glass-card hover:border-primary transition-all duration-200 rounded-lg"
         >
           <span className="truncate">
-            {selectedSession ? formatDate(selectedSession.start_time) : "Select a session..."}
+            {selectedSession ? formatDate(selectedSession.start_time, selectedSession.timezone || timezone) : "Select a session..."}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -121,7 +114,7 @@ export function VirtualizedSessionSelector({ sessions, selectedSessionId, onSess
                       selectedSessionId === session.id ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {formatDate(session.start_time)}
+                  {formatDate(session.start_time, session.timezone || timezone)}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -17,7 +17,7 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 
   try {
-    const response = await apiClient.get('/api/v1/users/me', {
+    const response = await apiClient.get('/users/me', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -27,7 +27,7 @@ export async function getCurrentUser(): Promise<User | null> {
     return user;
   } catch (error) {
     // This can happen if the token is expired or invalid.
-    // console.error('Failed to fetch current user:', error);
+    console.error('Failed to fetch current user:', error);
     return null;
   }
 }

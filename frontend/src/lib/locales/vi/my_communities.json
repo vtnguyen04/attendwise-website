@@ -5,11 +5,9 @@
     "delete_bulk_error": "Không thể xóa các cộng đồng.",
     "delete_single_success": "Đã xóa cộng đồng.",
     "delete_single_error": "Không thể xóa cộng đồng.",
-    "create_button": "Tạo cộng đồng",
     "edit_dialog_title": "Chỉnh sửa cộng đồng",
-    "create_dialog_title": "Tạo một cộng đồng mới",
-    "edit_dialog_description": "Cập nhật chi tiết cộng đồng của bạn dưới đây.",
     "create_dialog_description": "Điền vào các chi tiết dưới đây để bắt đầu cộng đồng của bạn.",
+    "edit_dialog_description": "Cập nhật chi tiết cộng đồng của bạn dưới đây.",
     "no_communities_title": "Bạn chưa tham gia cộng đồng nào.",
     "no_communities_description": "Khám phá và tham gia các cộng đồng để bắt đầu."
 }

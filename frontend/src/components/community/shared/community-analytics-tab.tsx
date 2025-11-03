@@ -11,12 +11,10 @@ import { useEffect, useState } from 'react';
 import { useTheme } from '@/hooks/use-theme'; // 👈 Import hook theme
 import { cn } from '@/lib/utils';
 
-interface CommunityAnalyticsTabProps {
-  communityId: string;
-}
+
 
 // Placeholder for fetching analytics data
-async function fetchCommunityAnalytics(communityId: string) {
+async function fetchCommunityAnalytics() {
   // Simulate API call
   return new Promise(resolve => {
     setTimeout(() => {
@@ -32,19 +30,27 @@ async function fetchCommunityAnalytics(communityId: string) {
   });
 }
 
-export default function CommunityAnalyticsTab({ communityId }: CommunityAnalyticsTabProps) {
-  const { t } = useTranslation('communities');
+interface CommunityAnalytics {
+  totalMembers: number;
+  newMembersLastMonth: number;
+  totalPosts: number;
+  newPostsLastMonth: number;
+  totalEvents: number;
+  avgEventAttendance: number;
+}
+
+export default function CommunityAnalyticsTab() {
+  const { t } = useTranslation();
   const theme = useTheme(); // 👈 Lấy theme hiện tại
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<CommunityAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
-    fetchCommunityAnalytics(communityId).then(data => {
-      setAnalytics(data);
+    fetchCommunityAnalytics().then(data => {
+      setAnalytics(data as CommunityAnalytics);
       setIsLoading(false);
     });
-  }, [communityId]);
+  }, []);
 
   if (isLoading) {
     return (

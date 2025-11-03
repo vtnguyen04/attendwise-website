@@ -12,17 +12,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const NOTIFICATIONS_PER_PAGE = 15;
 
+import { Notification as AppNotification } from '@/lib/types';
+
+const cardBaseClasses =
+  'rounded-xl border border-border/60 bg-card/90 shadow-sm transition-colors hover:border-primary/40 hover:bg-card/95';
+
 function NotificationsPageSkeleton() {
     return (
         <div className="space-y-3">
             {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 glass-interactive rounded-lg">
-                    <Skeleton className="h-6 w-6 rounded-full mt-1 bg-muted/50" />
+                <div key={i} className={`${cardBaseClasses} flex items-start gap-3 p-4`}>
+                    <Skeleton className="h-6 w-6 rounded-full mt-1 bg-muted/40" />
                     <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-full bg-muted/50" />
-                        <Skeleton className="h-3 w-1/2 bg-muted/50" />
+                        <Skeleton className="h-4 w-full bg-muted/40" />
+                        <Skeleton className="h-3 w-1/2 bg-muted/30" />
                     </div>
-                    <Skeleton className="h-2.5 w-2.5 rounded-full bg-muted/50" />
+                    <Skeleton className="h-2.5 w-2.5 rounded-full bg-muted/40" />
                 </div>
             ))}
         </div>
@@ -32,12 +37,12 @@ function NotificationsPageSkeleton() {
 export default function NotificationsPage() {
   const router = useRouter();
   const [page, setPage] = useState(0);
-  const { data, isLoading, error } = useNotifications(NOTIFICATIONS_PER_PAGE, page * NOTIFICATIONS_PER_PAGE);
+  const { data, isLoading } = useNotifications(NOTIFICATIONS_PER_PAGE, page * NOTIFICATIONS_PER_PAGE);
   const markAsReadMutation = useMarkNotificationAsRead();
 
   const notifications = data || [];
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: AppNotification) => {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
     }
@@ -52,8 +57,11 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="glass-container p-4 sm:p-6 rounded-2xl">
-      <div className="flex flex-row items-center justify-between pb-6 border-b border-border/50 mb-6">
+    <div
+      className="rounded-3xl border border-border/50 bg-card/95 shadow-glass backdrop-blur-md p-4 sm:p-6"
+      data-scroll-anchor
+    >
+      <div className="flex flex-row items-center justify-between pb-6 border-b border-border/40 mb-6">
         <div>
             <h1 className="text-2xl font-bold">All Notifications</h1>
             <p className="text-muted-foreground text-sm">Here is a list of all your notifications.</p>
@@ -66,30 +74,26 @@ export default function NotificationsPage() {
       <div>
         {isLoading ? (
           <NotificationsPageSkeleton />
-        ) : error ? (
-          <div className="text-center py-10 text-destructive">
-            Failed to load notifications.
-          </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground flex flex-col items-center gap-4">
             <BellOff className="h-12 w-12" />
-            <p>You don't have any notifications yet.</p>
+            <p>You don&apos;t have any notifications yet.</p>
           </div>
         ) : (
-          <motion.div className="divide-y divide-border/50" variants={containerVariants} initial="hidden" animate="visible">
+          <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible">
             <AnimatePresence>
-              {notifications.map(notification => (
+              {notifications.map((notification: AppNotification) => (
                 <NotificationItem 
                   key={notification.id} 
                   notification={notification} 
                   onClick={() => handleNotificationClick(notification)}
-                  className="glass-interactive rounded-lg my-2"
+                  className={`${cardBaseClasses} p-4 cursor-pointer`}
                 />
               ))}
             </AnimatePresence>
           </motion.div>
         )}
-        <div className="flex items-center justify-between mt-6 pt-6 border-t border-border/50">
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-border/40">
             <Button 
                 variant="outline" 
                 onClick={() => setPage(p => p - 1)} 

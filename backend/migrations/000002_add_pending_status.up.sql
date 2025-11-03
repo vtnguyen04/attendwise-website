@@ -1,0 +1,1 @@
+-- ALTER TYPE event_attendee_status ADD VALUE 'pending' BEFORE 'waitlist';

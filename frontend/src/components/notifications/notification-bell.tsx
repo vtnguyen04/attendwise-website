@@ -12,6 +12,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Notification as AppNotification } from '@/lib/types';
+
+import { useTranslation } from '@/hooks/use-translation';
 
 function NotificationSkeleton() {
     return (
@@ -40,11 +43,12 @@ export function NotificationBell() {
   const { data, isLoading, error } = useNotifications(15, 0);
   const markAsReadMutation = useMarkNotificationAsRead();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
+  const { t } = useTranslation('notifications');
 
   const notifications = data || [];
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter((n: AppNotification) => !n.is_read).length;
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: AppNotification) => {
     if (!notification.is_read) {
         markAsReadMutation.mutate(notification.id);
     }
@@ -70,12 +74,21 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 md:w-96 p-0">
-        <div className="flex items-center justify-between p-3 border-b">
-            <h3 className="font-semibold text-lg">Notifications</h3>
-            <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} disabled={unreadCount === 0 || markAllAsReadMutation.isPending}>
+      <PopoverContent
+        align="end"
+        className="w-80 md:w-96 p-0 rounded-2xl border border-border/60 bg-card/95 shadow-glass backdrop-blur-md"
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+            <h3 className="font-semibold text-lg">{t('bell.title')}</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleMarkAllAsRead}
+              disabled={unreadCount === 0 || markAllAsReadMutation.isPending}
+              className="text-muted-foreground hover:text-foreground"
+            >
                 <CheckCheck className="h-4 w-4 mr-2" />
-                Mark all as read
+                {t('bell.mark_all_as_read')}
             </Button>
         </div>
         <ScrollArea className="h-96">
@@ -83,28 +96,29 @@ export function NotificationBell() {
                 <NotificationSkeleton />
             ) : error ? (
                 <div className="text-center p-4 text-sm text-destructive">
-                    Failed to load notifications.
+                    {t('bell.load_failed')}
                 </div>
             ) : notifications.length === 0 ? (
                 <div className="text-center p-8 text-sm text-muted-foreground">
-                    You have no new notifications.
+                    {t('bell.no_notifications')}
                 </div>
             ) : (
-                <div className="divide-y">
+                <div className="divide-y divide-border/40">
                     {notifications.map(notification => (
                         <NotificationItem 
                             key={notification.id} 
                             notification={notification} 
                             onClick={() => handleNotificationClick(notification)}
+                            className="px-4 py-3 transition-colors hover:bg-muted/20 focus:bg-muted/30"
                         />
                     ))}
                 </div>
             )}
         </ScrollArea>
-        <div className="p-2 border-t text-center">
+        <div className="px-4 py-3 border-t border-border/50 text-center">
             <Link href="/dashboard/notifications" passHref>
                 <Button variant="link" className="w-full" onClick={() => setIsOpen(false)}>
-                    View all notifications
+                    {t('bell.view_all')}
                 </Button>
             </Link>
         </div>

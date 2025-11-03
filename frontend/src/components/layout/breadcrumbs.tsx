@@ -5,23 +5,50 @@ import Link from 'next/link';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Home from 'lucide-react/icons/home';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/hooks/use-theme'; // 👈 Import hook theme
+import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
-  const theme = useTheme(); // 👈 Lấy theme hiện tại
-  
-  // Generate breadcrumb items from pathname
+  const theme = useTheme();
+  const { t } = useTranslation();
+
+  const segmentLabelMap: Record<string, string> = {
+    communities: t('communities.explore_title'),
+    my: t('community.my_communities_tab'),
+    events: t('events.title'),
+    attendees: t('events.attendees'),
+    settings: t('settings.title'),
+    messages: t('common.messages'),
+    members: t('common.members'),
+    analytics: t('analytics.title'),
+    calendar: t('common.calendar'),
+    classroom: t('common.classroom'),
+    leaderboards: t('common.leaderboards'),
+    map: t('common.map'),
+    feed: t('common.feed.posts'),
+    profile: t('user.profile'),
+    edit: t('common.edit'),
+    create: t('events.create.button'),
+    dashboard: t('breadcrumb.dashboard'),
+  };
+
   const pathSegments = pathname.split('/').filter(Boolean);
-  
-  // Create breadcrumb items
+
+  if (pathSegments[0] === 'dashboard') {
+    pathSegments.shift();
+  }
+
   const breadcrumbItems = pathSegments.map((segment, index) => {
-    const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
-    const label = segment
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-    
+    const href = `/dashboard/${pathSegments.slice(0, index + 1).join('/')}`;
+    const translation = segmentLabelMap[segment];
+    const label = translation
+      ? translation
+      : segment
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+
     return { href, label };
   });
 
@@ -46,7 +73,7 @@ export default function Breadcrumbs() {
         )}
       >
         <Home className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-        <span className="font-medium">Dashboard</span>
+        <span className="font-medium">{t('breadcrumb.dashboard')}</span>
       </Link>
 
       {/* Breadcrumb Items */}

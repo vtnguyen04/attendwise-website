@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
 import CheckCircle from 'lucide-react/icons/check-circle';
@@ -10,7 +9,6 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import Link from 'next/link';
 
 export default function AcceptInvitePage({ params }: { params: { token: string } }) {
-  const router = useRouter();
   const { toast } = useToast();
   const { token } = params;
 
@@ -20,15 +18,17 @@ export default function AcceptInvitePage({ params }: { params: { token: string }
 
   useEffect(() => {
     if (!token) {
-      setStatus('error');
-      setMessage('Invalid invitation link: Token missing.');
+      setTimeout(() => {
+        setStatus('error');
+        setMessage('Invalid invitation link: Token missing.');
+      }, 0);
       return;
     }
 
     const acceptInvite = async () => {
       setStatus('loading');
       try {
-        const response = await apiClient.get(`/api/v1/communities/invites/${token}/accept`);
+        const response = await apiClient.get(`/communities/invites/${token}/accept`);
         setStatus('success');
         setMessage(response.data.message || 'Invitation accepted successfully!');
         setCommunityId(response.data.community_id);
@@ -37,9 +37,9 @@ export default function AcceptInvitePage({ params }: { params: { token: string }
         // setTimeout(() => {
         //   router.push(response.data.community_id ? `/dashboard/communities/${response.data.community_id}` : '/dashboard/communities');
         // }, 3000);
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus('error');
-        const errorMessage = error.response?.data?.error || 'Failed to accept invitation.';
+        const errorMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error as Error)?.message || 'Failed to accept invitation.';
         setMessage(errorMessage);
         toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
       }

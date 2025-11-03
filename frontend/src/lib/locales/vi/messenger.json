@@ -1,0 +1,32 @@
+{
+  "title": "Tin nhắn",
+  "newMessage": "Tin nhắn mới",
+  "searchPlaceholder": "Tìm kiếm...",
+  "failedToLoad": "Không thể tải cuộc trò chuyện",
+  "noConversationsFound": "Không tìm thấy cuộc trò chuyện nào",
+  "noConversationsYet": "Chưa có cuộc trò chuyện nào",
+  "conversation": "Cuộc trò chuyện",
+  "noMessagesYet": "Chưa có tin nhắn nào",
+  "pleaseLogIn": "Vui lòng đăng nhập để xem tin nhắn",
+  "failedToLoadConversation": "Không thể tải cuộc trò chuyện",
+  "pleaseTryAgain": "Vui lòng thử lại sau",
+  "noConversationSelectedTitle": "Chưa chọn cuộc trò chuyện",
+  "noConversationSelectedDescription": "Hãy chọn một cuộc trò chuyện để bắt đầu kết nối với cộng đồng của bạn",
+  "readyToChat": "Sẵn sàng trò chuyện",
+  "newConversation": {
+    "directTitle": "Tin nhắn mới",
+    "groupTitle": "Nhóm mới",
+    "directDescription": "Tìm người dùng để bắt đầu cuộc trò chuyện",
+    "groupDescription": "Chọn thành viên để tạo nhóm trò chuyện",
+    "directLabel": "Tin nhắn riêng",
+    "groupLabel": "Tạo nhóm",
+    "groupNamePlaceholder": "Tên nhóm",
+    "searchPlaceholder": "Tìm người dùng...",
+    "noResultsTitle": "Không tìm thấy người dùng",
+    "noResultsDescription": "Hãy thử từ khóa khác.",
+    "startSearchingTitle": "Bắt đầu tìm kiếm",
+    "startSearchingSubtitle": "Nhập tên để tìm người dùng.",
+    "creatingGroup": "Đang tạo nhóm...",
+    "createGroup": "Tạo nhóm"
+  }
+}

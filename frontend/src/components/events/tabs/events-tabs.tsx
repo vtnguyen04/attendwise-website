@@ -10,32 +10,38 @@ interface EventsTabsProps {
 export default function EventsTabs({ activeTab, onTabChange }: EventsTabsProps) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-4 max-w-lg bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-1 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <TabsTrigger 
-          value="upcoming"
-          className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all duration-200 py-2.5"
-        >
-          Upcoming
-        </TabsTrigger>
-        <TabsTrigger 
-          value="ongoing"
-          className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all duration-200 py-2.5"
-        >
-          Ongoing
-        </TabsTrigger>
-        <TabsTrigger 
-          value="attending"
-          className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all duration-200 py-2.5"
-        >
-          Attending
-        </TabsTrigger>
-        <TabsTrigger 
-          value="past"
-          className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-600 data-[state=active]:to-gray-700 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold transition-all duration-200 py-2.5"
-        >
-          Past
-        </TabsTrigger>
-      </TabsList>
+      <div className="dashboard-toolbar max-w-2xl mx-auto">
+        <TabsList className="w-full grid grid-cols-4 gap-2 bg-transparent p-0 h-auto">
+          <TabsTrigger 
+            value="upcoming"
+            className="toolbar-pill"
+            data-active={activeTab === 'upcoming'}
+          >
+            Upcoming
+          </TabsTrigger>
+          <TabsTrigger 
+            value="ongoing"
+            className="toolbar-pill"
+            data-active={activeTab === 'ongoing'}
+          >
+            Ongoing
+          </TabsTrigger>
+          <TabsTrigger 
+            value="attending"
+            className="toolbar-pill"
+            data-active={activeTab === 'attending'}
+          >
+            Attending
+          </TabsTrigger>
+          <TabsTrigger 
+            value="past"
+            className="toolbar-pill"
+            data-active={activeTab === 'past'}
+          >
+            Past
+          </TabsTrigger>
+        </TabsList>
+      </div>
     </Tabs>
   );
 }

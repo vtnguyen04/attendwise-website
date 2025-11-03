@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Community } from '@/lib/types';
 import { User } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CommunityActionButton } from '@/components/community/shared/community-action-button';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,11 @@ import Calendar from 'lucide-react/icons/calendar';
 import Shield from 'lucide-react/icons/shield';
 import Share2 from 'lucide-react/icons/share-2';
 import { useCommunityAuth } from '@/hooks/use-community-auth';
-import { useTheme } from '@/hooks/use-theme';
 import { getNullableStringValue } from '@/lib/utils';
 import { getSafeImageUrl } from '@/lib/utils';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface CommunityHeaderProps {
   community: Community;
@@ -27,109 +29,79 @@ interface CommunityHeaderProps {
 export function CommunityHeader({ community, currentUser }: CommunityHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const theme = useTheme();
   const { isAdmin } = useCommunityAuth({ community, currentUser });
   const { toast } = useToast();
+  const { t } = useTranslation('community');
 
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      toast({ title: 'Link Copied', description: 'Community link has been copied to your clipboard.' });
+      toast({ title: t('header.link_copied_title'), description: t('header.link_copied_description') });
     });
   };
 
   const basePath = `/dashboard/communities/${community.id}`;
 
   const navLinks = [
-    { name: 'Feed', href: basePath, icon: <MessageSquare className="h-4 w-4" /> },
-    { name: 'Members', href: `${basePath}/members`, icon: <Users className="h-4 w-4" /> },
-    { name: 'Events', href: `${basePath}/events`, icon: <Calendar className="h-4 w-4" /> },
+    { name: t('header.nav.feed'), href: basePath, icon: <MessageSquare className="h-4 w-4" /> },
+    { name: t('header.nav.members'), href: `${basePath}/members`, icon: <Users className="h-4 w-4" /> },
+    { name: t('header.nav.events'), href: `${basePath}/events`, icon: <Calendar className="h-4 w-4" /> },
   ];
 
   if (isAdmin) {
-    navLinks.push({ name: 'Admin', href: `${basePath}/admin`, icon: <Shield className="h-4 w-4" /> });
+    navLinks.push({ name: t('header.nav.admin'), href: `${basePath}/admin`, icon: <Shield className="h-4 w-4" /> });
   }
 
   return (
-    <header className={cn(
-      "bg-glass border-b-0 transition-all duration-300 overflow-hidden"
-    )}>
-      <div className="container mx-auto max-w-5xl">
-        {/* Main Content with 3D Depth */}
-        <div className={cn(
-          "bg-glass flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-6 p-4 rounded-t-lg transition-all duration-300 depth-card"
-        )}>
-          <div className="relative tilt-card">
-            <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 transform-gpu hover:scale-105 transition-transform duration-300">
-              <AvatarImage src={getSafeImageUrl(community.admin_avatar_url)} />
-              <AvatarFallback className="text-4xl">{community.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            {/* Glow effect around avatar */}
-            <div className={cn(
-              "absolute inset-0 rounded-full blur-lg -z-10",
-              theme === 'dark' ? 'bg-purple-500/30' : 'bg-purple-400/20'
-            )} />
+    <Card className="relative overflow-visible">
+      <CardHeader className="p-0 overflow-hidden rounded-t-[inherit]">
+        <div className="relative">
+          <Image
+            src={getSafeImageUrl(community.cover_image_url)}
+            alt={`${community.name} cover image`}
+            fill
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row items-center md:items-end space-y-4 md:space-y-0 md:space-x-6">
+          <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background transform-gpu hover:scale-105 transition-transform duration-300 -mt-16">
+            <AvatarImage src={getSafeImageUrl(community.admin_avatar_url) || null} />
+            <AvatarFallback className="text-4xl">{community.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 text-center md:text-left">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{community.name}</h1>
+            <p className="text-sm text-muted-foreground line-clamp-2">{getNullableStringValue(community.description)}</p>
           </div>
-
-          {/* Text Content with 3D Effect */}
-          <div className="flex-1 text-center md:text-left hover-3d">
-              <h1 className={cn(
-                "text-2xl md:text-3xl font-bold transition-colors duration-300",
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              )}>{community.name}</h1>
-              <p className={cn(
-                "text-sm line-clamp-2 transition-colors duration-300",
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              )}>{getNullableStringValue(community.description)}</p>
-          </div>
-
-          {/* Buttons with 3D Effect */}
-          <div className="flex-shrink-0 flex items-center gap-2 hover-3d">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                className="liquid-glass-button"
-              >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-              </Button>
-              <CommunityActionButton community={community} />
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              {t('header.share_button')}
+            </Button>
+            <CommunityActionButton community={community} />
           </div>
         </div>
-
-        {/* Navigation with 3D Effect */}
-        <nav className={cn(
-          "flex border-b transition-colors duration-300 tilt-card",
-          theme === 'dark' ? 'border-white/5' : 'border-gray-200'
-        )}>
-          {navLinks.map(link => {
-            const isActive = link.href === basePath
-              ? pathname === link.href
-              : pathname.startsWith(link.href);
-
-            return (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-300 transform-gpu hover:scale-105 liquid-glass-button",
-                  isActive
-                    ? theme === 'dark'
-                      ? 'border-primary text-primary'
-                      : 'border-purple-500 text-purple-600'
-                    : theme === 'dark'
-                      ? 'border-transparent text-gray-400 hover:text-white'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                )}
-              >
-                {link.icon}
-                {link.name}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-    </header>
+      </CardContent>
+      <CardFooter className="p-0">
+        <Tabs value={pathname} onValueChange={(value) => router.push(value)} className="w-full">
+          <TabsList className="w-full justify-start rounded-none border-b">
+            {navLinks.map(link => (
+              <TabsTrigger key={link.href} value={link.href} asChild>
+                <Link href={link.href}>
+                  {link.icon}
+                  {link.name}
+                </Link>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </CardFooter>
+    </Card>
   );
 }

@@ -16,7 +16,7 @@ interface SearchQueryParams {
  * [CLIENT] Performs a unified search across users, communities, events, and posts.
  */
 export const unifiedSearch = async (params: SearchQueryParams): Promise<UnifiedSearchResult[]> => {
-  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/api/v1/search', { params });
+  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/search', { params });
   return response.data.results || [];
 };
 
@@ -24,7 +24,7 @@ export const unifiedSearch = async (params: SearchQueryParams): Promise<UnifiedS
  * [CLIENT] Searches for users.
  */
 export const searchUsers = async (q: string, limit?: number, offset?: number): Promise<UnifiedSearchResult[]> => {
-  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/api/v1/search/users', { params: { q, limit, offset } });
+  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/search/users', { params: { q, limit, offset } });
   return response.data.results || [];
 };
 
@@ -32,7 +32,7 @@ export const searchUsers = async (q: string, limit?: number, offset?: number): P
  * [CLIENT] Searches for communities.
  */
 export const searchCommunities = async (q: string, limit?: number, offset?: number): Promise<UnifiedSearchResult[]> => {
-  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/api/v1/search/communities', { params: { q, limit, offset } });
+  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/search/communities', { params: { q, limit, offset } });
   return response.data.results || [];
 };
 
@@ -40,6 +40,6 @@ export const searchCommunities = async (q: string, limit?: number, offset?: numb
  * [CLIENT] Searches for events.
  */
 export const searchEvents = async (q: string, limit?: number, offset?: number): Promise<UnifiedSearchResult[]> => {
-  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/api/v1/search/events', { params: { q, limit, offset } });
+  const response = await apiClient.get<{ results: UnifiedSearchResult[] }>('/search/events', { params: { q, limit, offset } });
   return response.data.results || [];
 };

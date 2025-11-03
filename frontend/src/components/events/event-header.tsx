@@ -6,21 +6,19 @@ import { Share2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-import { AppEvent } from '@/lib/types';
-
 interface EventHeaderProps {
-  event: AppEvent;
+  eventName: string;
+  creatorName?: string;
+  creatorAvatar?: string; // Expects a final, ready-to-use string URL, or undefined
   onShare: () => void;
 }
 
 export function EventHeader({
-  event,
+  eventName,
+  creatorName,
+  creatorAvatar,
   onShare,
 }: EventHeaderProps) {
-  const eventName = event.name;
-  const creatorName = event.created_by_name;
-  const creatorAvatar = event.created_by_avatar?.String;
-
   return (
     // Assuming 'animate-fade-in-up' is a valid animation class in your project
     <div className="space-y-4 animate-fade-in-up">

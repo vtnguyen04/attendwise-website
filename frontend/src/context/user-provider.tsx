@@ -1,8 +1,9 @@
 // context/user-provider.tsx
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import apiClient, { clearAuthToken } from '@/lib/api-client';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import apiClient, { setAuthToken, clearAuthToken } from '@/lib/api-client';
 import type { User } from '@/lib/types';
 import Cookies from 'js-cookie';
 
@@ -15,49 +16,75 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+function UserAuthFromUrl() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { setUser } = useContext(UserContext)!;
+
+  useEffect(() => {
+    const tokenFromUrl = searchParams.get('token');
+    const userFromUrl = searchParams.get('user');
+
+    if (tokenFromUrl && userFromUrl) {
+      try {
+        const parsedUser = JSON.parse(userFromUrl);
+        setUser(parsedUser);
+        setAuthToken(tokenFromUrl);
+        router.replace('/dashboard', { scroll: false });
+      } catch (error) {
+        console.error('Failed to process auth data from URL:', error);
+      }
+    }
+  }, [searchParams, router, setUser]);
+
+  return null;
+}
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // Still true to show loading on initial load
+  const [isLoading, setIsLoading] = useState(true);
 
   const logout = useCallback(() => {
     clearAuthToken();
     setUser(null);
-    // Redirect happens in apiClient interceptor, but we can do it here too for explicitness
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
     }
   }, []);
 
   useEffect(() => {
-    const validateTokenAndFetchUser = async () => {
-      // Use Cookies for token consistency with server-side logic in session.ts
-      const token = Cookies.get('accessToken');
-
-      if (token) {
+    const processAuth = async () => {
+      const tokenFromCookie = Cookies.get('accessToken');
+      if (tokenFromCookie) {
         try {
-          // No need to call setAuthToken here, the apiClient interceptor handles it.
-          const response = await apiClient.get<{ user: User }>('/api/v1/users/me');
-          setUser(response.data.user); // Directly set the user from API, no parsing needed.
+          const response = await apiClient.get<{ user: User }>('/users/me');
+          setUser(response.data.user);
         } catch (error) {
-          // This will be caught by the apiClient interceptor which handles logout
-          console.error('[UserProvider] Failed to validate token:', error);
-          // logout() will be called by the interceptor on a 401 error.
+          console.error('[UserProvider] Failed to validate token from cookie:', error);
+          logout();
         }
       }
       setIsLoading(false);
     };
 
-    validateTokenAndFetchUser();
-  }, []);
+    processAuth();
+  }, [logout]);
 
   const value = useMemo(() => ({
     user,
-    setUser, // Expose the raw setUser for login/update profile pages
+    setUser,
     isLoading,
     logout,
   }), [user, isLoading, logout]);
 
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={value}>
+      <Suspense fallback={null}>
+        <UserAuthFromUrl />
+      </Suspense>
+      {children}
+    </UserContext.Provider>
+  );
 }
 
 export function useUser() {

@@ -1,0 +1,15 @@
+{
+    "writing": "Writing...",
+    "whats_on_your_mind": "What's on your mind?",
+    "add_images": "Add images",
+    "add_files": "Add files",
+    "posting": "Posting...",
+    "post_button": "Post",
+    "upload_failed_title": "Upload Failed for {fileName}",
+    "upload_failed_description": "Could not upload the file.",
+    "upload_success_description": "{count} file(s) uploaded successfully.",
+    "post_live_success": "Your post is now live.",
+    "post_submitted_title": "Post Submitted",
+    "post_pending_approval": "Your post is pending approval by an admin.",
+    "create_post_error_description": "Could not create your post. Please try again."
+}

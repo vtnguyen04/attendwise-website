@@ -1,7 +1,6 @@
 import EventForm from '@/components/events/event-form/event-form';
 import apiClient from '@/lib/api-client';
 import { Community } from '@/lib/types';
-import { getCurrentUser } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AlertCircle from 'lucide-react/icons/alert-circle';
@@ -17,7 +16,7 @@ async function getCommunity(id: string): Promise<Community | null> {
   }
 
   try {
-    const response = await apiClient.get(`/api/v1/communities/${id}`, {
+    const response = await apiClient.get(`/communities/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data.community;
@@ -27,11 +26,10 @@ async function getCommunity(id: string): Promise<Community | null> {
   }
 }
 
-export default async function NewEventPage({ params }: { params: { id: string } }) {
+export default async function NewEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [community, currentUser] = await Promise.all([
+  const [community] = await Promise.all([
     getCommunity(id),
-    getCurrentUser(),
   ]);
 
   if (!community) {
@@ -44,7 +42,7 @@ export default async function NewEventPage({ params }: { params: { id: string } 
               <div>
                 <h3 className="font-semibold text-red-900 dark:text-red-200">Community Not Found</h3>
                 <p className="text-sm text-red-800 dark:text-red-300 mt-1">
-                  The community you're looking for could not be found or has been deleted.
+                  The community you&apos;re looking for could not be found or has been deleted.
                 </p>
                 <Link 
                   href="/dashboard/communities"
@@ -72,7 +70,7 @@ export default async function NewEventPage({ params }: { params: { id: string } 
               <div>
                 <h3 className="font-semibold text-amber-900 dark:text-amber-200">Permission Denied</h3>
                 <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
-                  You don't have permission to create events in this community. Only community administrators can create events.
+                  You don&apos;t have permission to create events in this community. Only community administrators can create events.
                 </p>
                 <Link 
                   href={`/dashboard/communities/${id}`}
@@ -103,7 +101,7 @@ export default async function NewEventPage({ params }: { params: { id: string } 
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Create a New Event</h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Setting up a new event for <span className="font-semibold text-blue-600 dark:text-blue-400">"{community.name}"</span>
+            Setting up a new event for <span className="font-semibold text-blue-600 dark:text-blue-400">&quot;{community.name}&quot;</span>
           </p>
         </div>
       </div>

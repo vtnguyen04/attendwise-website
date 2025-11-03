@@ -15,7 +15,7 @@ interface QrCheckInPayload {
 
 export async function qrCodeCheckIn(payload: QrCheckInPayload): Promise<ScanResult> {
     try {
-        // Simulate API call to POST /api/v1/checkin
+        // Simulate API call to POST /checkin
         const response = await apiClient.post('api/v1/checkin', {
             qr_payload: payload.qrData,
             // For now, we're only sending qr_payload. 
@@ -39,9 +39,17 @@ export async function qrCodeCheckIn(payload: QrCheckInPayload): Promise<ScanResu
                 message: apiResponse.message || "Check-in failed",
             };
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error during QR code check-in:", error);
-        const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred during check-in.";
+        let errorMessage = "An unexpected error occurred during check-in.";
+        if (typeof error === 'object' && error !== null && 'response' in error) {
+            const response = (error as { response?: { data?: { error?: string } } }).response;
+            if (response?.data?.error) {
+                errorMessage = response.data.error;
+            }
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
         return {
             success: false,
             message: errorMessage,

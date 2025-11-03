@@ -13,7 +13,6 @@ import Check from 'lucide-react/icons/check';
 import AlertCircle from 'lucide-react/icons/alert-circle';
 import Loader2 from 'lucide-react/icons/loader-2';
 import ScanFace from 'lucide-react/icons/scan-face';
-import { Progress } from '@/components/ui/progress';
 
 interface FaceIdEnrollmentProps {
   onComplete: () => void;
@@ -121,8 +120,12 @@ export function FaceIdEnrollment({ onComplete }: FaceIdEnrollmentProps) {
       });
       onComplete();
 
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'An unknown error occurred during enrollment.';
+    } catch (err: unknown) {
+      let errorMessage = 'An unknown error occurred during enrollment.';
+      if (typeof err === 'object' && err !== null && 'response' in err) {
+        const response = (err as { response?: { data?: { error?: string } } }).response;
+        errorMessage = response?.data?.error || 'An unknown error occurred during enrollment.';
+      }
       setError(errorMessage);
       console.error("Enrollment error:", err);
       toast({

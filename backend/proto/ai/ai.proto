@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package ai;
+
+option go_package = "github.com/attendwise/backend/generated/go/ai";
+
+// --- Recognition (for Check-in) ---
+
+message RecognizeFaceRequest {
+  bytes image_data = 1; // The single photo taken at check-in
+  bytes stored_face_embedding = 2; // The embedding retrieved from the database
+}
+
+message RecognizeFaceResponse {
+  bool success = 1;
+  float confidence = 2;
+  string failure_reason = 3;
+}
+
+// --- Dynamic Liveness & Enrollment Flow ---
+
+// Step 1: Client requests a challenge
+message StartLivenessChallengeRequest {
+  // Can be empty, or include user metadata if needed in the future
+}
+
+message StartLivenessChallengeResponse {
+  string session_id = 1; // Unique ID for this liveness session
+  repeated string challenges = 2; // List of challenges to perform, e.g., ["front", "smile"]
+}
+
+// Step 2: Client submits the video of the challenges being performed
+message SubmitLivenessVideoRequest {
+  string session_id = 1; // The session ID from Step 1
+  bytes video_data = 2;  // The video data containing the user performing the challenges
+}
+
+message SubmitLivenessVideoResponse {
+  bool success = 1;
+  bytes face_embedding = 2; // The high-quality vector embedding, returned only on success
+  string failure_reason = 3; // e.g., "LIVENESS_FAILED", "CHALLENGE_NOT_MET", "NO_FACE_DETECTED"
+}
+
+
+// --- AI Service Definition ---
+
+service AIService {
+  // Used during check-in: Compares a new photo with a stored embedding.
+  rpc RecognizeFace(RecognizeFaceRequest) returns (RecognizeFaceResponse);
+
+  // Step 1 of the new enrollment flow
+  rpc StartLivenessChallenge(StartLivenessChallengeRequest) returns (StartLivenessChallengeResponse);
+
+  // Step 2 of the new enrollment flow
+  rpc SubmitLivenessVideo(SubmitLivenessVideoRequest) returns (SubmitLivenessVideoResponse);
+}

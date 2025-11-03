@@ -1,0 +1,66 @@
+/* Trong file style.css */
+
+/* ... (Các CSS hiện có của bạn) ... */
+
+.extracted-data-display {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 15px; /* Khoảng cách với input file */
+    font-size: 0.95em;
+    text-align: left;
+    max-height: 200px; /* Giới hạn chiều cao */
+    overflow-y: auto; /* Cho phép cuộn nếu nội dung quá dài */
+}
+
+.extracted-data-display h6 {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #007bff; /* Màu xanh cho tiêu đề */
+}
+
+.extracted-data-display ul {
+    padding-left: 15px; /* Thụt lề cho danh sách */
+}
+
+.extracted-data-display li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.extracted-data-display li:last-child {
+    margin-bottom: 0;
+}
+
+/* CSS cho camera container */
+.camera-container {
+    width: 100%;
+    max-width: 640px;
+    margin: 20px auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    display: flex; /* Dùng flexbox để căn giữa video */
+    justify-content: center;
+    align-items: center;
+}
+
+#webcam {
+    width: 100%;
+    height: auto;
+    display: block;
+    background-color: black;
+    border-radius: 8px;
+}
+
+#canvas {
+    display: none; /* Canvas thường không cần hiển thị */
+}
+
+.instruction-text {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}

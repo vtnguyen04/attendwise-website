@@ -19,7 +19,7 @@ export const QrScanView = ({ onCodeScanned, onCancel, theme }: { onCodeScanned: 
                 });
             }
         };
-        const errorCallback = (error: any) => {
+        const errorCallback = () => {
             // console.error(`QR scanning error: ${error}`);
         };
 

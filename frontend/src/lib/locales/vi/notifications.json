@@ -13,5 +13,10 @@
     "save_success_title": "Đã lưu tùy chọn",
     "save_success_description": "Cài đặt thông báo của bạn đã được cập nhật.",
     "save_error_title": "Lỗi",
-    "save_error_description": "Không thể lưu tùy chọn."
+    "save_error_description": "Không thể lưu tùy chọn.",
+    "bell.title": "Thông báo",
+    "bell.mark_all_as_read": "Đánh dấu tất cả là đã đọc",
+    "bell.load_failed": "Không thể tải thông báo.",
+    "bell.no_notifications": "Bạn không có thông báo mới.",
+    "bell.view_all": "Xem tất cả thông báo"
 }

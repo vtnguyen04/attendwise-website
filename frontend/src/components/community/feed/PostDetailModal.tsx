@@ -1,30 +1,25 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import Loader2 from 'lucide-react/icons/loader-2';
-import Send from 'lucide-react/icons/send';
-import File from 'lucide-react/icons/file';
-import MessageCircle from 'lucide-react/icons/message-circle';
-import MoreHorizontal from 'lucide-react/icons/more-horizontal';
-import Edit from 'lucide-react/icons/edit';
-import Trash2 from 'lucide-react/icons/trash-2';
-
-const FileIcon = File;
+import { Loader2, File, MessageCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Post, Comment } from '@/lib/types';
 import apiClient from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { MarkdownPreview } from '@/components/ui/markdown-preview';
-import Image from 'next/image';
 import { useUser } from '@/context/user-provider';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { useTranslation } from '@/hooks/use-translation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CommentInput } from './CommentInput';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PostDetailModalProps {
   post: Post | null;
@@ -32,9 +27,19 @@ interface PostDetailModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-const CommentCard = ({ comment, onCommentDeleted, onCommentUpdated }: { comment: Comment, onCommentDeleted: (commentId: string) => void, onCommentUpdated: (updatedComment: Comment) => void }) => {
+const CommentCard = React.memo(({ 
+  comment, 
+  onCommentDeleted, 
+  onCommentUpdated 
+}: { 
+  comment: Comment;
+  onCommentDeleted: (commentId: string) => void;
+  onCommentUpdated: (updatedComment: Comment) => void;
+}) => {
   const { user } = useUser();
   const { toast } = useToast();
+  const { t } = useTranslation('post_detail');
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -43,199 +48,245 @@ const CommentCard = ({ comment, onCommentDeleted, onCommentUpdated }: { comment:
 
   const handleDelete = async () => {
     try {
-      await apiClient.delete(`/api/v1/comments/${comment.id}`);
+      await apiClient.delete(`/comments/${comment.id}`);
       onCommentDeleted(comment.id);
-      toast({ title: 'Success', description: 'Comment deleted successfully.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to delete comment.', variant: 'destructive' });
+      toast({ title: t('success'), description: t('comment_deleted') });
+    } catch {
+      toast({ title: t('error'), description: t('delete_failed'), variant: 'destructive' });
     }
   };
 
   const handleUpdate = async () => {
     try {
-      const response = await apiClient.patch(`/api/v1/comments/${comment.id}`, { content: editedContent });
+      const response = await apiClient.patch(`/comments/${comment.id}`, { content: editedContent });
       onCommentUpdated(response.data.comment);
       setIsEditing(false);
-      toast({ title: 'Success', description: 'Comment updated successfully.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to update comment.', variant: 'destructive' });
+      toast({ title: t('success'), description: t('comment_updated') });
+    } catch {
+      toast({ title: t('error'), description: t('update_failed'), variant: 'destructive' });
     }
   };
 
   return (
-    <div className="py-4 px-3 -mx-3 rounded-lg transition-colors hover:bg-glass-interactive">
+    <div className="group py-4">
       <div className="flex gap-3">
-        <Avatar className="h-8 w-8 flex-shrink-0">
+        <Avatar className="h-10 w-10 flex-shrink-0">
           <AvatarImage src={comment.author?.profile_picture_url?.String} />
-          <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
             {comment.author?.name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
+        
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              {comment.author?.name}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-            </p>
-          </div>
-          {isEditing ? (
-            <div className="mt-2 space-y-2">
-              <Textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleUpdate}>Save</Button>
-                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-              </div>
-            </div>
-          ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none mt-2 text-gray-700 dark:text-gray-300">
-              <MarkdownPreview content={comment.content} />
-            </div>
-          )}
-        </div>
-        {isAuthor && !isEditing && (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="liquid-glass-button">
-                        <MoreHorizontal className="h-5 w-5" />
+          <div className="bg-muted rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className="text-sm font-semibold text-foreground">
+                {comment.author?.name}
+              </p>
+              {isAuthor && !isEditing && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuItem onSelect={() => setIsEditing(true)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onSelect={() => setIsEditing(true)} className="cursor-pointer">
+                      <Edit className="h-4 w-4 mr-2" />
+                      {t('edit')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                    <DropdownMenuItem 
+                      onSelect={() => setIsDeleteDialogOpen(true)} 
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      {t('delete')}
                     </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+            
+            {isEditing ? (
+              <div className="space-y-2">
+                <Textarea 
+                  value={editedContent} 
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="text-sm bg-background"
+                  rows={3}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleUpdate} className="h-8">
+                    {t('save')}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} className="h-8">
+                    {t('cancel')}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <MarkdownPreview content={comment.content} />
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 ml-4">
+            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+          </p>
+        </div>
       </div>
+      
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-background rounded-lg shadow-lg z-50">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('confirm_delete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your comment.
+              {t('delete_warning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="liquid-glass-button">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 liquid-glass-button">
-              Delete
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   );
-};
+});
 
 export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const { user } = useUser();
+  const { t } = useTranslation('post_detail');
+  const queryClient = useQueryClient();
 
-  const fetchComments = useCallback(async () => {
-    if (!post?.id) return;
-    setIsLoading(true);
-    try {
-      const commentsRes = await apiClient.get(`/api/v1/posts/${post.id}/comments`);
-      setComments(commentsRes.data.comments || []);
-    } catch (error) {
-      console.error("Failed to fetch post comments", error);
-      toast({ title: 'Error', description: 'Could not load comments for this post.', variant: 'destructive' });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [post?.id, toast]);
+  const { data: comments = [], isLoading } = useQuery<Comment[]>({
+    staleTime: 0,
+    queryKey: ['comments', post?.id],
+    queryFn: () => apiClient.get(`/posts/${post.id}/comments`).then(res => res.data.comments || []),
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchComments();
-    }
-  }, [isOpen, fetchComments]);
+    enabled: isOpen && !!post?.id,
+  });
 
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !post?.id) return;
-    setIsSubmitting(true);
-    try {
-      const response = await apiClient.post(`/api/v1/posts/${post.id}/comments`, { content: newComment });
-      setComments(prev => [response.data.comment, ...prev]);
-      setNewComment('');
-      toast({ title: 'Success', description: 'Your comment has been posted.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not post your comment.', variant: 'destructive' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
 
   const handleCommentDeleted = (commentId: string) => {
-    setComments(prev => prev.filter(c => c.id !== commentId));
+    queryClient.setQueryData<Comment[]>(['comments', post?.id], (oldData) => {
+      if (!oldData) return [];
+      return oldData.filter(c => c.id !== commentId);
+    });
   };
 
   const handleCommentUpdated = (updatedComment: Comment) => {
-    setComments(prev => prev.map(c => c.id === updatedComment.id ? updatedComment : c));
+    queryClient.setQueryData<Comment[]>(['comments', post?.id], (oldData) => {
+      if (!oldData) return [];
+      return oldData.map(c => c.id === updatedComment.id ? updatedComment : c);
+    });
   };
+
+  const handleCommentPosted = () => {
+    queryClient.invalidateQueries({ queryKey: ['comments', post.id] });
+  };
+
+  const rawAttachments =
+    post?.file_attachments ||
+    ((post as { fileAttachments?: Post['file_attachments'] })?.fileAttachments) ||
+    [];
+
+  const rawMediaUrls =
+    post?.media_urls ||
+    ((post as { mediaUrls?: Post['media_urls'] })?.mediaUrls) ||
+    [];
+
+  const imageSourceMap = new Map<
+    string,
+    {
+      url: string;
+      name: string;
+      type: string;
+    }
+  >();
+
+  rawAttachments.forEach((attachment) => {
+    const url = (attachment?.Url || attachment?.url || '').trim();
+    if (!url) return;
+
+    const type = (attachment?.Type || attachment?.type || '').trim();
+    const name = attachment?.Name || attachment?.name || url;
+
+    if (type.toLowerCase().startsWith('image/')) {
+      imageSourceMap.set(url, { url, name, type });
+    }
+  });
+
+  rawMediaUrls.forEach((rawUrl) => {
+    const url = rawUrl?.trim();
+    if (!url || imageSourceMap.has(url)) {
+      return;
+    }
+    const fallbackName = url.split(/[/?#]/).filter(Boolean).pop() || 'Image';
+    imageSourceMap.set(url, { url, name: fallbackName, type: 'image/unknown' });
+  });
+
+  const imageSources = Array.from(imageSourceMap.values());
+
+  const fileAttachments = rawAttachments.filter((attachment) => {
+    const url = (attachment?.Url || attachment?.url || '').trim();
+    if (!url) return false;
+    const type = (attachment?.Type || attachment?.type || '').trim().toLowerCase();
+    return !type.startsWith('image/');
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background max-w-3xl h-[90vh] flex flex-col p-0 rounded-lg shadow-lg z-50">
-        {/* Header */}
-        <DialogHeader className="px-6 py-4 border-b border-border/50 flex-shrink-0">
-          <DialogTitle className="text-xl font-bold text-foreground">
-            {post?.author?.name ? `${post.author.name}'s Post` : 'Loading Post...'}
-          </DialogTitle>
+      <DialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0 bg-background">
+        <DialogHeader className="px-6 py-4 border-b flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-11 w-11">
+              <AvatarImage src={post?.author?.profile_picture_url.String} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                {post?.author?.name ? post.author.name.charAt(0).toUpperCase() : '?'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <DialogTitle className="text-base font-bold text-foreground">
+                {post?.author?.name || t('loading')}
+              </DialogTitle>
+              {post && (
+                <p className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                </p>
+              )}
+            </div>
+          </div>
           <DialogDescription className="sr-only">
-            Detailed view of a community post with comments.
+            {t('dialog_description')}
           </DialogDescription>
         </DialogHeader>
 
         {isLoading || !post ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-background">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Post Content */}
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
             <ScrollArea className="flex-1">
-              <div className="px-6 py-4 space-y-6">
-                {/* Post Header */}
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={post.author?.profile_picture_url} />
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {post.author?.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="font-semibold text-foreground">
-                      {post.author?.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Content */}
+              <div className="px-6 py-5 space-y-5">
                 <div className="prose prose-base dark:prose-invert max-w-none text-foreground">
                   <MarkdownPreview
                     content={post.content}
                     remarkPlugins={[]}
                     rehypePlugins={[]}
                     components={{
-                      table: ({node, children, ...props}) => {
-                        const { ref, ...restProps } = props;
+                      table: ({children, ...props}: {children: React.ReactNode}) => {
                         return (
                           <div className="overflow-x-auto rounded-lg border border-border/50">
-                            <table {...restProps} className="w-full">{children}</table>
+                            <table {...props as any} className="w-full">{children}</table>
                           </div>
                         );
                       }
@@ -243,74 +294,89 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
                   />
                 </div>
 
-                {/* Media Attachments */}
-                {post.file_attachments && post.file_attachments.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {post.file_attachments.map((attachment, index) => {
-                      const type = attachment?.Type || attachment?.type || '';
-                      const url = attachment?.Url || attachment?.url || '';
-                      const name =
-                        attachment?.Name || attachment?.name || url || `attachment-${index + 1}`;
-                      const isImage = type.startsWith('image/');
-
-                      if (!url) return null;
-
-                      return (
-                        <div 
-                          key={`${url}-${index}`} 
-                          className="bg-glass-interactive relative aspect-video overflow-hidden hover:border-primary/50 transition-colors"
-                        >
-                          {isImage ? (
+                {(imageSources.length > 0 || fileAttachments.length > 0) && (
+                  <div className="space-y-4">
+                    {imageSources.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {imageSources.map(({ url, name }, index) => (
+                          <div
+                            key={`${url}-${index}`}
+                            className="relative aspect-video overflow-hidden rounded-xl bg-muted group cursor-pointer"
+                          >
                             <a href={url} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
-                              <Image 
-                                src={url} 
-                                alt={name} 
-                                layout="fill" 
-                                className="object-cover hover:scale-105 transition-transform duration-300"
+                              <img
+                                src={url}
+                                alt={name}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                               />
                             </a>
-                          ) : (
-                            <a 
-                              href={url} 
-                              download 
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {fileAttachments.length > 0 && (
+                      <div className="space-y-2">
+                        {fileAttachments.map((attachment, index) => {
+                          const url = (attachment?.Url || attachment?.url || '').trim();
+                          if (!url) return null;
+                          const name = attachment?.Name || attachment?.name || url || `attachment-${index + 1}`;
+                          const type = (attachment?.Type || attachment?.type || '').trim() || 'File';
+
+                          return (
+                            <a
+                              key={`${url}-${index}`}
+                              href={url}
+                              download
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="h-full w-full flex flex-col items-center justify-center p-4 space-y-3 transition-colors"
+                              className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
                             >
-                              <div className="p-3 bg-primary/10 rounded-lg">
-                                <FileIcon className="h-6 w-6 text-primary" />
+                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <File className="h-5 w-5 text-primary" />
                               </div>
-                              <span className="text-sm font-medium text-muted-foreground text-center break-all">
-                                {name}
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{name}</p>
+                                <p className="text-xs text-muted-foreground">{type}</p>
+                              </div>
                             </a>
-                          )}
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Divider */}
-                <Separator className="bg-border/50" />
+                <Separator />
 
-                {/* Comments Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-muted-foreground" />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 px-2">
                     <h3 className="text-lg font-bold text-foreground">
-                      Comments ({comments.length})
+                      {t('comments')}
                     </h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {comments.length}
+                    </Badge>
                   </div>
                   
                   {comments.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      No comments yet. Be the first to comment!
-                    </p>
+                    <div className="text-center py-12 px-4">
+                      <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                        <MessageCircle className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {t('no_comments')}
+                      </p>
+                    </div>
                   ) : (
-                    <div className="space-y-2 -mx-3">
+                    <div className="space-y-0">
                       {comments.map(comment => (
-                        <CommentCard key={comment.id} comment={comment} onCommentDeleted={handleCommentDeleted} onCommentUpdated={handleCommentUpdated} />
+                        <CommentCard 
+                          key={comment.id} 
+                          comment={comment} 
+                          onCommentDeleted={handleCommentDeleted} 
+                          onCommentUpdated={handleCommentUpdated}
+                        />
                       ))}
                     </div>
                   )}
@@ -318,26 +384,9 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
               </div>
             </ScrollArea>
 
-            {/* Comment Input */}
-            <div className="px-6 py-4 border-t border-border/50 flex-shrink-0">
-              <div className="flex gap-3 items-end">
-                <Textarea
-                  placeholder="Write a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  rows={2}
-                  className="liquid-glass-input"
-                />
-                <Button 
-                  onClick={handleAddComment} 
-                  disabled={isSubmitting || !newComment.trim()} 
-                  size="icon"
-                  className="h-10 w-10 flex-shrink-0 liquid-glass-button"
-                >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
+            {user && (
+              <CommentInput postId={post.id} onCommentPosted={handleCommentPosted} />
+            )}
           </div>
         )}
       </DialogContent>

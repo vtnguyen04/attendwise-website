@@ -11,7 +11,6 @@ import PlusCircle from 'lucide-react/icons/plus-circle';
 import Clock from 'lucide-react/icons/clock';
 import LogOut from 'lucide-react/icons/log-out';
 import type { Community } from '@/lib/types';
-import { useTheme } from '@/hooks/use-theme';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,15 +22,36 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface CommunityActionButtonProps {
   community: Community | null;
 }
 
+import { cva } from 'class-variance-authority';
+
+const actionButtonVariants = cva(
+  "transform-gpu transition-all duration-300 hover:scale-105 liquid-glass-button",
+  {
+    variants: {
+      action: {
+        MANAGE: "hover:bg-gray-700 dark:border-gray-600 hover:bg-gray-100 light:border-gray-300",
+        VIEW: "hover:bg-gray-700 dark:border-gray-600 hover:bg-gray-100 light:border-gray-300",
+        PENDING: "hover:bg-gray-700 dark:border-gray-600 hover:bg-gray-100 light:border-gray-300",
+        LEAVE: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        JOIN: "hover:shadow-lg hover:shadow-purple-500/20",
+        REQUEST_TO_JOIN: "hover:shadow-lg hover:shadow-purple-500/20",
+        LOGIN_TO_JOIN: "hover:shadow-lg hover:shadow-purple-500/20",
+        HIDDEN: "",
+      },
+    },
+  }
+);
+
 export function CommunityActionButton({ community }: CommunityActionButtonProps) {
   const { user } = useUser();
-  const theme = useTheme();
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
+  const { t } = useTranslation('community');
 
   const {
     action,
@@ -85,39 +105,10 @@ export function CommunityActionButton({ community }: CommunityActionButtonProps)
     }
   };
 
-  const getButtonClass = () => {
-    const baseClass = "transform-gpu transition-all duration-300 hover:scale-105 liquid-glass-button";
-    
-    switch (action) {
-      case 'MANAGE':
-      case 'VIEW':
-      case 'PENDING':
-        return `${baseClass} ${
-          theme === 'dark' 
-            ? 'hover:bg-gray-700 dark:border-gray-600' 
-            : 'hover:bg-gray-100 light:border-gray-300'
-        }`;
-      case 'LEAVE':
-        return `${baseClass} bg-destructive text-destructive-foreground hover:bg-destructive/90`;
-      default:
-        return `${baseClass} ${
-          theme === 'dark' 
-            ? 'hover:shadow-lg hover:shadow-purple-500/20' 
-            : 'hover:shadow-lg hover:shadow-purple-400/20'
-        }`;
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-
+  const handleClick = () => {
     if (action === 'LEAVE') {
       setIsLeaveConfirmOpen(true);
     } else if (action === 'MANAGE') {
-      // For manage action, we want to navigate to the admin page directly
-      // The handleAction in useCommunityAuth does not handle navigation for MANAGE
-      // So we handle it here.
       if (community) {
         window.location.href = `/dashboard/communities/${community.id}/admin`;
       }
@@ -126,9 +117,7 @@ export function CommunityActionButton({ community }: CommunityActionButtonProps)
     }
   };
 
-  const handleConfirmLeave = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleConfirmLeave = () => {
     handleLeave();
   };
 
@@ -139,7 +128,7 @@ export function CommunityActionButton({ community }: CommunityActionButtonProps)
         onClick={handleClick}
         disabled={isLoading || action === 'PENDING'}
         variant={getButtonVariant()}
-        className={getButtonClass()}
+        className={actionButtonVariants({ action })}
       >
         {renderIcon()}
         {actionLabel}
@@ -148,17 +137,17 @@ export function CommunityActionButton({ community }: CommunityActionButtonProps)
       <AlertDialog open={isLeaveConfirmOpen} onOpenChange={setIsLeaveConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to leave?</AlertDialogTitle>
+            <AlertDialogTitle>{t('leave_confirm.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. You will no longer be a member of the
+              {t('leave_confirm.description')}
               <span className="font-bold"> {community?.name} </span>
               community.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmLeave} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Leave
+            <AlertDialogCancel>{t('leave_confirm.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLeave}>
+              {t('leave_confirm.leave')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

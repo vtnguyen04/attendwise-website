@@ -1,0 +1,32 @@
+{
+  "title": "Messenger",
+  "newMessage": "New Message",
+  "searchPlaceholder": "Search...",
+  "failedToLoad": "Failed to load conversations",
+  "noConversationsFound": "No conversations found",
+  "noConversationsYet": "No conversations yet",
+  "conversation": "Conversation",
+  "noMessagesYet": "No messages yet",
+  "pleaseLogIn": "Please log in to view messages",
+  "failedToLoadConversation": "Failed to load conversation",
+  "pleaseTryAgain": "Please try again later",
+  "noConversationSelectedTitle": "No conversation selected",
+  "noConversationSelectedDescription": "Choose a conversation from the list to start messaging and connecting with your community",
+  "readyToChat": "Ready to chat",
+  "newConversation": {
+    "directTitle": "New Message",
+    "groupTitle": "New Group",
+    "directDescription": "Search for a user to start a conversation",
+    "groupDescription": "Select users for your group chat",
+    "directLabel": "Direct Message",
+    "groupLabel": "New Group",
+    "groupNamePlaceholder": "Group name",
+    "searchPlaceholder": "Search for a user...",
+    "noResultsTitle": "No users found",
+    "noResultsDescription": "Try a different search term.",
+    "startSearchingTitle": "Start searching",
+    "startSearchingSubtitle": "Enter a name to find users.",
+    "creatingGroup": "Creating group...",
+    "createGroup": "Create group"
+  }
+}

@@ -14,14 +14,17 @@ import apiClient from '@/lib/api-client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { CommunityActionButton } from './community-action-button';
+import { useTranslation } from '@/hooks/use-translation';
 
 // --- NEW REDESIGNED COMMUNITY CARD ---
 
-const CommunityCard = memo(({ community }: { community: Community }) => {
+const CommunityCard = memo(({ community, layout }: { community: Community; layout: 'grid' | 'carousel' }) => {
+  const { t } = useTranslation('community');
   const coverImageUrl = useMemo(() => 
-    getSafeImageUrl(community.cover_image_url) || `http://localhost:9000/attendwise/405a368a0202885cd11310.jpg`,
-    [community.cover_image_url, community.id]
+    getSafeImageUrl(community.cover_image_url),
+    [community.cover_image_url]
   );
 
   const profileImageUrl = useMemo(() => 
@@ -40,18 +43,24 @@ const CommunityCard = memo(({ community }: { community: Community }) => {
   const { data: memberPreviews } = useQuery<User[]>({ // Fetch member previews
     queryKey: ['communityMemberPreviews', community.id],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/v1/communities/${community.id}/member-previews`);
+      const response = await apiClient.get(`/communities/${community.id}/member-previews`);
       return response.data.member_previews;
     },
     enabled: !!community.id, // Only run the query if community.id is available
   });
 
+  const cardBaseClasses =
+    layout === 'carousel'
+      ? 'w-72 h-80 flex-shrink-0'
+      : 'w-full h-80';
+
   return (
-    <Link href={cardHref} passHref>
+    <Link href={cardHref} passHref aria-label={`${community.name} community`}>
     <motion.div 
       className={cn(
-        "w-72 h-80 flex flex-col justify-between overflow-hidden rounded-3xl relative group flex-shrink-0",
-        "border border-border/60 bg-card/85 shadow-glass backdrop-blur",
+        "flex flex-col justify-between overflow-hidden rounded-3xl relative group",
+        "border border-border/60 bg-card/85 shadow-glass backdrop-blur text-white group-hover:shadow-glow-lg",
+        cardBaseClasses,
         isMember ? 'cursor-pointer transition-transform duration-300' : 'cursor-default'
       )}
       whileHover={{ y: -10, scale: 1.015 }}
@@ -62,19 +71,19 @@ const CommunityCard = memo(({ community }: { community: Community }) => {
         src={coverImageUrl}
         alt={community.name}
         fill
-        className="object-cover transition-all duration-500 group-hover:scale-110 filter brightness-75" // Adjusted brightness, removed blur
+        className="object-cover transition-all duration-500 group-hover:scale-110 filter brightness-65" // Adjusted brightness, removed blur
       />
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
 
       {/* Content Wrapper */}
-      <div className="relative z-10 flex h-full flex-col justify-between p-5 text-card-foreground">
+      <div className="relative z-10 flex h-full flex-col justify-between p-5">
         {/* Top section for privacy badge */}
         <div className="flex">
           {community.type !== 'public' && (
-            <Badge variant="secondary" className="border-white/20 bg-white/10 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur-sm">
+            <Badge variant="secondary" className="border-white/20 bg-white/10 text-xs caps-label text-white/90 backdrop-blur-sm">
               <Lock className="mr-1.5 h-3 w-3" />
-              {community.type === 'secret' ? 'Secret' : 'Private'}
+              {community.type === 'secret' ? t('type.secret') : t('type.private')}
             </Badge>
           )}
         </div>
@@ -82,24 +91,24 @@ const CommunityCard = memo(({ community }: { community: Community }) => {
         {/* Middle section for community info */}
         <div className={cn("flex flex-col items-center text-center")}>
           <Avatar className="mb-3 h-20 w-20 border-4 border-white/20 transition-transform duration-300 group-hover:scale-110">
-            <AvatarImage src={profileImageUrl} />
+            <AvatarImage src={profileImageUrl || null} />
             <AvatarFallback className="bg-primary text-2xl font-semibold text-primary-foreground">
               {fallbackInitial}
             </AvatarFallback>
           </Avatar>
-          <h3 className="text-center text-xl font-semibold text-card-foreground transition-colors group-hover:text-primary">
+          <h3 className="text-center text-xl font-bold text-white transition-colors group-hover:text-primary">
             {community.name}
           </h3>
-          <div className="mt-2 flex items-center justify-center text-sm text-muted-foreground">
+          <div className="mt-2 flex items-center justify-center text-sm text-white/80">
             <Users className="mr-2 h-4 w-4" />
-            {community.member_count.toLocaleString()} members
+            {t('members_count_plural', { count: community.member_count })}
           </div>
 
           {/* Member Previews */}
           <div className="flex -space-x-2 overflow-hidden mt-3">
             {memberPreviews?.slice(0, 3).map((member) => (
               <Avatar key={member.id} className="h-7 w-7 border-2 border-white/30">
-                <AvatarImage src={getSafeImageUrl(member.profile_picture_url)} />
+                <AvatarImage src={getSafeImageUrl(member.profile_picture_url) || null} />
                 <AvatarFallback>{member.name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             ))}
@@ -134,6 +143,7 @@ export const CommunityList = memo(function CommunityList({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const isPausedRef = useRef(false);
+  const { t } = useTranslation('community');
 
   useEffect(() => {
     if (!autoScroll) return;
@@ -170,23 +180,37 @@ export const CommunityList = memo(function CommunityList({
   if (!communities || communities.length === 0) {
     return (
       <div className={"col-span-full text-center py-16 text-muted-foreground"}>
-        <p className="text-lg">No communities found.</p>
+        <p className="text-lg">{t('list.no_communities_found')}</p>
+        <p className="text-sm mt-2">{t('list.no_communities_found_cta')}</p>
+        <Button asChild className="mt-4">
+          <Link href="/dashboard/communities/create">{t('list.create_community_button')}</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (autoScroll) {
+    return (
+      <div
+        ref={scrollContainerRef}
+        className="relative w-full h-full overflow-x-auto"
+        onMouseEnter={() => (isPausedRef.current = true)}
+        onMouseLeave={() => (isPausedRef.current = false)}
+      >
+        <div className="flex space-x-4 pb-2">
+          {communities.map((community) => (
+            <CommunityCard key={community.id} community={community} layout="carousel" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={scrollContainerRef}
-      className="relative w-full h-full overflow-x-auto"
-      onMouseEnter={() => (isPausedRef.current = true)}
-      onMouseLeave={() => (isPausedRef.current = false)}
-    >
-      <div className="flex space-x-4 pb-2">
-        {communities.map((community) => (
-          <CommunityCard key={community.id} community={community} />
-        ))}
-      </div>
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      {communities.map((community) => (
+        <CommunityCard key={community.id} community={community} layout="grid" />
+      ))}
     </div>
   );
 });

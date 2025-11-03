@@ -2,9 +2,11 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 const createApiClient = (withAuth: boolean = false) => {
   const client = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080',
+    baseURL: API_BASE_URL,
   });
 
   if (withAuth) {
@@ -13,6 +15,7 @@ const createApiClient = (withAuth: boolean = false) => {
         if (typeof window !== 'undefined') {
           const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
           if (token) {
+            console.log("Sending token:", token); // Add this line
             config.headers.Authorization = `Bearer ${token}`;
           }
         }

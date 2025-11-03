@@ -1,24 +1,17 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useUser } from '@/context/user-provider';
+import Image from 'next/image'; // Import the Next.js Image component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import ImageIcon from 'lucide-react/icons/image';
-import Paperclip from 'lucide-react/icons/paperclip';
-import Loader2 from 'lucide-react/icons/loader-2';
-import X from 'lucide-react/icons/x';
-import File from 'lucide-react/icons/file';
-import Send from 'lucide-react/icons/send';
-import ChevronDown from 'lucide-react/icons/chevron-down';
-import ChevronUp from 'lucide-react/icons/chevron-up';
-
-const FileIcon = File;
-import apiClient from '@/lib/api-client';
+import { Image as ImageIcon, Paperclip, Loader2, X, File, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/context/user-provider';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import { createPost } from '@/lib/services/feed.client.service';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface PostComposerProps {
@@ -33,9 +26,6 @@ interface MediaFile {
 }
 
 export function PostComposer({ communityId, onPostCreated }: PostComposerProps) {
-    const { user } = useUser();
-    const { toast } = useToast();
-    const queryClient = useQueryClient();
     const [content, setContent] = useState('');
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +33,10 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
     const [isExpanded, setIsExpanded] = useState(false);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { user } = useUser();
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
 
     const handleImageSelect = () => imageInputRef.current?.click();
     const handleFileSelect = () => fileInputRef.current?.click();
@@ -53,37 +47,19 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
 
         setIsUploading(true);
 
-        const uploadPromises = Array.from(files).map(async (file) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            try {
-                const response = await apiClient.post("/api/v1/media/upload", formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
-                return { 
-                    url: response.data.final_url, 
-                    name: file.name, 
-                    type: file.type 
-                };
-            } catch (error) {
-                console.error(`File upload failed for ${file.name}:`, error);
-                toast({ title: `Upload Failed for ${file.name}`, description: "Could not upload the file.", variant: "destructive" });
-                return null;
-            }
-        });
+        // Simulate upload
+        const newFiles = Array.from(files).map(file => ({
+            url: URL.createObjectURL(file),
+            name: file.name,
+            type: file.type
+        }));
 
-        try {
-            const results = await Promise.all(uploadPromises);
-            const successfulUploads = results.filter((result): result is MediaFile => result !== null);
-            if (successfulUploads.length > 0) {
-                setMediaFiles(prev => [...prev, ...successfulUploads]);
-                toast({ title: "Success", description: `${successfulUploads.length} file(s) uploaded successfully.` });
-            }
-        } finally {
+        setTimeout(() => {
+            setMediaFiles(prev => [...prev, ...newFiles]);
             setIsUploading(false);
             if(imageInputRef.current) imageInputRef.current.value = '';
             if(fileInputRef.current) fileInputRef.current.value = '';
-        }
+        }, 500);
     };
 
     const handleRemoveMedia = (urlToRemove: string) => {
@@ -91,36 +67,24 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
     };
 
     const handleSubmit = async () => {
-        if ((!content.trim() && mediaFiles.length === 0) || !user) return;
-
+        if ((!content.trim() && mediaFiles.length === 0)) return;
+        
         setIsSubmitting(true);
+
         try {
-            const url = communityId 
-                ? `/api/v1/communities/${communityId}/posts` 
-                : `/api/v1/feed/posts`;
-
-            const response = await apiClient.post(url, {
-                content: content,
-                file_attachments: mediaFiles,
-            });
-
-            const newPost = response.data.post;
-
-            if (newPost.status === 'approved') {
-                toast({ title: 'Success', description: 'Your post is now live.' });
-                onPostCreated?.();
-                queryClient.invalidateQueries({ queryKey: ['feed'] });
-                queryClient.invalidateQueries({ queryKey: ['feed', 'global'] });
-                queryClient.invalidateQueries({ queryKey: ['posts', 'user', user.id] });
-            } else {
-                toast({ title: 'Post Submitted', description: 'Your post is pending approval by an admin.' });
-            }
+            await createPost(content, mediaFiles, communityId);
+            
+            // Post-submission logic
             setContent('');
             setMediaFiles([]);
             setIsExpanded(false);
+            toast({ title: 'Success', description: 'Your post has been created.' });
+            queryClient.invalidateQueries({ queryKey: ['feed'] });
+            onPostCreated?.();
+
         } catch (error) {
-            console.error('Failed to create post', error);
-            toast({ title: 'Error', description: 'Could not create your post. Please try again.', variant: 'destructive' });
+            console.error("Failed to create post:", error);
+            toast({ title: 'Error', description: 'Failed to create post. Please try again.', variant: 'destructive' });
         } finally {
             setIsSubmitting(false);
         }
@@ -130,173 +94,193 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
     const otherFiles = mediaFiles.filter(f => !f.type.startsWith('image/'));
 
     return (
-        <>
-            {user && (
-                <div className="bg-glass-interactive w-full">
-                    {/* Header - Always visible */}
-                    <div 
-                        className="px-4 sm:px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                    >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <Avatar className="h-9 w-9 flex-shrink-0">
-                                <AvatarImage 
-                                    src={user?.profile_picture_url || ''} 
-                                    alt={user?.name || 'User Avatar'} 
-                                />
-                                <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs">
-                                    {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                                    {user?.name}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {isExpanded ? 'Writing...' : 'What\'s on your mind?'}
-                                </p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            data-composer-trigger
-                            className="flex-shrink-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8"
-                        >
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </Button>
+        <Card className="w-full border-border/50 shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader 
+                className="flex-row items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors rounded-t-lg p-4"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 ring-2 ring-border">
+                        <AvatarImage 
+                            src={user?.profile_picture_url || undefined} 
+                            alt={user?.name || 'User Avatar'} 
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                            {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold text-sm text-foreground">
+                            {user?.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground/80">
+                            {isExpanded ? 'Đang viết bài...' : 'Bạn đang nghĩ gì?'}
+                        </p>
                     </div>
+                </div>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-muted/50"
+                >
+                    {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
+            </CardHeader>
 
-                    {/* Expandable Content - Auto-collapse after submit */}
-                    {isExpanded && (
-                        <div className="border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 space-y-3">
-                            <Textarea
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
-                                placeholder="What's on your mind?"
-                                className="w-full liquid-glass-input resize-none text-sm"
-                                rows={3}
-                            />
+            {isExpanded && (
+                <>
+                    <Separator className="bg-border/50" />
+                    <CardContent className="pt-4 space-y-4 p-4">
+                        <Textarea
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="Chia sẻ suy nghĩ của bạn..."
+                            className="resize-none text-sm min-h-[100px] border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            rows={4}
+                        />
 
-                            {/* Media Previews */}
-                            {(imageFiles.length > 0 || otherFiles.length > 0) && (
-                                <div className="space-y-2 py-2 border-t border-gray-200 dark:border-gray-700">
-                                    {/* Images Grid */}
-                                    {imageFiles.length > 0 && (
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {(imageFiles.length > 0 || otherFiles.length > 0) && (
+                            <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                                {imageFiles.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <ImageIcon className="h-4 w-4 text-primary" />
+                                            <span className="text-xs font-medium text-foreground">
+                                                Hình ảnh ({imageFiles.length})
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                             {imageFiles.map(file => (
                                                 <div key={file.url} className="relative group aspect-square">
+                                                    {/* Replaced <img> with next/image <Image /> for optimization */}
                                                     <Image 
                                                         src={file.url} 
-                                                        alt={file.name} 
-                                                        layout="fill" 
-                                                        className="rounded-lg object-cover border border-gray-200 dark:border-gray-700" 
+                                                        alt={file.name}
+                                                        fill
+                                                        className="rounded-lg object-cover border-2 border-border/50" 
                                                     />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
                                                     <Button 
-                                                        variant="destructive" 
+                                                        variant="destructive"
                                                         size="icon" 
-                                                        className="absolute top-0.5 right-0.5 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity z-10 rounded-md text-xs" 
+                                                        className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity z-10 rounded-full shadow-lg"
                                                         onClick={() => handleRemoveMedia(file.url)}
                                                     >
-                                                        <X className="h-2.5 w-2.5" />
+                                                        <X className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
+                                    </div>
+                                )}
 
-                                    {/* Files List */}
-                                    {otherFiles.length > 0 && (
-                                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {otherFiles.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <File className="h-4 w-4 text-primary" />
+                                            <span className="text-xs font-medium text-foreground">
+                                                File đính kèm ({otherFiles.length})
+                                            </span>
+                                        </div>
+                                        <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                                             {otherFiles.map(file => (
                                                 <div 
                                                     key={file.url} 
-                                                    className="bg-gray-50 dark:bg-gray-800/30 rounded-lg px-3 py-2 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-700 text-xs"
+                                                    className="bg-background rounded-lg px-3 py-2.5 flex items-center justify-between border-2 border-border/50 hover:border-primary/50 transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                        <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded flex-shrink-0">
-                                                            <FileIcon className="h-3 w-3 text-blue-600 dark:text-blue-400"/>
+                                                        <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                            <File className="h-4 w-4 text-primary"/>
                                                         </div>
-                                                        <p className="text-gray-700 dark:text-gray-300 truncate">{file.name}</p>
+                                                        <p className="text-sm text-foreground truncate font-medium">{file.name}</p>
                                                     </div>
                                                     <Button 
                                                         variant="ghost" 
                                                         size="icon" 
-                                                        className="h-5 w-5 flex-shrink-0 rounded" 
+                                                        className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive flex-shrink-0" 
                                                         onClick={() => handleRemoveMedia(file.url)}
                                                     >
-                                                        <X className="h-3 w-3" />
+                                                        <X className="h-4 w-4" />
                                                     </Button>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                            {/* Actions Bar */}
-                            <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-                                <div className="flex gap-0.5">
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={handleImageSelect} 
-                                        disabled={isUploading}
-                                        className="rounded h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                        title="Add images"
-                                    >
-                                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-                                    </Button>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={handleFileSelect} 
-                                        disabled={isUploading}
-                                        className="rounded h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                        title="Add files"
-                                    >
-                                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                                    </Button>
-                                </div>
+                        <Separator className="bg-border/50" />
+
+                        <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
                                 <Button 
-                                    onClick={handleSubmit} 
-                                    disabled={isSubmitting || (!content.trim() && mediaFiles.length === 0)}
-                                    className="liquid-glass-button text-white font-medium text-sm px-4 py-2"
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={handleImageSelect} 
+                                    disabled={isUploading}
+                                    className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
                                 >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                                            Posting...
-                                        </>
+                                    {isUploading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     ) : (
-                                        <>
-                                            <Send className="mr-1.5 h-3 w-3" />
-                                            Post
-                                        </>
+                                        <ImageIcon className="h-4 w-4 mr-2" />
                                     )}
+                                    Hình ảnh
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={handleFileSelect} 
+                                    disabled={isUploading}
+                                    className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
+                                >
+                                    {isUploading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                        <Paperclip className="h-4 w-4 mr-2" />
+                                    )}
+                                    File
                                 </Button>
                             </div>
+                            <Button 
+                                onClick={handleSubmit} 
+                                disabled={isSubmitting || (!content.trim() && mediaFiles.length === 0)}
+                                className="px-6 shadow-sm hover:shadow-md transition-all"
+                                size="sm"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang đăng...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="mr-2 h-4 w-4" />
+                                        Đăng bài
+                                    </>
+                                )}
+                            </Button>
                         </div>
-                    )}
-
-                    {/* Hidden file inputs */}
-                    <Input 
-                        ref={imageInputRef} 
-                        type="file" 
-                        multiple 
-                        accept="image/*" 
-                        onChange={handleFileChange} 
-                        className="hidden" 
-                    />
-                    <Input 
-                        ref={fileInputRef} 
-                        type="file" 
-                        multiple 
-                        onChange={handleFileChange} 
-                        className="hidden" 
-                    />
-                </div>
+                    </CardContent>
+                </>
             )}
-        </>
+
+            <Input 
+                ref={imageInputRef} 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                className="hidden" 
+            />
+            <Input 
+                ref={fileInputRef} 
+                type="file" 
+                multiple 
+                onChange={handleFileChange} 
+                className="hidden" 
+            />
+        </Card>
     );
 }

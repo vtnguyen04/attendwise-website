@@ -14,6 +14,7 @@ export default function EventAnalyticsPage() {
   const eventId = params.eventId as string;
   const theme = useTheme(); // 👈 Lấy theme hiện tại
 
+
   const { data: event, isLoading, isError } = useQuery({
     queryKey: ['event', eventId],
     queryFn: () => getEventById(eventId),

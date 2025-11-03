@@ -1,27 +1,24 @@
 'use client';
-import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import DashboardHeader from '@/components/dashboard-header';
+import DashboardHeader from '@/components/layout/dashboard-header';
 import SidebarNav from '@/components/layout/sidebar-nav';
 import { Sidebar, SidebarInset, useSidebar } from '@/components/ui/sidebar';
-import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
 import { Button } from '@/components/ui/button';
+import { ParticleBackground } from '@/components/layout/ParticleBackgroundClient';
+import { RightRail } from '@/components/layout/right-rail';
 import { cn } from '@/lib/utils';
+import { FloatingMessenger } from '@/components/messaging/floating-messenger';
+import Breadcrumbs from '@/components/layout/breadcrumbs';
+import { useTranslation } from '@/hooks/use-translation';
 import {
   Flame,
   Clock,
   ArrowUpRight,
-  ChevronLeft,
-  ChevronRight,
-  PenSquare,
-  CalendarDays,
-  Users,
-  type LucideIcon,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { getMyEventsByStatus } from '@/lib/services/event.client.service';
-import { getFeed } from '@/lib/services/feed.client.service';
-import type { EventItem, FeedItem } from '@/lib/types';
+
+import Link from 'next/link';
+
 function SidebarLoadingSkeleton() {
   return (
     <div className="w-12 p-2 space-y-2 rounded-xl border border-white/10 bg-background/60 backdrop-blur">
@@ -35,6 +32,7 @@ function SidebarLoadingSkeleton() {
     </div>
   );
 }
+
 function HeaderLoadingSkeleton() {
   return (
     <div className="flex h-16 items-center gap-4 border-b border-white/10 bg-background/75 px-6 backdrop-blur">
@@ -50,299 +48,205 @@ function HeaderLoadingSkeleton() {
   );
 }
 
-const quickShortcuts: Array<{ label: string; href: string; icon: LucideIcon }> = [
-  { label: 'Start a post', href: '#global-feed-composer', icon: PenSquare },
-  { label: 'Browse events', href: '/dashboard/events', icon: CalendarDays },
-  { label: 'Explore communities', href: '/dashboard/communities', icon: Users },
-];
-
 function FeedToolbar() {
+  const { t } = useTranslation('common');
+  const pathname = usePathname(); // Lấy đường dẫn URL hiện tại, ví dụ: "/events"
+
+  // Bước 3: Xác định tab active dựa trên URL thay vì state
+  // Điều này giúp UI luôn đồng bộ với trang người dùng đang xem.
+  const activeTab = pathname.startsWith('/events') ? 'events'
+                  : pathname.startsWith('/communities') ? 'communities'
+                  : 'posts';
+
+  // State cho các nút sắp xếp vẫn được giữ lại vì chúng là bộ lọc trên cùng một trang
+  const [activeSort, setActiveSort] = useState('best');
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/85 px-4 py-2 shadow-sm backdrop-blur">
-      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground sm:text-sm">
-        <span className="rounded-full border border-border bg-background/80 px-3 py-1.5 text-foreground">
-          Posts
-        </span>
-        <button className="rounded-full border border-transparent bg-background/60 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground">
-          Events
-        </button>
-        <button className="rounded-full border border-transparent bg-background/60 px-3 py-1.5 transition-colors hover:border-border hover:text-foreground">
-          Communities
-        </button>
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2 bg-card border rounded-lg shadow-sm">
+      
+      {/* Nhóm 1: Lọc theo loại nội dung (giờ đã là các link điều hướng) */}
+      <div className="flex items-center gap-2 p-1 bg-muted rounded-md">
+        
+        {/* Bước 4: Sử dụng pattern <Button asChild> lồng <Link> */}
+        <Button asChild variant={activeTab === 'posts' ? 'secondary' : 'ghost'} size="sm" className="text-xs sm:text-sm">
+          {/* Giả sử trang chủ là trang bài viết */}
+          <Link href="/">{t('feed.posts')}</Link>
+        </Button>
+
+        <Button asChild variant={activeTab === 'communities' ? 'secondary' : 'ghost'} size="sm" className="text-xs sm:text-sm">
+          <Link href="/dashboard/communities">{t('feed.communities')}</Link>
+        </Button>
+
+        <Button asChild variant={activeTab === 'events' ? 'secondary' : 'ghost'} size="sm" className="text-xs sm:text-sm">
+          <Link href="/dashboard/events">{t('feed.events')}</Link>
+        </Button>
+
       </div>
-      <div className="flex flex-wrap items-center gap-2 whitespace-nowrap text-xs font-medium sm:text-sm">
-        <Button variant="default" size="sm" className="rounded-full px-4">
-          <Flame className="mr-2 h-4 w-4" /> Best
-        </Button>
-        <Button variant="ghost" size="sm" className="rounded-full px-4">
-          <Clock className="mr-2 h-4 w-4" /> New
-        </Button>
-        <Button variant="ghost" size="sm" className="rounded-full px-4">
-          <ArrowUpRight className="mr-2 h-4 w-4" /> Top
-        </Button>
-      </div>
-    </div>
-  );
-}
 
-const isPostItem = (item: FeedItem): item is Extract<FeedItem, { type: 'post' }> =>
-  item.type === 'post' && Boolean(item.post);
-
-function RightRail() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
-  const [recentPosts, setRecentPosts] = useState<Array<Extract<FeedItem, { type: 'post' }>>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const formatRelativeTime = (value?: string) => {
-    if (!value) return 'Date to be announced';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return 'Date to be announced';
-    }
-    return formatDistanceToNow(date, { addSuffix: true });
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadInsights() {
-      setIsLoading(true);
-      try {
-        const [events, feedItems] = await Promise.all([
-          getMyEventsByStatus('upcoming'),
-          getFeed('global'),
-        ]);
-
-        if (!isMounted) return;
-
-        setUpcomingEvents(events.slice(0, 3));
-        const posts = feedItems.filter(isPostItem).slice(0, 3);
-        setRecentPosts(posts);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadInsights();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const renderSkeleton = () => (
-    <div className="mt-3 space-y-2">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div
-          key={index}
-          className="h-12 animate-pulse rounded-lg border border-border/40 bg-background/40"
-        />
-      ))}
-    </div>
-  );
-
-  if (isCollapsed) {
-    return (
-      <div className="sticky top-24 hidden lg:flex">
-        <button
-          onClick={() => setIsCollapsed(false)}
-          className="flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+      {/* Nhóm 2: Sắp xếp (Không thay đổi vì đây là các bộ lọc) */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant={activeSort === 'best' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveSort('best')}
+          className="text-xs sm:text-sm"
         >
-          <ChevronRight className="h-3 w-3" />
-          <span>Show insights</span>
-        </button>
+          <Flame className="mr-2 h-4 w-4" /> {t('feed.best')}
+        </Button>
+        <Button
+          variant={activeSort === 'new' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveSort('new')}
+          className="text-xs sm:text-sm"
+        >
+          <Clock className="mr-2 h-4 w-4" /> {t('feed.new')}
+        </Button>
+        <Button
+          variant={activeSort === 'top' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => setActiveSort('top')}
+          className="text-xs sm:text-sm"
+        >
+          <ArrowUpRight className="mr-2 h-4 w-4" /> {t('feed.top')}
+        </Button>
       </div>
-    );
-  }
-
-  return (
-    <aside className="hidden w-full max-w-[260px] shrink-0 lg:flex">
-      <div className="sticky top-24 flex w-full flex-col gap-3">
-        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <span>Insights</span>
-          <button
-            onClick={() => setIsCollapsed(true)}
-            className="rounded-full border border-transparent p-1 text-muted-foreground transition-colors hover:border-border hover:text-foreground"
-            aria-label="Collapse sidebar"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        </div>
-        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Upcoming events
-          </h2>
-          {isLoading ? (
-            renderSkeleton()
-          ) : upcomingEvents.length === 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">No upcoming events yet.</p>
-          ) : (
-            <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
-              {upcomingEvents.map((event) => (
-                <li
-                  key={event.event_id}
-                  className="rounded-lg border border-border/50 bg-background/70 px-3 py-2"
-                >
-                  <p className="font-medium text-foreground text-sm">{event.event_name}</p>
-                  <p className="mt-1 text-[11px]">{formatRelativeTime(event.start_time)}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Recent posts
-          </h2>
-          {isLoading ? (
-            renderSkeleton()
-          ) : recentPosts.length === 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">No posts in your feed yet.</p>
-          ) : (
-            <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
-              {recentPosts.map((item) => (
-                <li
-                  key={item.post.id}
-                  className="rounded-lg border border-border/50 bg-background/70 px-3 py-2"
-                >
-                  <p className="font-medium text-foreground line-clamp-2 text-sm">
-                    {item.post.content?.trim() || 'View post'}
-                  </p>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                    <span className="truncate">
-                      {item.post.author?.name || 'Unknown author'}
-                    </span>
-                    <span className="shrink-0">
-                      {formatRelativeTime(item.created_at)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="rounded-xl border border-border/60 bg-background/80 p-3 shadow-sm backdrop-blur">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Shortcuts
-          </h2>
-          <nav className="mt-2 grid gap-2 text-sm">
-            {quickShortcuts.map((shortcut) => (
-              <Button
-                key={shortcut.label}
-                asChild
-                variant="ghost"
-                className="flex items-center justify-start gap-2 rounded-xl border border-transparent bg-background/60 px-3 py-2 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-background/80 hover:text-primary"
-              >
-                <a href={shortcut.href}>
-                  <shortcut.icon className="mr-2 inline-block h-4 w-4" />
-                  {shortcut.label}
-                </a>
-              </Button>
-            ))}
-          </nav>
-        </section>
-      </div>
-    </aside>
+    </div>
   );
 }
-
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const [isLoaded, setIsLoaded] = useState(true);
-  const [scrollY, setScrollY] = useState(0);
-  const mainRef = useRef<HTMLDivElement>(null);
-  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { setOpen, isMobile } = useSidebar();
+  const [isLoaded] = useState(true);
+  const [scrollY] = useState(0);
+  const mainRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
   const isFeedPage = pathname === '/dashboard';
+  const { setOpen, state, isMobile, isPinned } = useSidebar();
+  const hoverOpenRef = useRef(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (!isMobile) {
-      setOpen(false);
-    }
+    setTimeout(() => setIsClient(true), 0);
+  }, []);
+
+  useEffect(() => {
     const mainEl = mainRef.current;
     if (!mainEl) return;
 
-    const handleScroll = () => {
-      setScrollY(mainEl.scrollTop);
+    const scrollToContent = () => {
+      const scrollAnchors = mainEl.querySelectorAll('[data-scroll-anchor]');
+      const lastAnchor = scrollAnchors.length > 0 ? scrollAnchors[scrollAnchors.length - 1] : null;
+      
+      if (lastAnchor) {
+        lastAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        const contentStart = isFeedPage ? 120 : 80;
+        mainEl.scrollTo({ top: contentStart, behavior: 'smooth' });
+      }
     };
 
-    mainEl.addEventListener('scroll', handleScroll, { passive: true });
+    const timeoutId = setTimeout(scrollToContent, 150);
+    return () => clearTimeout(timeoutId);
+  }, [pathname, isFeedPage]);
 
-    return () => {
-      mainEl.removeEventListener('scroll', handleScroll);
-    };
-  }, [isMobile, setOpen]);
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
 
-  const handleSidebarEnter = useCallback(() => {
-    if (isMobile) return;
-    if (hoverTimeout.current) {
-      clearTimeout(hoverTimeout.current);
+    const scrollAnchors = mainEl.querySelectorAll('[data-scroll-anchor]');
+    const lastAnchor = scrollAnchors.length > 0 ? scrollAnchors[scrollAnchors.length - 1] : null;
+    
+    if (lastAnchor) {
+      setTimeout(() => {
+        lastAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      mainEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    setOpen(true);
-  }, [isMobile, setOpen]);
+  }, [pathname]);
 
-  const handleSidebarLeave = useCallback(() => {
-    if (isMobile) return;
-    if (hoverTimeout.current) {
-      clearTimeout(hoverTimeout.current);
+  const handleSidebarEnter = () => {
+    if (isMobile || isPinned) return;
+    if (state === 'collapsed') {
+      hoverOpenRef.current = true;
+      setOpen(true);
     }
-    hoverTimeout.current = setTimeout(() => setOpen(false), 120);
-  }, [isMobile, setOpen]);
+  };
+
+  const handleSidebarLeave = () => {
+    if (isMobile || isPinned) return;
+    if (hoverOpenRef.current) {
+      setOpen(false);
+      hoverOpenRef.current = false;
+    }
+  };
 
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-background">
+    <div className="relative flex min-h-screen w-full flex-col bg-background">
       <ParticleBackground />
+      <FloatingMessenger />
 
-      <div
-        className="z-50 hidden md:flex"
-        onMouseEnter={handleSidebarEnter}
-        onMouseLeave={handleSidebarLeave}
-      >
-        <Sidebar
-          collapsible="icon"
-          className={cn(
-            'hidden md:flex md:flex-col border-r border-white/10 bg-background/70 backdrop-blur transition-all duration-300',
-            isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
-          )}
-        >
-          <Suspense fallback={<SidebarLoadingSkeleton />}>
-            <SidebarNav />
-          </Suspense>
-        </Sidebar>
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur">
+        <Suspense fallback={<HeaderLoadingSkeleton />}>
+          <DashboardHeader scrollY={scrollY} />
+        </Suspense>
+      </header>
+
+      <div className="relative flex flex-1 w-full overflow-x-hidden">
+        {isClient && (
+          <div
+            className="z-40 hidden md:flex flex-shrink-0 relative"
+            onMouseEnter={handleSidebarEnter}
+            onMouseLeave={handleSidebarLeave}
+          >
+            <Sidebar
+              collapsible="icon"
+              className={cn(
+                'hidden md:flex md:flex-col border-r border-border/60 bg-background/70 backdrop-blur transition-all duration-300 pt-16',
+                isLoaded ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+              )}
+            >
+              <Suspense fallback={<SidebarLoadingSkeleton />}>
+                <SidebarNav />
+              </Suspense>
+            </Sidebar>
+          </div>
+        )}
+        
+        <SidebarInset className="flex flex-1 bg-background/40 min-w-0 w-full">
+          <main
+            ref={!isFeedPage ? mainRef : undefined}
+            className={cn(
+              'flex flex-1 w-full overflow-x-hidden',
+              !isFeedPage && 'overflow-y-auto'
+            )}
+          >
+            {isFeedPage ? (
+              <div className="w-full px-4 py-6 lg:px-8 xl:px-12 2xl:px-16">
+                <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-10">
+                  <section
+                    ref={isFeedPage ? mainRef : undefined}
+                    className="min-w-0 w-full space-y-6 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto lg:pr-6 lg:pb-10 custom-scrollbar lg:justify-self-center"
+                  >
+                    <div className="hidden md:block">
+                      <Breadcrumbs />
+                    </div>
+                    <FeedToolbar />
+                    <div className="space-y-4">{children}</div>
+                  </section>
+                  <RightRail className="lg:justify-self-start" />
+                </div>
+              </div>
+            ) : (
+              <div className="w-full max-w-full px-4 py-6 lg:px-12">
+                <div className="hidden md:block pb-4">
+                  <Breadcrumbs />
+                </div>
+                <div className="w-full">{children}</div>
+              </div>
+            )}
+          </main>
+        </SidebarInset>
       </div>
-
-      <SidebarInset className="flex flex-1 flex-col bg-background/30">
-        <header
-          className={cn(
-            `sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur transition-all duration-500`,
-            isLoaded ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-          )}
-        >
-          <Suspense fallback={<HeaderLoadingSkeleton />}>
-            <DashboardHeader scrollY={scrollY} />
-          </Suspense>
-        </header>
-
-        <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden bg-transparent">
-          {isFeedPage ? (
-            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-6 px-4 py-6 lg:flex-row lg:gap-8 lg:px-8">
-              <section className="w-full flex-1 space-y-6">
-                <FeedToolbar />
-                <div className="space-y-4">{children}</div>
-              </section>
-              <RightRail />
-            </div>
-          ) : (
-            <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
-              {children}
-            </div>
-          )}
-        </main>
-      </SidebarInset>
     </div>
   );
 }

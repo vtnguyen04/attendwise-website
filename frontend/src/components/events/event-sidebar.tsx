@@ -2,7 +2,6 @@
 'use client';
 
 import Link from 'next/link';
-import { format } from 'date-fns';
 import {
   Lock,
   Calendar,
@@ -12,11 +11,16 @@ import {
   DollarSign,
   Globe,
   ExternalLink,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 import { AppEvent, User, EventAttendee, EventSession } from '@/lib/types';
-import { extractTimeValue, extractStringValue, extractIntValue, getAbsoluteUrl } from '@/lib/utils';
+import { extractTimeValue, extractStringValue, extractIntValue, formatInTimezone } from '@/lib/utils';
 import EventSidebarActions from './event-sidebar-actions'; // The one we refactored
+import { useTranslation } from '@/hooks/use-translation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 // Reusable component for each row in the details card
 const InfoRow = ({
@@ -44,38 +48,34 @@ interface EventSidebarProps {
   user: User | null;
   myRegistration: EventAttendee | null;
   isHost: boolean;
-  isRegistered: boolean;
   isEventFinished: boolean;
   selectedSession: EventSession | undefined;
-  setSelectedSession: React.Dispatch<React.SetStateAction<EventSession | undefined>>;
   onViewTicket: () => void;
-  onOpenCheckInDialog: () => void;
-  onRegister: () => void;
-  onUnregister: () => void;
-  registerLoading: boolean;
-  isCheckInOpen: boolean;
 }
 
 export function EventSidebar({
   event,
   user,
   myRegistration,
-  isHost,
-  isRegistered,
   isEventFinished,
   selectedSession,
-  setSelectedSession,
   onViewTicket,
-  onOpenCheckInDialog,
-  onRegister,
-  onUnregister,
-  registerLoading,
-  isCheckInOpen,
 }: EventSidebarProps) {
   console.log('EventSidebar - isEventFinished:', isEventFinished);
+  const { t } = useTranslation('events');
+  const [actionsCollapsed, setActionsCollapsed] = useState(false);
   // Determine which time to display: session-specific or event-wide
-  const displayStartTime = selectedSession?.start_time || extractTimeValue(event.start_time);
-  const displayEndTime = selectedSession?.end_time || extractTimeValue(event.end_time);
+  const normalizeTime = (time?: string) => {
+    if (!time) return undefined;
+    const date = new Date(time);
+    return Number.isNaN(date.getTime()) ? undefined : time;
+  };
+
+  const sessionStartTime = normalizeTime(selectedSession?.start_time);
+  const sessionEndTime = normalizeTime(selectedSession?.end_time);
+
+  const displayStartTime = sessionStartTime || extractTimeValue(event.start_time);
+  const displayEndTime = sessionEndTime || extractTimeValue(event.end_time);
 
   // Extract values using utility functions for type safety
   const locationAddress = extractStringValue(event.location_address);
@@ -87,15 +87,15 @@ export function EventSidebar({
     <div className="sticky top-24 space-y-4">
       {/* Event Info Card */}
       <div className="glass-card p-6 rounded-2xl space-y-4">
-        <h3 className="font-semibold text-lg border-b pb-3 mb-4">Event Details</h3>
+        <h3 className="font-semibold text-lg border-b pb-3 mb-4">{t('sidebar.event_details')}</h3>
 
         {/* Date & Time */}
         {displayStartTime && (
-          <InfoRow icon={Calendar} label="Date & Time">
-            <p className="font-semibold">{format(new Date(displayStartTime), 'EEEE, MMMM d, yyyy')}</p>
+          <InfoRow icon={Calendar} label={t('sidebar.date_time')}>
+            <p className="font-semibold">{formatInTimezone(displayStartTime, event.timezone, 'EEEE, MMMM d, yyyy')}</p>
             <p className="text-sm text-muted-foreground">
-              {format(new Date(displayStartTime), 'h:mm a')}
-              {displayEndTime && ` - ${format(new Date(displayEndTime), 'h:mm a')}`}
+              {formatInTimezone(displayStartTime, event.timezone, 'h:mm a')}
+              {displayEndTime && ` - ${formatInTimezone(displayEndTime, event.timezone, 'h:mm a')}`}
             </p>
           </InfoRow>
         )}
@@ -105,7 +105,7 @@ export function EventSidebar({
           icon={
             event.location_type === 'online' ? Video : event.location_type === 'hybrid' ? Globe : Building2
           }
-          label="Location"
+          label={t('sidebar.location')}
         >
           <p className="font-semibold capitalize">{event.location_type}</p>
           {event.location_type !== 'online' && locationAddress && (
@@ -118,22 +118,22 @@ export function EventSidebar({
               rel="noopener noreferrer"
               className="text-sm text-primary hover:underline flex items-center gap-1 mt-1"
             >
-              Join Online <ExternalLink className="w-3 h-3" />
+              {t('sidebar.join_online')} <ExternalLink className="w-3 h-3" />
             </Link>
           )}
         </InfoRow>
 
         {/* Attendees */}
-        <InfoRow icon={UserCheck} label="Attendees">
+        <InfoRow icon={UserCheck} label={t('sidebar.attendees')}>
           <p className="font-semibold">
             {event.current_attendees}
-            {maxAttendees ? ` / ${maxAttendees}` : ' registered'}
+            {maxAttendees ? ` / ${maxAttendees}` : t('sidebar.registered_suffix')}
           </p>
         </InfoRow>
 
         {/* Price */}
         {event.is_paid && (
-          <InfoRow icon={DollarSign} label="Price">
+          <InfoRow icon={DollarSign} label={t('sidebar.price')}>
             <p className="font-semibold">
               {event.currency} {eventFee.toFixed(2)}
             </p>
@@ -142,27 +142,38 @@ export function EventSidebar({
       </div>
 
       {/* Action Card */}
-      <div className="glass-card p-6 rounded-2xl">
+      <div className="glass-card p-6 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-lg">{t('sidebar.actions_title')}</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setActionsCollapsed(prev => !prev)}
+            className="text-xs font-semibold inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-primary/10"
+          >
+            {actionsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            {actionsCollapsed ? t('sidebar.actions_show') : t('sidebar.actions_hide')}
+          </Button>
+        </div>
         {isEventFinished ? (
           <div className="text-center">
             <Lock className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-xl">Event Concluded</h3>
+            <h3 className="font-semibold text-xl">{t('sidebar.event_concluded')}</h3>
             <p className="text-sm text-muted-foreground">
-              This event is no longer active.
+              {t('sidebar.event_concluded_description')}
             </p>
           </div>
+        ) : actionsCollapsed ? (
+          <p className="text-sm text-muted-foreground italic">
+            {t('sidebar.actions_collapsed_hint')}
+          </p>
         ) : (
           <EventSidebarActions
             event={event}
             user={user}
             myRegistration={myRegistration}
             onViewTicket={onViewTicket}
-            selectedSession={selectedSession}
-            onOpenCheckInDialog={onOpenCheckInDialog}
-            onRegister={onRegister}
-            onUnregister={onUnregister}
-            registerLoading={registerLoading}
-            isCheckInOpen={isCheckInOpen}
+            selectedSession={selectedSession} // Pass selectedSession here
           />
         )}
       </div>

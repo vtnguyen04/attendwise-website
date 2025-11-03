@@ -6,7 +6,7 @@ import { useWebSocket } from '@/context/websocket-provider';
  * A hook to provide access to the global WebSocket connection status.
  */
 export function useChatWebSocket() {
-  const { isConnected } = useWebSocket();
+  const { isConnected, onlineUsers, typingUsers, sendJsonMessage } = useWebSocket();
 
-  return { isConnected };
+  return { isConnected, onlineUsers, typingUsers, sendJsonMessage };
 }

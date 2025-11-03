@@ -1,6 +1,4 @@
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
+
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -37,17 +35,20 @@ const nextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
+    ignoreBuildErrors: false,
   },
   images: {
     remotePatterns: [
       {
+        protocol: 'https',
+        hostname: 'cdnjs.cloudflare.com',
+        port: '',
+        pathname: '/ajax/libs/flag-icon-css/3.5.0/flags/4x3/**',
+      },
+      {
         protocol: 'http',
-        hostname: 'localhost',
-        port: '9000',
+        hostname: process.env.NEXT_PUBLIC_MINIO_HOSTNAME || 'localhost', // Fallback for local development
+        port: process.env.NEXT_PUBLIC_MINIO_PORT || '9000', // Fallback for local development
         pathname: '/attendwise/**',
       },
       {
@@ -74,14 +75,8 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'learningchain.vn',
-        port: '',
-        pathname: '/**',
-      },
     ],
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+export default nextConfig;

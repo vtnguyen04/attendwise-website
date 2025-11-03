@@ -2,9 +2,18 @@
 
 import { useEffect, useRef } from 'react';
 
+interface Particle {
+  x: number;
+  y: number;
+  size: number;
+  speedX: number;
+  speedY: number;
+  color: string;
+}
+
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<any[]>([]);
+  const particlesRef = useRef<Particle[]>([]);
   const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {

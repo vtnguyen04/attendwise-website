@@ -12,7 +12,7 @@ export async function getNotifications(
   offset: number = 0
 ): Promise<{ notifications: Notification[] }> {
   const response = await apiClient.get(
-    `/api/v1/notifications?limit=${limit}&offset=${offset}`
+    `/notifications?limit=${limit}&offset=${offset}`
   );
   return response.data;
 }
@@ -23,7 +23,7 @@ export async function getNotifications(
  * @param notificationId - The ID of the notification to mark as read.
  */
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
-  await apiClient.post(`/api/v1/notifications/${notificationId}/read`);
+  await apiClient.post(`/notifications/${notificationId}/read`);
 }
 
 
@@ -38,7 +38,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
 
 export async function markAllNotificationsAsRead(): Promise<void> {
 
-  await apiClient.post(`/api/v1/notifications/read-all`);
+  await apiClient.post(`/notifications/read-all`);
 
 }
 
@@ -56,7 +56,7 @@ export async function markAllNotificationsAsRead(): Promise<void> {
 
 export async function deleteNotification(notificationId: string): Promise<void> {
 
-    await apiClient.delete(`/api/v1/notifications/${notificationId}`);
+    await apiClient.delete(`/notifications/${notificationId}`);
 
 }
 
@@ -72,7 +72,7 @@ export async function deleteNotification(notificationId: string): Promise<void> 
 
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {
 
-    const response = await apiClient.get('/api/v1/notifications/preferences');
+    const response = await apiClient.get('/notifications/preferences');
 
     return response.data.preferences;
 
@@ -92,7 +92,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 
 export async function updateNotificationPreferences(preferences: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
 
-    const response = await apiClient.put('/api/v1/notifications/preferences', preferences);
+    const response = await apiClient.put('/notifications/preferences', preferences);
 
     return response.data.preferences;
 

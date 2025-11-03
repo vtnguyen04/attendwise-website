@@ -1,0 +1,30 @@
+{
+  "analytics": {
+    "no_data": "Không có dữ liệu phân tích nào.",
+    "total_members": "Tổng số thành viên",
+    "new_members_last_month": "{count} thành viên mới tháng trước",
+    "total_posts": "Tổng số bài đăng",
+    "new_posts_last_month": "{count} bài đăng mới tháng trước",
+    "total_events": "Tổng số sự kiện",
+    "avg_event_attendance": "Tỷ lệ tham dự sự kiện trung bình: {rate}%",
+    "engagement_rate": "Tỷ lệ tương tác",
+    "engagement_description": "Tương tác cộng đồng tổng thể",
+    "member_growth_chart_title": "Biểu đồ tăng trưởng thành viên theo thời gian",
+    "member_growth_chart_description": "Biểu diễn trực quan số lượng thành viên mới tham gia cộng đồng.",
+    "chart_placeholder": "Biểu đồ sẽ được hiển thị ở đây",
+    "post_engagement_chart_title": "Biểu đồ tương tác bài đăng theo thời gian",
+    "post_engagement_chart_description": "Xu hướng lượt thích, bình luận và chia sẻ trên các bài đăng.",
+    "title": "Phân tích",
+    "dashboard_title": "Tổng quan phân tích",
+    "dashboard_description": "Xem nhanh các số liệu và xu hướng chính của cộng đồng.",
+    "monthly_summary": "Tóm tắt hàng tháng",
+    "total_attendees": "Tổng số người tham dự",
+    "total_attendees_description": "Tổng số lượt tham dự sự kiện duy nhất.",
+    "avg_attendance_rate": "Tỷ lệ tham dự trung bình",
+    "avg_attendance_rate_description": "Tỷ lệ tham dự trung bình trên tất cả các sự kiện.",
+    "new_users": "Người dùng mới",
+    "new_users_description": "Số lượng người dùng mới đăng ký trong tháng này.",
+    "total_events_description": "Tổng số sự kiện đã tạo.",
+    "top_lists_placeholder": "Danh sách hàng đầu sẽ được hiển thị ở đây."
+  }
+}

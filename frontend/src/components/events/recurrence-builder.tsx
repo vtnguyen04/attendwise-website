@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { RRule, RRuleSet, rrulestr, Weekday, Options } from 'rrule';
+import { useState, useMemo, memo, useEffect, useRef } from 'react';
+import { RRule, Weekday, Frequency, Options } from 'rrule';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -14,6 +14,16 @@ import CalendarIcon from 'lucide-react/icons/calendar';
 import { format } from 'date-fns';
 import { Label } from '@/components/ui/label';
 
+const dayStrToNum: Record<string, number> = {
+  MO: 0,
+  TU: 1,
+  WE: 2,
+  TH: 3,
+  FR: 4,
+  SA: 5,
+  SU: 6,
+};
+
 interface RecurrenceBuilderProps {
   value: string; // RRULE string
   onChange: (value: string) => void;
@@ -22,8 +32,6 @@ interface RecurrenceBuilderProps {
 
 type EndCondition = 'never' | 'count' | 'until';
 
-import { memo } from 'react';
-
 export const RecurrenceBuilder = memo(function RecurrenceBuilder({ value, onChange, startDate }: RecurrenceBuilderProps) {
   // --- Weekday Index Conversion --- 
   // rrule.js: MO=0, TU=1, ..., SU=6
@@ -31,144 +39,163 @@ export const RecurrenceBuilder = memo(function RecurrenceBuilder({ value, onChan
   const jsDayToRrule = (day: number) => (day + 6) % 7;
   const rruleDayToJs = (day: number) => (day + 1) % 7;
 
-  const [freq, setFreq] = useState<number>(RRule.WEEKLY);
-  const [interval, setInterval] = useState<number>(1);
-  // byday state is now stored in rrule format (MO=0)
-  const [byday, setByday] = useState<number[]>([jsDayToRrule(startDate.getDay())]);
-  const [endCondition, setEndCondition] = useState<EndCondition>('count');
-  const [count, setCount] = useState<number | ''>(10);
-  const [until, setUntil] = useState<Date | undefined>(undefined);
+  const lastEmittedRule = useRef<string | null>(null);
 
-    const isInitialMount = useRef(true); // To prevent onChange on initial mount
-  const lastEmittedRrule = useRef(value); // Store the last value emitted via onChange
-
-  // Effect to parse incoming RRULE string and update internal state
-  useEffect(() => {
-    if (value !== lastEmittedRrule.current) { // Only parse if value prop is different from what we last emitted
-      if (!value) { // If value is empty, reset to default state
-        setFreq(RRule.WEEKLY);
-        setInterval(1);
-        setByday([jsDayToRrule(startDate.getDay())]);
-        setEndCondition('count');
-        setCount(10);
-        setUntil(undefined);
-        return; // Exit early
-      }
-
+  const [freq, setFreq] = useState<number>(() => {
+    if (value) {
       try {
-        const ruleOrSet = rrulestr(value) as any;
-        let sourceRule: RRule | null = null;
-
-        if (ruleOrSet instanceof RRule) {
-          sourceRule = ruleOrSet;
-        } else if (ruleOrSet instanceof RRuleSet) {
-          const rules = ruleOrSet.rrules();
-          if (rules.length > 0) {
-            sourceRule = rules[0];
-          }
-        }
-
-        if (sourceRule) {
-          const options = sourceRule.options;
-          setFreq(options.freq);
-          setInterval(options.interval);
-
-          if (options.byweekday) {
-            const daysArray = Array.isArray(options.byweekday) ? options.byweekday : [options.byweekday];
-            if (daysArray.length > 0 && daysArray[0] !== null) {
-                if (typeof daysArray[0] !== 'number') {
-                  const dayNumbers = (daysArray as unknown as Weekday[]).map(wd => wd.weekday);
-                  setByday(dayNumbers);
-                } else {
-                  setByday(daysArray as number[]);
-                }
-            } else {
-                setByday([]);
-            }
-          } else {
-            setByday([]);
-          }
-
-          if (options.count) {
-            setEndCondition('count');
-            setCount(options.count);
-            setUntil(undefined);
-          } else if (options.until) {
-            setEndCondition('until');
-            const untilDate = new Date(options.until);
-            setUntil(untilDate);
-            setCount('');
-          }
-        } else {
-            setEndCondition('count');
-            setCount(10);
-            setUntil(undefined);
-          }
+        const parsed = RRule.fromString(value);
+        return typeof parsed.origOptions.freq === 'number' ? parsed.origOptions.freq : Frequency.WEEKLY;
       } catch (e) {
-        console.error("Error parsing RRULE string:", e);
+        console.warn('Failed to parse initial rrule string for freq', e);
       }
     }
-  }, [value]); // Only re-run when value prop changes
+    return Frequency.WEEKLY;
+  });
 
-  // Effect to build and emit RRULE string when internal state changes (user interaction)
+  const [interval, setInterval] = useState<number>(() => {
+    if (value) {
+      try {
+        const parsed = RRule.fromString(value);
+        return parsed.origOptions.interval ?? 1;
+      } catch (e) {
+        console.warn('Failed to parse initial rrule string for interval', e);
+      }
+    }
+    return 1;
+  });
+
+  const [byday, setByday] = useState<number[]>(() => {
+    if (value) {
+      try {
+        const parsed = RRule.fromString(value);
+        if (parsed.origOptions.byweekday) {
+          const weekdays = Array.isArray(parsed.origOptions.byweekday)
+            ? parsed.origOptions.byweekday
+            : [parsed.origOptions.byweekday];
+          return weekdays.map((weekday) => {
+            if (typeof weekday === 'number') {
+              return weekday;
+            }
+            if (typeof weekday === 'string') {
+              return dayStrToNum[weekday];
+            }
+            return weekday.weekday;
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to parse initial rrule string for byday', e);
+      }
+    }
+    return [jsDayToRrule(startDate.getDay())];
+  });
+
+  const [endCondition, setEndCondition] = useState<EndCondition>(() => {
+    if (value) {
+      try {
+        const parsed = RRule.fromString(value);
+        if (typeof parsed.origOptions.count === 'number' && parsed.origOptions.count > 0) {
+          return 'count';
+        } else if (parsed.origOptions.until instanceof Date) {
+          return 'until';
+        }
+      } catch (e) {
+        console.warn('Failed to parse initial rrule string for endCondition', e);
+      }
+    }
+    return 'count';
+  });
+
+  const [count, setCount] = useState<number | ''>(() => {
+    if (value) {
+      try {
+        const parsed = RRule.fromString(value);
+        if (typeof parsed.origOptions.count === 'number' && parsed.origOptions.count > 0) {
+          return parsed.origOptions.count;
+        }
+      } catch (e) {
+        console.warn('Failed to parse initial rrule string for count', e);
+      }
+    }
+    return 10;
+  });
+
+  const [until, setUntil] = useState<Date | undefined>(() => {
+    if (value) {
+      try {
+        const parsed = RRule.fromString(value);
+        if (parsed.origOptions.until instanceof Date) {
+          return parsed.origOptions.until;
+        }
+      } catch (e) {
+        console.warn('Failed to parse initial rrule string for until', e);
+      }
+    }
+    return undefined;
+  });
+
+  // Rebuild RRULE string whenever builder state changes
   useEffect(() => {
-    const options: Partial<Options> = {
-      freq: freq,
-      interval: interval || 1,
-      dtstart: startDate,
-    };
-
-    if (freq === RRule.WEEKLY && byday.length > 0) {
-      options.byweekday = byday;
-    } else if (freq === RRule.WEEKLY && byday.length === 0) {
-      options.byweekday = [new Weekday(startDate.getDay())];
-    }
-
-    if (endCondition === 'count' && count) {
-      options.count = Number(count);
-    } else if (endCondition === 'until' && until) {
-      options.until = until;
-    }
-
     try {
-      const rule = new RRule(options as Options);
-      const rruleLineWithPrefix = rule.toString().split('\n').find(line => line.startsWith('RRULE:')) || '';
-      const rruleLine = rruleLineWithPrefix.replace('RRULE:', '');
+      const options: Partial<Options> = {
+        freq,
+        interval: Math.max(1, interval || 1),
+        dtstart: startDate,
+      };
 
-      if (rruleLine !== lastEmittedRrule.current) { // Only call onChange if the generated rule is different from the last emitted one
-        onChange(rruleLine);
-        lastEmittedRrule.current = rruleLine; // Update last emitted value
+      if (freq === Frequency.WEEKLY) {
+        const effectiveDays = (byday && byday.length > 0 ? byday : [jsDayToRrule(startDate.getDay())])
+          .map((day) => new Weekday(day));
+        options.byweekday = effectiveDays;
       }
-    } catch (e) {
-      console.error("Failed to build RRULE:", e);
+
+      if (endCondition === 'count' && typeof count === 'number' && count > 0) {
+        options.count = count;
+        options.until = undefined;
+      } else if (endCondition === 'until' && until) {
+        options.until = until;
+        options.count = undefined;
+      } else {
+        options.count = undefined;
+        options.until = undefined;
+      }
+
+      const rule = new RRule(options);
+      const nextValue = rule.toString();
+      lastEmittedRule.current = nextValue;
+      if (nextValue !== value) {
+        onChange(nextValue);
+      }
+    } catch (error) {
+      console.warn('[RecurrenceBuilder] Failed to generate rrule', error);
     }
-  }, [freq, interval, byday, endCondition, count, until, startDate.getTime(), onChange]);
+  }, [freq, interval, byday, endCondition, count, until, startDate, onChange, value]);
 
   const weekDays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
   const generatedOccurrences = useMemo(() => {
     try {
-    const options: Partial<Options> = {
-      freq: freq,
-      interval: interval || 1,
-      dtstart: startDate,
-    };
+      const options: Partial<Options> = {
+        freq,
+        interval: Math.max(1, interval || 1),
+        dtstart: startDate,
+      };
 
-    if (freq === RRule.WEEKLY && byday.length > 0) {
-      options.byweekday = byday;
-    } else if (freq === RRule.WEEKLY && byday.length === 0) {
-      options.byweekday = [new Weekday(startDate.getDay())];
-    }
+      if (freq === Frequency.WEEKLY) {
+        const effectiveDays = (byday && byday.length > 0 ? byday : [jsDayToRrule(startDate.getDay())])
+          .map((day) => new Weekday(day));
+        options.byweekday = effectiveDays;
+      }
 
-      if (endCondition === 'count' && count) {
+      if (endCondition === 'count' && typeof count === 'number' && count > 0) {
         return Number(count);
       } else if (endCondition === 'until' && until) {
-        const rule = new RRule(options as Options);
+        const rule = new RRule(options);
         const endDate = new Date(until);
         const start = new Date(startDate);
         const yearDiff = endDate.getFullYear() - start.getFullYear();
         if (yearDiff > 5) {
-            return 9999;
+          return 9999;
         }
         return rule.between(start, endDate, true).length;
       }
@@ -187,9 +214,9 @@ export const RecurrenceBuilder = memo(function RecurrenceBuilder({ value, onChan
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={String(RRule.DAILY)}>Daily</SelectItem>
-            <SelectItem value={String(RRule.WEEKLY)}>Weekly</SelectItem>
-            <SelectItem value={String(RRule.MONTHLY)}>Monthly</SelectItem>
+            <SelectItem value={String(Frequency.DAILY)}>Daily</SelectItem>
+            <SelectItem value={String(Frequency.WEEKLY)}>Weekly</SelectItem>
+            <SelectItem value={String(Frequency.MONTHLY)}>Monthly</SelectItem>
           </SelectContent>
         </Select>
         <Label htmlFor="interval">every</Label>
@@ -200,10 +227,10 @@ export const RecurrenceBuilder = memo(function RecurrenceBuilder({ value, onChan
           onChange={(e) => setInterval(Number(e.target.value) || 1)}
           className="w-20"
         />
-        <span>{freq === RRule.WEEKLY ? 'week(s)' : 'day(s)'}</span>
+        <span>{freq === Frequency.WEEKLY ? 'week(s)' : 'day(s)'}</span>
       </div>
 
-      {freq === RRule.WEEKLY && (
+      {freq === Frequency.WEEKLY && (
         <div>
           <Label>on</Label>
           <ToggleGroup

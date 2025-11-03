@@ -20,24 +20,42 @@ import {
 
 interface RegisterButtonProps {
   eventId: string;
-  onRegister: () => void;
-  registerLoading: boolean;
 }
 
-export function RegisterButton({ eventId, onRegister, registerLoading }: RegisterButtonProps) {
+export function RegisterButton({ eventId }: RegisterButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const registrationMutation = useMutation({
+    mutationFn: () => registerForEvent(eventId),
+    onSuccess: () => {
+      toast({
+        title: 'Registration Successful!',
+        description: "You've successfully registered for the event.",
+      });
+      // Invalidate queries to refetch the user's registration status and event details (e.g., attendee count)
+      queryClient.invalidateQueries({ queryKey: ['my-registration', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] });
+      setIsDialogOpen(false); // Close the dialog on success
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Registration Failed',
+        description: error.message || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleRegisterConfirm = () => {
-    onRegister();
-    setIsDialogOpen(false); // Close the dialog on success
+    registrationMutation.mutate();
   };
 
   return (
     <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <AlertDialogTrigger asChild>
-        <Button className="w-full" disabled={registerLoading}>Register Now</Button>
+        <Button className="w-full">Register Now</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -50,9 +68,9 @@ export function RegisterButton({ eventId, onRegister, registerLoading }: Registe
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleRegisterConfirm}
-            disabled={registerLoading}
+            disabled={registrationMutation.isPending}
           >
-            {registerLoading ? 'Confirming...' : 'Confirm'}
+            {registrationMutation.isPending ? 'Confirming...' : 'Confirm'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

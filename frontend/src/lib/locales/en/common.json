@@ -1,8 +1,7 @@
 {
+  "common": {
     "dashboard": "Dashboard",
-    "analytics": "Analytics",
     "classroom": "Classroom",
-    "events": "Events",
     "calendar": "Calendar",
     "map": "Map",
     "leaderboards": "Leaderboards",
@@ -11,16 +10,9 @@
     "all": "All",
     "admin": "Admin",
     "member": "Member",
-    "all_events": "All Events",
-    "upcoming": "Upcoming",
-    "ongoing": "Ongoing",
-    "attending_live": "Attending Live",
-    "completed": "Completed",
     "overview": "Overview",
     "discussion": "Discussion",
     "share": "Share",
-    "about_this_event": "About this event",
-    "sessions": "Sessions",
     "create_a_post": "Create a post",
     "ask_a_question_or_share_something": "Ask a question or share something...",
     "post": "Post",
@@ -32,26 +24,134 @@
     "send": "Send",
     "no_discussions_yet": "No discussions yet",
     "be_the_first_to_share": "Be the first to ask a question or share your thoughts!",
-    "share_event": "Share Event",
-    "share_event_description": "Share this event with others using the QR code or link below.",
-    "or_copy_link": "Or copy the link",
     "loading": "Loading...",
     "hosted_by": "Hosted by",
     "checked_in": "Checked-In",
     "register_now": "Register Now",
     "you_are_registered": "You are registered",
     "check_in_to_join": "Check-in to Join",
-    "join_event": "Join Event",
-    "start_event": "Start Event",
-    "registration_closed": "Registration Closed",
-    "view_resources": "View Resources",
     "view": "View",
     "edit": "Edit",
     "delete": "Delete",
-    "common.optional": "Optional",
-    "toast.success": "Success",
-    "toast.error": "Error",
-    "common.close": "Close",
+    "optional": "Optional",
+    "close": "Close",
     "load_more": "Load More",
-    "unknown_date": "Unknown Date"
+    "unknown_date": "Unknown Date",
+    "not_found_title": "Page Not Found",
+    "not_found_description": "The page you are looking for does not exist.",
+    "go_back_home": "Go back home",
+    "dialog": {
+      "close": "Close"
+    },
+    "password": {
+      "hide": "Hide password",
+      "show": "Show password"
+    },
+    "social": {
+      "auth": {
+        "separator": "Or continue with"
+      }
+    },
+    "language": {
+      "toggle": "Toggle language",
+      "english": "English",
+      "vietnamese": "Vietnamese"
+    },
+    "home": "Home",
+    "members": "Members",
+    "messages": "Messages",
+    "app": {
+      "tagline": "Event Platform"
+    },
+    "plan": {
+      "pro": "Pro Plan",
+      "pro_description": "Unlimited events & features"
+    },
+    "dashboard_title": "Dashboard",
+    "theme": {
+      "toggle": "Toggle theme"
+    },
+    "feed": {
+      "posts": "Posts",
+      "events": "Events",
+      "communities": "Communities",
+      "best": "Best",
+      "new": "New",
+      "top": "Top"
+    },
+    "header": {
+      "create": "Create"
+    },
+    "toast": {
+      "success": "Success",
+      "error": "Error"
+    },
+    "footer": {
+      "tagline": "The smartest way to manage events, check-ins, and build thriving communities.",
+      "product": {
+        "features": "Features",
+        "pricing": "Pricing",
+        "use_cases": "Use Cases",
+        "integrations": "Integrations"
+      },
+      "company": {
+        "about": "About Us",
+        "blog": "Blog",
+        "careers": "Careers",
+        "contact": "Contact"
+      },
+      "resources": {
+        "documentation": "Documentation",
+        "help_center": "Help Center",
+        "community": "Community",
+        "api_reference": "API Reference"
+      },
+      "legal": {
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "security": "Security",
+        "cookies": "Cookies"
+      },
+      "social": {
+        "twitter": "Twitter",
+        "github": "GitHub",
+        "linkedin": "LinkedIn",
+        "email": "Email"
+      },
+      "copyright_prefix": "AttendWise, Inc. Made with",
+      "copyright_suffix": "in Vietnam",
+      "privacy_policy": "Privacy Policy",
+      "terms_of_service": "Terms of Service",
+      "cookie_policy": "Cookie Policy"
+    },
+    "search": {
+      "placeholder": {
+        "default": "Search..."
+      }
+    },
+    "sidebar": {
+      "mood": "Stay inspired and build amazing communities",
+      "quick_actions": "Quick Actions",
+      "menu": "Menu",
+      "browse": "Browse",
+      "communities_nav": "Communities",
+      "create_community_short": "Create",
+      "main_navigation": "Main Navigation",
+      "actions": {
+        "community": "Create a community",
+        "community_hint": "Launch a new space in seconds.",
+        "event": "Plan an event",
+        "event_hint": "Schedule a meetup or session."
+      },
+      "toggle_collapse": "Collapse sidebar",
+      "toggle_expand": "Expand sidebar",
+      "joined_heading": "Joined communities",
+      "members_count": "{count} members",
+      "joined_empty": "You haven't joined any communities yet.",
+      "joined_subtitle": "Create, manage, and revisit your favorite spaces",
+      "create_community": "Create Community",
+      "manage_communities": "Manage Communities",
+      "favorite_toggle": "Toggle favorite"
+    }
+  }
 }

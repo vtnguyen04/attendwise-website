@@ -43,7 +43,7 @@ export type FeedScope = 'all' | 'community' | 'global';
 const buildFeedPath = (scope: FeedScope) => {
   const params = new URLSearchParams();
   params.set('scope', scope);
-  return `/api/v1/feed?${params.toString()}`;
+  return `/feed?${params.toString()}`;
 };
 
 /**
@@ -66,7 +66,7 @@ export const getFeed = async (
     const { serverFetch } = await import('@/lib/server-fetch');
     response = await serverFetch<{ feed?: FeedApiItem[] }>(
       path,
-      [`feed:scope:${scope}:page:1`],
+      undefined, // No cache tags
       token
     );
   } else {

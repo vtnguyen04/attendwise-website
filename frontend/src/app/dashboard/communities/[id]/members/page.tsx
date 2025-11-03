@@ -1,4 +1,4 @@
-import { CommunityMembersTab } from '@/components/community/shared/community-members-tab';
+import { CommunityMembersTab } from '@/components/community/members/community-members-tab';
 export default async function CommunityMembersPage({ 
   params 
 }: { 

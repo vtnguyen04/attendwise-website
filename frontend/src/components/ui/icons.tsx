@@ -8,6 +8,14 @@ import AlertCircle from 'lucide-react/icons/alert-circle';
 import X from 'lucide-react/icons/x'; // Import the X icon
 import Edit from 'lucide-react/icons/edit'; // Import the Edit icon
 import Trash2 from 'lucide-react/icons/trash-2'; // Import the Delete icon
+import MessageSquare from 'lucide-react/icons/message-square';
+import Clock from 'lucide-react/icons/clock';
+import Newspaper from 'lucide-react/icons/newspaper';
+import Heart from 'lucide-react/icons/heart';
+import MessageCircle from 'lucide-react/icons/message-circle';
+import CheckCircle from 'lucide-react/icons/check-circle';
+import HelpCircle from 'lucide-react/icons/help-circle';
+import XCircle from 'lucide-react/icons/x-circle';
 
 export const Icons = {
   logo: (props: SVGProps<SVGSVGElement>) => (
@@ -95,4 +103,13 @@ export const Icons = {
   delete: Trash2, // Add the delete icon
   notification: Bell,        // Icon cho thông báo chung
   default: AlertCircle,  
+  new_comment: MessageSquare,
+  event_reminder: Clock,
+  community_post: Newspaper,
+  new_post: Newspaper,
+  reaction: Heart,
+  new_message: MessageCircle,
+  registration_approved: CheckCircle,
+  registration_pending: HelpCircle,
+  event_cancelled: XCircle,
 };

@@ -1,61 +1,91 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { AppEvent, EventSession } from "@/lib/types";
-import { format } from 'date-fns';
-import { Calendar, Clock, CheckCircle2 } from "lucide-react";
-import { cn, extractStringValue } from "@/lib/utils";
+import { Calendar, Clock, CheckCircle2, ChevronDown, ChevronUp, BookOpen } from "lucide-react";
+import { cn, extractStringValue, formatInTimezone } from "@/lib/utils";
+import { motion, AnimatePresence } from 'framer-motion';
 
-function SessionItem({ session }: { session: EventSession }) {
+function SessionItem({ session, index, fallbackTimezone }: { session: EventSession; index: number; fallbackTimezone: string }) {
     const now = new Date();
     const startTime = new Date(session.start_time);
     const endTime = new Date(session.end_time);
     const isUpcoming = now < startTime;
     const isLive = now >= startTime && now <= endTime;
     const isCompleted = now > endTime;
+    const timezone = session.timezone || fallbackTimezone || 'UTC';
 
     return (
-        <div className={cn(
-            "flex items-start justify-between p-4 rounded-xl border-2 transition-all duration-300",
-            isCompleted 
-                ? "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700" 
-                : isLive 
-                ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 shadow-lg shadow-red-500/20"
-                : "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
-        )}>
-            <div className="flex items-start gap-4 flex-1">
+        <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+            className={cn(
+                "liquid-glass-card p-5 transition-all duration-300 relative overflow-hidden",
+                isCompleted && "opacity-60",
+                isLive && "ring-2 ring-red-500/50 shadow-magnify"
+            )}
+        >
+            {/* Live indicator background glow */}
+            {isLive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent pointer-events-none" />
+            )}
+
+            <div className="flex items-start gap-4 relative z-10">
+                {/* Status Icon */}
                 <div className="mt-1">
-                    {isLive && <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse"></div>}
-                    {isUpcoming && <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
-                    {isCompleted && <CheckCircle2 className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
-                </div>
-                <div className="flex-1">
-                    <p className="font-bold text-gray-900 dark:text-white">
-                        {format(new Date(session.start_time), 'EEEE, MMM dd, yyyy')}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        <Clock className="h-4 w-4" />
-                        <span className="font-semibold">
-                            {format(new Date(session.start_time), 'p')} - {format(new Date(session.end_time), 'p')}
-                        </span>
-                    </div>
                     {isLive && (
-                        <div className="mt-2 inline-block">
-                            <span className="text-xs font-bold text-white bg-gradient-to-r from-red-600 to-red-700 px-3 py-1 rounded-full animate-pulse">
-                                LIVE NOW
-                            </span>
+                        <div className="relative">
+                            <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse"></div>
+                            <div className="absolute inset-0 h-3 w-3 bg-red-600 rounded-full animate-ping"></div>
+                        </div>
+                    )}
+                    {isUpcoming && (
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 backdrop-glass flex items-center justify-center">
+                            <Calendar className="h-5 w-5 text-primary" />
+                        </div>
+                    )}
+                    {isCompleted && (
+                        <div className="w-10 h-10 rounded-lg bg-muted/50 backdrop-glass flex items-center justify-center">
+                            <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
                         </div>
                     )}
                 </div>
+
+                {/* Session Info */}
+                <div className="flex-1 min-w-0">
+                    <p className="font-bold text-base mb-2">
+                        {formatInTimezone(startTime, timezone, 'EEEE, MMM dd, yyyy')}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 flex-shrink-0" />
+                        <span className="font-semibold">
+                            {formatInTimezone(startTime, timezone, 'p')} - {formatInTimezone(endTime, timezone, 'p')}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Live Badge */}
+                {isLive && (
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="shrink-0"
+                    >
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-gradient-to-r from-red-600 to-red-700 px-3 py-1.5 rounded-full shadow-lg">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                            </span>
+                            LIVE NOW
+                        </span>
+                    </motion.div>
+                )}
             </div>
-        </div>
+        </motion.div>
     );
 }
-
-import { useState, useMemo } from 'react';
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function OverviewTab({ event }: { event: AppEvent }) {
     const [showAll, setShowAll] = useState(false);
@@ -63,7 +93,6 @@ export default function OverviewTab({ event }: { event: AppEvent }) {
     const sortedSessions = useMemo(() => {
         if (!event.sessions) return [];
         const now = new Date();
-        // Sort sessions: upcoming first, then live, then completed sorted by date
         return [...event.sessions].sort((a, b) => {
             const aStart = new Date(a.start_time);
             const bStart = new Date(b.start_time);
@@ -73,11 +102,10 @@ export default function OverviewTab({ event }: { event: AppEvent }) {
             if (aIsPast && !bIsPast) return 1;
             if (!aIsPast && bIsPast) return -1;
             
-            // Both are upcoming or both are past, sort by time
             if (aIsPast) {
-                return bStart.getTime() - aStart.getTime(); // Most recent past first
+                return bStart.getTime() - aStart.getTime();
             }
-            return aStart.getTime() - bStart.getTime(); // Closest upcoming first
+            return aStart.getTime() - bStart.getTime();
         });
     }, [event.sessions]);
 
@@ -86,62 +114,104 @@ export default function OverviewTab({ event }: { event: AppEvent }) {
     return (
         <div className="space-y-6">
             {/* About Event Card */}
-            <Card className="glass-card border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-3">
-                        <div className="h-1 w-1 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full"></div>
-                        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">About this Event</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-                        {extractStringValue(event.description) || "No description provided."}
-                    </p>
-                </CardContent>
-            </Card>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+            >
+                <Card className="dashboard-panel border-0 shadow-none">
+                    <CardHeader className="pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 backdrop-glass flex items-center justify-center">
+                                <BookOpen className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-xl font-bold">About this Event</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-2">
+                        <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap text-sm">
+                            {extractStringValue(event.description) || "No description provided."}
+                        </p>
+                    </CardContent>
+                </Card>
+            </motion.div>
 
             {/* Sessions Card */}
-            <Card className="glass-card border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-3">
-                        <div className="h-1 w-1 bg-gradient-to-r from-green-600 to-green-700 rounded-full"></div>
-                        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">Sessions</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-                    {sortedSessions.length > 0 ? (
-                        <div className="space-y-3">
-                            {visibleSessions.map((session, idx) => (
-                                <div key={session.id}>
-                                    <SessionItem session={session} />
-                                    {idx < visibleSessions.length - 1 && (
-                                        <Separator className="my-3 bg-gray-200 dark:bg-gray-700" />
-                                    )}
-                                </div>
-                            ))}
-                            {sortedSessions.length > 5 && (
-                                <div className="mt-4">
-                                    <Button 
-                                        variant="outline" 
-                                        className="w-full" 
-                                        onClick={() => setShowAll(!showAll)}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+            >
+                <Card className="dashboard-panel border-0 shadow-none">
+                    <CardHeader className="pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 backdrop-glass flex items-center justify-center">
+                                <Calendar className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                                <CardTitle className="text-xl font-bold">Sessions</CardTitle>
+                                <p className="text-sm text-muted-foreground mt-0.5">
+                                    {sortedSessions.length} {sortedSessions.length === 1 ? 'session' : 'sessions'} scheduled
+                                </p>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-2">
+                        {sortedSessions.length > 0 ? (
+                            <div className="space-y-3">
+                                <AnimatePresence mode="popLayout">
+                                    {visibleSessions.map((session, idx) => (
+                                        <SessionItem
+                                            key={session.id}
+                                            session={session}
+                                            index={idx}
+                                            fallbackTimezone={event.timezone}
+                                        />
+                                    ))}
+                                </AnimatePresence>
+                                
+                                {sortedSessions.length > 5 && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="pt-2"
                                     >
-                                        {showAll ? 'Show Less' : `Show ${sortedSessions.length - 5} More Sessions`}
-                                        {showAll ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                                    </Button>
+                                        <button 
+                                            className="liquid-glass-button w-full"
+                                            onClick={() => setShowAll(!showAll)}
+                                        >
+                                            <span>
+                                                {showAll 
+                                                    ? 'Show Less' 
+                                                    : `Show ${sortedSessions.length - 5} More ${sortedSessions.length - 5 === 1 ? 'Session' : 'Sessions'}`
+                                                }
+                                            </span>
+                                            {showAll 
+                                                ? <ChevronUp className="h-4 w-4" /> 
+                                                : <ChevronDown className="h-4 w-4" />
+                                            }
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="glass-card p-12 text-center"
+                            >
+                                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 backdrop-glass flex items-center justify-center">
+                                    <Calendar className="h-10 w-10 text-primary/60" />
                                 </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="py-8 text-center">
-                            <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                            <p className="text-gray-500 dark:text-gray-400 font-medium">
-                                No sessions scheduled for this event.
-                            </p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                                <p className="text-muted-foreground font-medium">
+                                    No sessions scheduled for this event.
+                                </p>
+                            </motion.div>
+                        )}
+                    </CardContent>
+                </Card>
+            </motion.div>
         </div>
     );
 }

@@ -1,16 +1,16 @@
 // app/dashboard/events/page.tsx
-import Link from 'next/link';
-import { Suspense } from 'react';
-import { PlusCircle } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
-import { Button } from '@/components/ui/button';
-import { EventsToolbar } from '@/components/events/events-toolbar';
-import { EventGrid } from '@/components/events/event-grid';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Suspense } from 'react';
+
 
 // ✅ Import từ SERVER service (không phải client service)
 import { getEventsByStatus, getMyRegisteredEvents } from '@/lib/services/event.server.service';
 import { adaptEventListData } from '@/lib/adapters/event-list.adapter';
+
+import EventsClientPage from './EventsClientPage';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EventGrid } from '@/components/events/event-grid';
 
 // Define a type for the page's search parameters for clarity
 interface EventsPageProps {
@@ -45,42 +45,11 @@ export default async function EventsPage({ searchParams }: EventsPageProps) {
   const searchTerm = params.q || '';
 
   return (
-    <div className="relative mx-auto max-w-7xl space-y-10 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-mesh-gradient bg-blob opacity-60 blur-3xl" />
-      {/* Header Section */}
-      <div className="glass-card interactive-spotlight p-6 shadow-glass-lg sm:p-8">
-        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight text-glow">Events</h1>
-            <p className="max-w-xl text-base text-muted-foreground">
-              Discover, create, and manage your events with a fluid glass dashboard experience.
-            </p>
-          </div>
-          <Button
-            asChild
-            size="lg"
-            className="glass-button px-5 py-2 text-sm font-semibold uppercase tracking-wide"
-          >
-            <Link href="/dashboard/events/create">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Create Event
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Toolbar - This is a Client Component for interactivity */}
-      <EventsToolbar />
-
-      {/* 
-        Data Grid - Wrapped in Suspense.
-        The <EventDataGrid> component below is async, so Next.js can stream its content.
-        The user sees the toolbar instantly, then the grid streams in after data is fetched.
-      */}
+    <EventsClientPage>
       <Suspense fallback={<EventGridSkeleton />}>
         <EventDataGrid status={status} searchTerm={searchTerm} />
       </Suspense>
-    </div>
+    </EventsClientPage>
   );
 }
 

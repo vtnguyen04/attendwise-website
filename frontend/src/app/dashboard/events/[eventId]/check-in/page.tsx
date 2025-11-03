@@ -19,6 +19,7 @@ import { useTheme } from '@/hooks/use-theme'; // 👈 Import hook theme
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AxiosError } from 'axios';
 
 const QrScanView = dynamic(() => import('@/components/check-in/qr-scan-view').then(mod => mod.QrScanView), {
     ssr: false,
@@ -58,9 +59,13 @@ export default function CheckInPage() {
             queryClient.invalidateQueries({ queryKey: ['event', eventId] });
             queryClient.invalidateQueries({ queryKey: ['my-registration', eventId] });
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
             setView('failed');
-            setMessage(err.response?.data?.error || "Check-in failed.");
+            if (err instanceof AxiosError) {
+                setMessage(err.response?.data?.error || "Check-in failed.");
+            } else {
+                setMessage("An unexpected error occurred.");
+            }
         },
     });
 
@@ -70,7 +75,7 @@ export default function CheckInPage() {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
             if (videoRef.current) videoRef.current.srcObject = stream;
             mediaStreamRef.current = stream;
-        } catch (err) {
+        } catch {
             setMessage("Camera permission is required for face verification.");
         }
     };
@@ -127,7 +132,9 @@ export default function CheckInPage() {
     // Effect to manage camera for face verification step
     useEffect(() => {
         if (view === 'face_verify') {
-            startCamera();
+            setTimeout(() => {
+                startCamera();
+            }, 0);
         } else {
             stopCamera();
         }

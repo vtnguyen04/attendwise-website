@@ -1,20 +1,22 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import ShieldCheck from 'lucide-react/icons/shield-check';
 import Users from 'lucide-react/icons/users';
 import Sparkles from 'lucide-react/icons/sparkles';
+import { useUser } from '@/context/user-provider';
+import { useTranslation } from '@/hooks/use-translation';
+import Link from 'next/link'; // Import Link for navigation
 
 // Enhanced Aurora Background Component
 function AuroraBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden z-0">
       <div
-        className="absolute top-0 left-0 w-[200%] h-[200%] opacity-30"
+        className="absolute top-0 left-0 w-[200%] h-[200%] opacity-20" // Reduced opacity
         style={{
           backgroundImage: `
             radial-gradient(at 20% 30%, #581c87 0px, transparent 50%),
@@ -41,6 +43,14 @@ function AuroraBackground() {
 export function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('marketing');
+  const { user } = useUser();
+  const getStartedHref = user ? '/dashboard' : '/login';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Mouse tracking for 3D parallax
   useEffect(() => {
@@ -59,21 +69,21 @@ export function HeroSection() {
   const features = [
     {
       icon: Users,
-      title: 'Event Creation',
-      description: 'Easily create events with custom details',
-      gradient: 'from-violet-500 to-purple-600',
+      title: t('hero.feature1.title'),
+      description: t('hero.feature1.description'),
+      gradient: 'from-violet-600 to-purple-700', // Subtler gradient
     },
     {
       icon: CalendarDays,
-      title: 'QR Code Check-in',
-      description: 'Generate and scan QR codes for fast entry',
-      gradient: 'from-blue-500 to-cyan-600',
+      title: t('hero.feature2.title'),
+      description: t('hero.feature2.description'),
+      gradient: 'from-blue-600 to-cyan-700', // Subtler gradient
     },
     {
       icon: ShieldCheck,
-      title: 'Face ID Verification',
-      description: 'Secure check-in with facial recognition',
-      gradient: 'from-emerald-500 to-teal-600',
+      title: t('hero.feature3.title'),
+      description: t('hero.feature3.description'),
+      gradient: 'from-emerald-600 to-teal-700', // Subtler gradient
     },
   ];
 
@@ -99,10 +109,18 @@ export function HeroSection() {
     },
   };
 
+  if (!mounted) {
+    return (
+      <section className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-slate-950">
+        <div className="h-screen w-full" />
+      </section>
+    );
+  }
+
   return (
     <motion.section
       ref={heroRef}
-      className="relative w-full min-h-screen overflow-hidden bg-slate-950 animate-liquid-morph-slow"
+      className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-slate-950"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -111,11 +129,11 @@ export function HeroSection() {
 
       {/* Grid Pattern Overlay */}
       <motion.div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-10" // Reduced opacity
         style={{
           backgroundImage: `
-            linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)
+            linear-gradient(rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(139, 92, 246, 0.05) 1px, transparent 1px)
           `,
           backgroundSize: '50px 50px',
           perspective: '500px',
@@ -134,21 +152,26 @@ export function HeroSection() {
             rotateY: `${mousePosition.x * 2}deg`,
           }}
         >
-          <motion.div variants={itemVariants} className="liquid-glass-badge mb-6">
-            <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-            <span className="text-sm font-medium text-white">Next-Gen Event Management</span>
+          <motion.div
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 px-3 py-1 mb-6 border border-white/10 bg-white/5 rounded-full"
+          >
+            <Sparkles className="w-4 h-4 text-yellow-400" />
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              {t('hero.tagline')}
+            </span>
           </motion.div>
 
           <motion.h1
             variants={itemVariants}
-            className="text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-white sm:text-6xl md:text-7xl lg:text-8xl mb-6"
+            className="text-5xl font-black tracking-tight text-gray-900 dark:text-white sm:text-6xl md:text-7xl lg:text-8xl mb-6"
           >
-            Smarter Events,
+            {t('hero.title_part1')}
             <br />
             <span className="inline-block relative">
-              Seamless Check-ins
+              {t('hero.title_part2')}
               <motion.div
-                className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 rounded-full"
+                className="absolute -bottom-2 left-0 w-full h-1 bg-violet-500 rounded-full" // Simpler underline
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 1, delay: 0.5, ease: 'circOut' }}
@@ -158,38 +181,42 @@ export function HeroSection() {
 
           <motion.p
             variants={itemVariants}
-            className="text-lg text-gray-300 max-w-2xl leading-relaxed mb-8 sm:text-xl"
+            className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl leading-relaxed mb-8 sm:text-xl"
           >
-            Create, manage, and monitor your events with{' '}
-            <span className="font-semibold text-purple-400">QR Code</span> and{' '}
-            <span className="font-semibold text-blue-400">Face ID</span> check-in,
-            real-time dashboards, and automated notifications.
+            {t('hero.description')}
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: '0px 10px 30px rgba(138, 43, 226, 0.7)' }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-purple-500/50 overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                Get Started
-                <motion.span variants={{ hover: { x: 5 } }} transition={{ type: 'spring', stiffness: 300 }}>
-                  <ArrowRight className="w-5 h-5" />
-                </motion.span>
-              </span>
-            </motion.button>
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row gap-4"
+          >
+            <Link href={getStartedHref} passHref>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative px-8 py-4 bg-violet-600 hover:bg-violet-700 transition-colors text-white rounded-xl font-semibold shadow-lg"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {t('button.get_started')}
+                  <motion.span transition={{ type: 'spring', stiffness: 300 }}>
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </motion.span>
+                </span>
+              </motion.button>
+            </Link>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group liquid-glass-button px-8 py-4 text-white"
-            >
-              <span className="flex items-center justify-center gap-2">
-                Watch Demo
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              </span>
-            </motion.button>
+            <Link href="/demo" passHref>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group px-8 py-4 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 transition-colors text-gray-900 dark:text-white rounded-xl"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {t('hero.watch_demo')}
+                  <span className="w-2 h-2 bg-red-500 rounded-full" />
+                </span>
+              </motion.button>
+            </Link>
           </motion.div>
         </motion.div>
 
@@ -209,35 +236,31 @@ export function HeroSection() {
                 rotateY: `${mousePosition.x * 3}deg`,
               }}
             >
-              <div className={`absolute -inset-0.5 bg-gradient-to-r ${feature.gradient} rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-500 animate-pulse`} />
+              <div
+                className={`absolute -inset-px bg-gradient-to-r ${feature.gradient} rounded-2xl opacity-20 group-hover:opacity-60 transition duration-500`}
+              />
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="relative h-full liquid-glass-card p-6"
+                whileHover={{ scale: 1.02 }}
+                className="relative h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl p-6"
               >
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: 6 }}
                   className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} shadow-lg mb-4`}
                 >
                   <feature.icon className="w-6 h-6 text-white" />
                 </motion.div>
 
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-purple-200 transition-all duration-300">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   {feature.title}
                 </h3>
-                
-                <p className="text-gray-400 text-sm leading-relaxed">
+
+                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
 
                 <motion.div
-                  className="mt-4"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    visible: { opacity: 0 },
-                  }}
-                  whileHover={{ opacity: 1, x: 5 }}
+                  className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <ArrowRight className="w-5 h-5 text-purple-400" />
+                  <ArrowRight className="w-5 h-5 text-purple-400 transition-transform group-hover:translate-x-1" />
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -249,23 +272,36 @@ export function HeroSection() {
           className="mt-20 flex flex-wrap justify-center gap-12 opacity-80"
           variants={containerVariants}
         >
-          {[
-            { value: '50K+', label: 'Active Users' },
-            { value: '1M+', label: 'Events Created' },
-            { value: '99.9%', label: 'Uptime' },
-          ].map((stat, i) => (
-            <motion.div key={i} variants={itemVariants} className="text-center">
-              <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+          {[{
+            value: '50K+',
+            label: t('hero.stat1.label'),
+          },
+          {
+            value: '1M+',
+            label: t('hero.stat2.label'),
+          },
+          {
+            value: '99.9%',
+            label: t('hero.stat3.label'),
+          }].map((stat, i) => (
+            <motion.div
+              key={i}
+              variants={itemVariants}
+              className="text-center"
+            >
+              <div className="text-4xl font-black text-gray-900 dark:text-white">
                 {stat.value}
               </div>
-              <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {stat.label}
+              </div>
             </motion.div>
           ))}
         </motion.div>
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-950 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-slate-950 to-transparent" />
     </motion.section>
   );
 }

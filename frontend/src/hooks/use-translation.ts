@@ -12,7 +12,7 @@ export function useTranslation(namespace?: string) {
 
     if (options) {
       Object.keys(options).forEach(optionKey => {
-        translation = translation.replace(`{{${optionKey}}}`, String(options[optionKey]));
+        translation = translation.replace(`{${optionKey}}`, String(options[optionKey]));
       });
     }
 

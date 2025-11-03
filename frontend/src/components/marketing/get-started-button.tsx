@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUser } from '@/context/user-provider';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Sparkles from 'lucide-react/icons/sparkles';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface GetStartedButtonProps extends ButtonProps {
   children?: React.ReactNode;
@@ -12,6 +13,7 @@ interface GetStartedButtonProps extends ButtonProps {
 
 export default function GetStartedButton({ children, className, ...props }: GetStartedButtonProps) {
   const { user, isLoading } = useUser();
+  const { t } = useTranslation('marketing');
 
   // Loading state
   if (isLoading) {
@@ -22,13 +24,13 @@ export default function GetStartedButton({ children, className, ...props }: GetS
         {...props}
       >
         <Loader2 className="w-5 h-5 animate-spin" />
-        <span className="ml-2">Loading...</span>
+        <span className="ml-2">{t('loading')}</span>
       </Button>
     );
   }
 
-  const href = user ? '/dashboard' : '/login';
-  const buttonText = children || (user ? 'Go to Dashboard' : 'Get Started');
+  const href = '/dashboard';
+  const buttonText = children || (user ? t('go_to_dashboard') : t('get_started'));
 
   return (
     <Button 

@@ -1,7 +1,7 @@
 // hooks/use-countdown.ts
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { differenceInSeconds, intervalToDuration } from 'date-fns';
 
 /**
@@ -12,17 +12,19 @@ import { differenceInSeconds, intervalToDuration } from 'date-fns';
  * @returns The duration object { days, hours, minutes, seconds } or null if time is up.
  */
 export const useCountdown = (targetDate: string, onEnd?: () => void) => {
-  const calculateSecondsLeft = () => differenceInSeconds(new Date(targetDate), new Date());
-
-  const [secondsLeft, setSecondsLeft] = useState(calculateSecondsLeft);
-  console.log({targetDate, secondsLeft});
+  const onEndRef = useRef(onEnd);
 
   useEffect(() => {
-    // Ensure secondsLeft is recalculated if targetDate changes
-    setSecondsLeft(calculateSecondsLeft());
+    onEndRef.current = onEnd;
+  });
 
+  const [secondsLeft, setSecondsLeft] = useState(
+    differenceInSeconds(new Date(targetDate), new Date())
+  );
+
+  useEffect(() => {
     if (secondsLeft <= 0) {
-      onEnd?.();
+      onEndRef.current?.();
       return;
     }
 
@@ -30,7 +32,7 @@ export const useCountdown = (targetDate: string, onEnd?: () => void) => {
       setSecondsLeft(prevSeconds => {
         if (prevSeconds <= 1) {
           clearInterval(timer);
-          onEnd?.(); // Fire onEnd when countdown finishes
+          onEndRef.current?.();
           return 0;
         }
         return prevSeconds - 1;
@@ -38,9 +40,7 @@ export const useCountdown = (targetDate: string, onEnd?: () => void) => {
     }, 1000);
 
     return () => clearInterval(timer);
-    // onEnd is a function, it's safer to wrap it in useCallback on the parent side
-    // or exclude it if it's stable. For this use case, including it is fine.
-  }, [targetDate]);
+  }, [secondsLeft]);
 
   if (secondsLeft <= 0) {
     return null; // Return null to indicate the countdown is over

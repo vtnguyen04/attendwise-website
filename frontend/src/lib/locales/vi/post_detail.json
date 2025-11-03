@@ -1,0 +1,22 @@
+{
+  "success": "Thành công",
+  "comment_deleted": "Bình luận đã được xóa thành công.",
+  "error": "Lỗi",
+  "delete_failed": "Không thể xóa bình luận.",
+  "comment_updated": "Bình luận đã được cập nhật thành công.",
+  "update_failed": "Không thể cập nhật bình luận.",
+  "edit": "Chỉnh sửa",
+  "delete": "Xóa",
+  "save": "Lưu",
+  "cancel": "Hủy",
+  "confirm_delete": "Bạn có chắc không?",
+  "delete_warning": "Hành động này không thể hoàn tác. Thao tác này sẽ xóa vĩnh viễn bình luận của bạn.",
+  "loading": "Đang tải...",
+  "dialog_description": "Chế độ xem chi tiết của một bài đăng cộng đồng với các bình luận.",
+  "load_comments_failed": "Không thể tải các bình luận cho bài đăng này.",
+  "comment_posted": "Bình luận của bạn đã được đăng.",
+  "post_comment_failed": "Không thể đăng bình luận của bạn.",
+  "comments": "Bình luận",
+  "no_comments": "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!",
+  "write_comment": "Viết bình luận..."
+}

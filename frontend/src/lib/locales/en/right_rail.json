@@ -1,0 +1,33 @@
+{
+  "insights.show": "Show insights",
+  "insights.title": "Insights",
+  "insights.collapse_sidebar": "Collapse sidebar",
+  "insights.upcoming_events": "Upcoming Events",
+  "insights.no_upcoming_events": "No upcoming events.",
+  "insights.recent_posts": "Recent Posts",
+  "insights.no_posts_yet": "You don’t have any posts in your feed yet.",
+  "shortcuts.title": "Shortcuts",
+  "shortcuts.start_post": "Start a post",
+  "shortcuts.browse_events": "Browse events",
+  "shortcuts.explore_communities": "Explore communities",
+  "post.view": "View post",
+  "post.unknown_author": "Unknown author",
+  "event.date_to_be_announced": "Date to be announced",
+  "insights": {
+    "personalized_feed": "Personalized Feed",
+    "upcoming_events": "Upcoming Events",
+    "recent_posts": "Recent Posts",
+    "no_upcoming_events_title": "No upcoming events",
+    "no_upcoming_events": "Join an event to see it here",
+    "no_posts_title": "No posts yet"
+  },
+  "shortcuts": {
+    "start_post_desc": "Share your thoughts",
+    "browse_events_desc": "Discover upcoming activities",
+    "explore_cmmunities": "Explore Communities",
+    "explore_communities_desc": "Find your group"
+  },
+  "post": {
+    "unknown_author": "Anonymous user"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "success": "Success",
+  "comment_deleted": "Comment deleted successfully.",
+  "error": "Error",
+  "delete_failed": "Failed to delete comment.",
+  "comment_updated": "Comment updated successfully.",
+  "update_failed": "Failed to update comment.",
+  "edit": "Edit",
+  "delete": "Delete",
+  "save": "Save",
+  "cancel": "Cancel",
+  "confirm_delete": "Are you sure?",
+  "delete_warning": "This action cannot be undone. This will permanently delete your comment.",
+  "loading": "Loading...",
+  "dialog_description": "Detailed view of a community post with comments.",
+  "load_comments_failed": "Could not load comments for this post.",
+  "comment_posted": "Your comment has been posted.",
+  "post_comment_failed": "Could not post your comment.",
+  "comments": "Comments",
+  "no_comments": "No comments yet. Be the first to comment!",
+  "write_comment": "Write a comment..."
+}

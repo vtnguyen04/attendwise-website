@@ -1,28 +1,33 @@
 // frontend/src/hooks/use-messaging.ts
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import * as MessagingService from '@/lib/services/messaging.service';
-import type { Message } from '@/lib/types';
+import type { Message, Conversation } from '@/lib/types';
+import { useUser } from '@/context/user-provider';
+import { toNullableString } from '@/lib/utils';
 
-// Custom hook to send a message
 export function useSendMessage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
   return useMutation({
-    mutationFn: MessagingService.sendMessage,
-    onSuccess: (newMessage: Message) => {
-      // Invalidate queries for the specific conversation to show the new message
-      queryClient.invalidateQueries({ queryKey: ['messages', newMessage.conversation_id] });
-      // Optionally, update conversations list to reflect last message/timestamp
+    mutationFn: ({ conversationId, content, messageType }: { conversationId: string; content: string; messageType?: "text" | "image" | "file" }) => 
+      MessagingService.sendMessage(conversationId, content, messageType),
+
+    onSuccess: (newMessage: Message, variables) => {
+      // Invalidate both the messages and conversations queries to refetch the latest data.
+      // The WebSocket will also trigger this, but this is a good fallback.
+      queryClient.invalidateQueries({ queryKey: ['messages', variables.conversationId] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
+
     onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: `Failed to send message: ${error.message}`,
-        variant: 'destructive',
+        title: "Error sending message",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -73,5 +78,18 @@ export function useTotalUnreadMessageCount() {
     queryKey: ['totalUnreadMessageCount'],
     queryFn: MessagingService.getTotalUnreadMessageCount,
     refetchInterval: 30000, // Refetch every 30 seconds
+  });
+}
+
+export function useMarkConversationAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) => MessagingService.markConversationAsRead(conversationId),
+    onSuccess: (data, conversationId) => {
+      console.log("Mark as read successful for conversation:", conversationId);
+      // Invalidate queries to refetch conversation list and total unread count
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+    },
   });
 }

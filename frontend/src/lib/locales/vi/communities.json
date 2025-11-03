@@ -1,19 +1,22 @@
 {
+  "communities": {
     "explore_title": "Khám phá Cộng đồng",
-    "create_button": "Tạo cộng đồng",
-    "create_dialog_title": "Tạo một cộng đồng mới",
-    "create_dialog_description": "Điền vào các chi tiết dưới đây để tạo cộng đồng mới của bạn.",
+    "create_community.title": "Tạo cộng đồng mới",
+    "create_community.description": "Xây dựng một không gian để mọi người kết nối và chia sẻ. Điền thông tin chi tiết bên dưới để bắt đầu.",
+    "create_dialog": {
+      "description": "Điền vào các chi tiết dưới đây để tạo cộng đồng mới của bạn."
+    },
     "fetch_error": "Không thể tải danh sách cộng đồng.",
     "no_communities_found": "Không tìm thấy cộng đồng nào.",
     "be_the_first_to_create": "Hãy là người đầu tiên tạo một cộng đồng!",
     "manage_button": "Quản lý",
     "view_button": "Xem",
-    "join_button": "Tham gia",
-    "members_label": "thành viên",
-    "join_success_title": "Thành công",
-    "join_success_description": "Bạn đã tham gia cộng đồng!",
-    "join_error_title": "Lỗi",
-    "join_error_description": "Không thể tham gia cộng đồng.",
+    "join_toast": {
+      "success_title": "Thành công",
+      "success_description": "Bạn đã tham gia cộng đồng!",
+      "error_title": "Lỗi",
+      "error_description": "Không thể tham gia cộng đồng."
+    },
     "suggestions_title": "Cộng đồng gợi ý",
     "all_communities_title": "Tất cả cộng đồng",
     "fetch_suggestions_error": "Không thể tải gợi ý cộng đồng.",
@@ -22,28 +25,97 @@
     "this_community_is_private": "Cộng đồng này là riêng tư",
     "request_pending_description": "Yêu cầu tham gia cộng đồng này của bạn đang chờ quản trị viên phê duyệt.",
     "private_community_description": "Bạn phải là thành viên để xem các bài đăng, sự kiện và nội dung khác của cộng đồng.",
-    "analytics_tab": "Phân tích",
-    "community_analytics_title": "Phân tích Cộng đồng",
-    "community_analytics_description": "Phân tích và báo cáo cho cộng đồng này sẽ được hiển thị tại đây.",
-    "settings_tab": "Cài đặt",
-    "settings.notification_settings_title": "Cài đặt Thông báo",
-    "settings.notification_settings_description": "Quản lý cách bạn nhận thông báo cho cộng đồng này.",
-    "settings.new_post_notifications_label": "Thông báo Bài đăng Mới",
-    "settings.new_event_notifications_label": "Thông báo Sự kiện Mới",
-    "settings.update_success_title": "Đã Cập nhật Cài đặt",
-    "settings.update_success_description": "Cài đặt thông báo cộng đồng đã được lưu.",
-    "analytics.no_data": "Chưa có dữ liệu phân tích nào cho cộng đồng này.",
-    "analytics.total_members": "Tổng số thành viên",
-    "analytics.new_members_last_month": "{count} thành viên mới tháng trước",
-    "analytics.total_posts": "Tổng số bài đăng",
-    "analytics.new_posts_last_month": "{count} bài đăng mới tháng trước",
-    "analytics.total_events": "Tổng số sự kiện",
-    "analytics.avg_event_attendance": "Tỷ lệ tham dự sự kiện trung bình: {rate}%",
-    "analytics.engagement_rate": "Tỷ lệ tương tác",
-    "analytics.engagement_description": "Tương tác trung bình trên các bài đăng và sự kiện.",
-    "analytics.member_growth_chart_title": "Tăng trưởng thành viên",
-    "analytics.member_growth_chart_description": "Xu hướng thành viên mới tham gia theo thời gian.",
-    "analytics.post_engagement_chart_title": "Tương tác bài đăng",
-    "analytics.post_engagement_chart_description": "Lượt thích và bình luận trên bài đăng theo thời gian.",
-    "analytics.chart_placeholder": "Biểu đồ sẽ được hiển thị tại đây."
+    "analytics": {
+      "no_data": "Chưa có dữ liệu phân tích nào cho cộng đồng này.",
+      "total_members": "Tổng số thành viên",
+      "new_members_last_month": "{count} thành viên mới tháng trước",
+      "total_posts": "Tổng số bài đăng",
+      "new_posts_last_month": "{count} bài đăng mới tháng trước",
+      "total_events": "Tổng số sự kiện",
+      "avg_event_attendance": "Tỷ lệ tham dự sự kiện trung bình: {rate}%",
+      "engagement_rate": "Tỷ lệ tương tác",
+      "engagement_description": "Tương tác trung bình trên các bài đăng và sự kiện.",
+      "member_growth_chart_title": "Tăng trưởng thành viên",
+      "member_growth_chart_description": "Xu hướng thành viên mới tham gia theo thời gian.",
+      "post_engagement_chart_title": "Tương tác bài đăng",
+      "post_engagement_chart_description": "Lượt thích và bình luận trên bài đăng theo thời gian.",
+      "chart_placeholder": "Biểu đồ sẽ được hiển thị tại đây."
+    },
+    "settings": {
+      "tab": "Cài đặt",
+      "notification_settings": {
+        "title": "Cài đặt Thông báo",
+        "description": "Quản lý cách bạn nhận thông báo cho cộng đồng này.",
+        "new_post_notifications_label": "Thông báo Bài đăng Mới",
+        "new_event_notifications_label": "Thông báo Sự kiện Mới"
+      },
+      "update_toast": {
+        "success_title": "Đã Cập nhật Cài đặt",
+        "success_description": "Cài đặt thông báo cộng đồng đã được lưu."
+      }
+    },
+    "form": {
+      "basic_information": {
+        "title": "Thông tin cơ bản",
+        "description": "Cho chúng tôi biết về cộng đồng của bạn"
+      },
+      "name": {
+        "label": "Tên cộng đồng",
+        "placeholder": "ví dụ: Mạng lưới nhà phát triển AttendWise"
+      },
+      "description": {
+        "label": "Mô tả",
+        "placeholder": "Cộng đồng của bạn nói về điều gì? Chia sẻ sứ mệnh và giá trị của cộng đồng bạn..."
+      },
+      "cover_image": {
+        "label": "Ảnh bìa (Tùy chọn)",
+        "button": "Chọn tập tin"
+      },
+      "privacy_and_permissions": {
+        "title": "Quyền riêng tư & Quyền",
+        "description": "Chọn người có thể truy cập và tham gia cộng đồng của bạn"
+      },
+      "type": {
+        "label": "Loại cộng đồng",
+        "public": {
+          "label": "Công cộng",
+          "description": "Bất kỳ ai cũng có thể tìm, xem nội dung và tham gia cộng đồng này."
+        },
+        "private": {
+          "label": "Riêng tư",
+          "description": "Bất kỳ ai cũng có thể tìm thấy nó, nhưng phải được chấp thuận để xem nội dung và tham gia."
+        },
+        "secret": {
+          "label": "Bí mật",
+          "description": "Chỉ những người có liên kết mời trực tiếp mới có thể tìm và tham gia cộng đồng."
+        }
+      },
+      "content_and_member_settings": {
+        "title": "Cài đặt nội dung & thành viên",
+        "description": "Kiểm soát những gì thành viên có thể làm trong cộng đồng của bạn"
+      },
+      "allow_member_posts": {
+        "label": "Cho phép thành viên đăng bài",
+        "description": "Cho phép tất cả các thành viên cộng đồng tạo bài đăng mới."
+      },
+      "auto_approve_posts": {
+        "label": "Tự động phê duyệt bài đăng",
+        "description": "Tự động phê duyệt tất cả các bài đăng mới từ các thành viên."
+      },
+      "allow_member_invites": {
+        "label": "Cho phép thành viên mời",
+        "description": "Cho phép các thành viên mời người khác vào cộng đồng này."
+      },
+      "button": {
+        "cancel": "Hủy",
+        "save_changes": "Lưu thay đổi",
+        "create_community": "Tạo cộng đồng"
+      },
+      "danger_zone": {
+        "title": "Vùng nguy hiểm",
+        "description": "Những hành động này không thể đảo ngược. Hãy chắc chắn.",
+        "delete_button": "Xóa cộng đồng này"
+      }
+    }
+  }
 }
