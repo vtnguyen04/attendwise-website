@@ -52,25 +52,16 @@ func registerRoutes(r *gin.Engine, userHandler *UserHandler, communityHandler *C
 
 	log.Printf("CORS configured with allowed origins: %v", allowedOrigins)
 
-	config := cors.Config{
-		AllowOriginFunc: func(origin string) bool {
-			// Normalize origin by removing trailing slash
-			normalizedOrigin := strings.TrimSuffix(origin, "/")
-			for _, allowedOrigin := range allowedOrigins {
-				// Normalize allowedOrigin by removing trailing slash
-				normalizedAllowedOrigin := strings.TrimSuffix(allowedOrigin, "/")
-				if normalizedOrigin == normalizedAllowedOrigin {
-					return true
-				}
-			}
-			return false
-		},
+	corsConfig := cors.Config{
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
+		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposeHeaders:    []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		MaxAge:           300,
 	}
+
+	router.Use(cors.New(corsConfig))
 
 	r.Use(cors.New(config))
 	r.Use(LoggingMiddleware())
