@@ -53,51 +53,63 @@ const nextConfig = {
         protocol: 'http',
         hostname: process.env.NEXT_PUBLIC_MINIO_HOSTNAME || 'localhost', // Fallback for local development
         port: process.env.NEXT_PUBLIC_MINIO_PORT || '9000', // Fallback for local development
-        pathname: '/attendwise/**',
+        pathname: '/attendwise/**', 
       },
       {
         protocol: 'https',
         hostname: 'placehold.co',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
       {
         protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
       {
         protocol: 'https',
         hostname: 'source.unsplash.com',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
       {
         protocol: 'https',
         hostname: 'i.ibb.co',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '8080',
-        pathname: '/api/v1/**',
+        pathname: '/api/v1/**', 
       },
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
         port: '',
-        pathname: '/**',
+        pathname: '/**', 
       },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.BACKEND_NGROK_URL}/api/v1/:path*`,
+      },
+      {
+        source: '/ws',
+        destination: `${process.env.BACKEND_NGROK_URL}/ws`,
+      },
+    ];
   },
 };
 
