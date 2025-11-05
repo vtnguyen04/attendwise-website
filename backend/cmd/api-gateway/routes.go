@@ -41,10 +41,24 @@ func registerRoutes(r *gin.Engine, userHandler *UserHandler, communityHandler *C
 	})
 
 	// CORS Middleware
-	log.Printf("CORS AllowOriginFunc checking for origin: %s", cfg.FrontendURL)
+	allowedOrigins := []string{cfg.FrontendURL} // Always allow the configured frontend URL
+
+	// Add additional origins from environment variable if set
+	if os.Getenv("CORS_ALLOWED_ORIGINS") != "" {
+		additionalOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+		allowedOrigins = append(allowedOrigins, additionalOrigins...)
+	}
+
+	log.Printf("CORS configured with allowed origins: %v", allowedOrigins)
+
 	config := cors.Config{
 		AllowOriginFunc: func(origin string) bool {
-			return strings.HasPrefix(origin, cfg.FrontendURL)
+			for _, allowedOrigin := range allowedOrigins {
+				if origin == allowedOrigin {
+					return true
+				}
+			}
+			return false
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
@@ -52,6 +66,7 @@ func registerRoutes(r *gin.Engine, userHandler *UserHandler, communityHandler *C
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
+
 	r.Use(cors.New(config))
 	r.Use(LoggingMiddleware())
 	r.SetTrustedProxies(nil)
