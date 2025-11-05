@@ -54,7 +54,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const processAuth = async () => {
+      console.log("[UserProvider] processAuth started.");
       const tokenFromCookie = Cookies.get('accessToken');
+      console.log("[UserProvider] Token from cookie:", tokenFromCookie);
       if (tokenFromCookie) {
         try {
           const response = await apiClient.get<{ user: User }>('/users/me');

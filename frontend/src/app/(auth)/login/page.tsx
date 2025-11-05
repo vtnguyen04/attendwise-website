@@ -82,6 +82,7 @@ export default function LoginPage() {
       const { user, access_token } = response.data;
 
       setAuthToken(access_token);
+          console.log("[LoginPage] Auth token set:", access_token);
       if (user) {
         setUser(user);
       } else {

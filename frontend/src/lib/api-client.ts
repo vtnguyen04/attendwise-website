@@ -15,10 +15,11 @@ const createApiClient = (withAuth: boolean = false) => {
         if (typeof window !== 'undefined') {
           const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
           if (token) {
-            console.log("Sending token:", token); // Add this line
-            config.headers.Authorization = `Bearer ${token}`;
-          }
-        }
+                    console.log("[apiClient] Attaching token to Authorization header:", token);
+                    config.headers.Authorization = `Bearer ${token}`;
+                  } else {
+                    console.log("[apiClient] No token found, sending request without Authorization header.");
+                  }        }
         return config;
       },
       (error) => Promise.reject(error)
