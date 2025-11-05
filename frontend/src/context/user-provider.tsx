@@ -27,7 +27,8 @@ function UserAuthFromUrl() {
 
     if (tokenFromUrl && userFromUrl) {
       try {
-        const parsedUser = JSON.parse(userFromUrl);
+        const decodedUser = decodeURIComponent(userFromUrl);
+        const parsedUser = JSON.parse(decodedUser);
         setUser(parsedUser);
         setAuthToken(tokenFromUrl);
         router.replace('/dashboard', { scroll: false });
