@@ -8,14 +8,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
+	"net/http" // Reverted alias
 	"net/url"
+	"os" // ADDED: Import os package
 	"strings"
 	"time"
 
 	"github.com/attendwise/backend/internal/module/user/domain"
-	"github.com/attendwise/backend/pkg/googleauth"
 	"github.com/attendwise/backend/pkg/config"
+	"github.com/attendwise/backend/pkg/googleauth"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
@@ -213,10 +214,12 @@ func (h *UserHandler) GoogleLogin(c *gin.Context) {
 	if callbackURL == "" {
 		// Fallback to a default URL if not provided, though the frontend should always provide it.
 		// Consider logging a warning if it's missing.
-				callbackURL = h.cfg.FrontendURL + "/dashboard"	} else {
+		callbackURL = h.cfg.FrontendURL + "/dashboard"
+	} else {
 		if parsed, err := url.Parse(callbackURL); err != nil || parsed.Scheme == "" || parsed.Host == "" {
 			log.Printf("[WARN] Invalid callback_url provided (%s). Falling back to default.", callbackURL)
-			                callbackURL = h.cfg.FrontendURL + "/dashboard"		}
+			callbackURL = h.cfg.FrontendURL + "/dashboard"
+		}
 	}
 
 	state, err := h.generateStateOauthCookie(c, callbackURL)
@@ -329,13 +332,21 @@ func (h *UserHandler) generateStateOauthCookie(c *gin.Context, callbackURL strin
 		return "", fmt.Errorf("failed to save state to redis: %w", err)
 	}
 
-	host := "localhost"
-	if h, _, found := strings.Cut(host, ":"); found {
-		host = h
-	}
-if host == "" {
-		host = "localhost"
-	}
+		host := c.Request.Host // Get host from request header
+
+		if h, _, found := strings.Cut(host, ":"); found {
+
+			host = h
+
+		}
+
+		if host == "" {
+
+			host = "localhost" // Fallback for local development if host is empty
+
+		}
+
+	
 	secureCookie := c.Request.TLS != nil
 	if !secureCookie && strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https") {
 		secureCookie = true
@@ -345,13 +356,8 @@ if host == "" {
 		cookieDomain = host // Default to current host for local development if not set
 	}
 
-	cookieDomain := os.Getenv("COOKIE_DOMAIN")
-	if cookieDomain == "" {
-		cookieDomain = host // Default to current host for local development if not set
-	}
-
 	log.Printf("Setting OAuth state cookie with domain: %s", cookieDomain)
-	
+
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     "oauthstate",
 		Value:    state,
@@ -360,7 +366,7 @@ if host == "" {
 		Domain:   cookieDomain,
 		Secure:   secureCookie,
 		HttpOnly: true,
-		SameSite: http.SameSiteNone,
+		SameSite: http.SameSiteNoneMode,
 	})
 	return state, nil
 }
@@ -434,7 +440,8 @@ func (h *UserHandler) GetUserRelationship(c *gin.Context) {
 	isFollowing, err := h.userService.CheckFollowStatus(c.Request.Context(), authenticatedUserID.(string), profileUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user relationship"})
-		return	}
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"relationship": gin.H{"is_following": isFollowing}})
 }
