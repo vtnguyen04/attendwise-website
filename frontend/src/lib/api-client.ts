@@ -7,6 +7,10 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const createApiClient = (withAuth: boolean = false) => {
   const client = axios.create({
     baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
+    },
   });
 
   if (withAuth) {
