@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -53,8 +54,12 @@ func registerRoutes(r *gin.Engine, userHandler *UserHandler, communityHandler *C
 
 	config := cors.Config{
 		AllowOriginFunc: func(origin string) bool {
+			// Normalize origin by removing trailing slash
+			normalizedOrigin := strings.TrimSuffix(origin, "/")
 			for _, allowedOrigin := range allowedOrigins {
-				if origin == allowedOrigin {
+				// Normalize allowedOrigin by removing trailing slash
+				normalizedAllowedOrigin := strings.TrimSuffix(allowedOrigin, "/")
+				if normalizedOrigin == normalizedAllowedOrigin {
 					return true
 				}
 			}

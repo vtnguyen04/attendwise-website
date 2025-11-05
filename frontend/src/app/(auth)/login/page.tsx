@@ -111,7 +111,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     try {
       const state = Math.random().toString(36).substring(2);
-      Cookies.set('oauthstate', state, { expires: 1/144, sameSite: 'lax' }); // Expires in 10 minutes
+      Cookies.set('oauthstate', state, { expires: 1/144, sameSite: 'None', secure: true }); // Expires in 10 minutes
       const callbackUrl = `${window.location.origin}/dashboard`;
       window.location.href = `${API_BASE_URL}/auth/google/login?callback_url=${encodeURIComponent(callbackUrl)}&state=${state}`;
     } catch (error) {

@@ -50,7 +50,7 @@ const createApiClient = (withAuth: boolean = false) => {
 export const setAuthToken = (newToken: string) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('accessToken', newToken);
-    Cookies.set('accessToken', newToken, { expires: 7, path: '/' });
+    Cookies.set('accessToken', newToken, { expires: 7, path: '/', sameSite: 'None', secure: true });
   }
 };
 
