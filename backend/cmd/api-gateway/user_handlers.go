@@ -350,6 +350,7 @@ if host == "" {
 		cookieDomain = host // Default to current host for local development if not set
 	}
 
+	log.Printf("Setting OAuth state cookie with domain: %s", cookieDomain)
 	c.SetCookie("oauthstate", state, int(expiration.Seconds()), "/", cookieDomain, secureCookie, true, gin.WithSameSite(http.SameSiteNone)) // Secure, HttpOnly, and SameSite=None for cross-domain
 	return state, nil
 }
