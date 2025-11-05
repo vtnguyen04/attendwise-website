@@ -345,7 +345,12 @@ if host == "" {
 		cookieDomain = host // Default to current host for local development if not set
 	}
 
-	c.SetCookie("oauthstate", state, int(expiration.Seconds()), "/", cookieDomain, secureCookie, true) // Secure and HttpOnly in production
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	if cookieDomain == "" {
+		cookieDomain = host // Default to current host for local development if not set
+	}
+
+	c.SetCookie("oauthstate", state, int(expiration.Seconds()), "/", cookieDomain, secureCookie, true, gin.WithSameSite(http.SameSiteNone)) // Secure, HttpOnly, and SameSite=None for cross-domain
 	return state, nil
 }
 
