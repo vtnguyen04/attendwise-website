@@ -8,8 +8,21 @@ frontend/node_modules/
 backend/ai-service/__pycache__/
 backend/ai-service/*.pyc
 backend/ai-service/requirements.txt
+backend/ai-service/weights/
+backend/ai-service/face_service/liveness_detection/landmarks/
+
+# Backend specific ignores (Go)
+backend/vendor/
+backend/*.exe
+backend/*.test
+backend/build/
 
 # General ignores
 .env
 .env.production
 *.zip
+
+# Exclude specific markdown files
+instruction.md
+railway_deploy.md
+requirements.md
