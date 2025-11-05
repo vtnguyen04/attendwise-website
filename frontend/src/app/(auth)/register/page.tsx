@@ -37,9 +37,13 @@ const formSchema = z
     name: z.string().min(2, 'Name must be at least 2 characters.'),
     company: z.string().optional(),
     position: z.string().optional(),
-    email: z.string()
+    email: z
+      .string()
       .email('Please enter a valid email address.')
-      .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address.'),
+      .regex(
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        'Please enter a valid email address.'
+      ),
     password: z.string().min(8, 'Password must be at least 8 characters.'),
     confirmPassword: z.string(),
   })
@@ -97,7 +101,7 @@ export default function RegisterPage() {
         const formData = new FormData();
         formData.append('file', selectedFile);
 
-        const response = await apiClient.post('api/v1/media/upload', formData, {
+        const response = await apiClient.post('media/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -114,7 +118,7 @@ export default function RegisterPage() {
         profile_picture_url: profilePictureUrl,
       };
 
-      await apiClient.post('api/v1/auth/register', payload);
+      await apiClient.post('auth/register', payload);
 
       toast({
         title: t('auth.register.success_title'),
@@ -122,9 +126,12 @@ export default function RegisterPage() {
       });
 
       router.push('/login');
-
     } catch (error: unknown) {
-      const errorMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error || (error as Error).message || 'An unknown error occurred.';
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error ||
+        (error as Error).message ||
+        'An unknown error occurred.';
       console.error('Registration error:', error);
       toast({
         title: t('auth.register.failed_title'),
@@ -140,7 +147,9 @@ export default function RegisterPage() {
     setIsGoogleLoading(true);
     try {
       const callbackUrl = `${window.location.origin}/dashboard`;
-      window.location.href = `${API_BASE_URL}/auth/google/login?callback_url=${encodeURIComponent(callbackUrl)}`;
+      window.location.href = `${API_BASE_URL}/auth/google/login?callback_url=${encodeURIComponent(
+        callbackUrl
+      )}`;
     } catch (error) {
       console.error('Google login error:', error);
       toast({
@@ -155,8 +164,8 @@ export default function RegisterPage() {
   return (
     <Card className="relative w-full overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-0 shadow-[0_25px_60px_rgba(8,15,31,0.45)] backdrop-blur-2xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_70%)]" />
-      <div className="relative z-10 flex flex-col gap-6 px-6 pb-6 pt-8 sm:px-8 sm:pt-10">
-        <CardHeader className="space-y-3 text-center">
+      <div className="relative z-10 flex flex-col gap-4 px-6 pb-8 pt-8 sm:px-10 sm:pt-10">
+        <CardHeader className="space-y-3 pb-2 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
             <Icons.logo className="h-6 w-6" />
           </div>
@@ -171,14 +180,18 @@ export default function RegisterPage() {
         </CardHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CardContent className="grid gap-4 p-0">
+              {/* Profile Picture - Centered at top */}
               <FormItem className="flex flex-col items-center gap-3">
                 <FormLabel className="text-sm font-medium text-white">
                   {t('auth.register.profile_picture_label')}
                 </FormLabel>
                 <FormControl>
-                  <label htmlFor="file-upload" className="group relative cursor-pointer">
+                  <label
+                    htmlFor="file-upload"
+                    className="group relative cursor-pointer"
+                  >
                     <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/25 bg-white/10 text-slate-300 transition-all duration-300 group-hover:border-primary/60 group-hover:text-white">
                       {previewUrl ? (
                         <Image
@@ -192,125 +205,138 @@ export default function RegisterPage() {
                         <Icons.user className="h-8 w-8" />
                       )}
                     </div>
-                    <Input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="sr-only" />
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="sr-only"
+                    />
                   </label>
                 </FormControl>
                 <FormMessage />
               </FormItem>
 
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel className="text-sm font-medium text-white">
-                      {t('auth.register.name_label')}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder={t('auth.register.name_placeholder')}
-                        {...field}
-                        className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Two Column Layout for Form Fields */}
+              <div className="grid gap-x-4 gap-y-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-white min-h-[2.5rem]">
+                        {t('auth.register.name_label')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('auth.register.name_placeholder')}
+                          {...field}
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-sm font-medium text-white min-h-[2.5rem]">
+                        {t('auth.register.email_label')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder={t('auth.register.email_placeholder')}
+                          {...field}
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="company"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-sm font-medium text-white">
-                        {t('auth.register.company_label')} <span className="text-xs text-slate-400">({t('common.optional')})</span>
+                      <FormLabel className="font-medium text-white min-h-[2.5rem]">
+                        <span className="text-sm">{t('auth.register.company_label')}</span>
+                        <div className="text-xs font-normal text-slate-400">({t('common.optional')})</div>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t('auth.register.company_placeholder')}
+                          placeholder={t(
+                            'auth.register.company_placeholder'
+                          )}
                           {...field}
-                          className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="position"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-sm font-medium text-white">
-                        {t('auth.register.position_label')} <span className="text-xs text-slate-400">({t('common.optional')})</span>
+                      <FormLabel className="font-medium text-white min-h-[2.5rem]">
+                        <span className="text-sm">{t('auth.register.position_label')}</span>
+                        <div className="text-xs font-normal text-slate-400">({t('common.optional')})</div>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t('auth.register.position_placeholder')}
+                          placeholder={t(
+                            'auth.register.position_placeholder'
+                          )}
                           {...field}
-                          className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel className="text-sm font-medium text-white">
-                      {t('auth.register.email_label')}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder={t('auth.register.email_placeholder')}
-                        {...field}
-                        className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-sm font-medium text-white">
+                      <FormLabel className="text-sm font-medium text-white min-h-[2.5rem]">
                         {t('auth.register.password_label')}
                       </FormLabel>
                       <FormControl>
                         <PasswordInput
                           {...field}
-                          className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-sm font-medium text-white">
+                      <FormLabel className="text-sm font-medium text-white min-h-[2.5rem]">
                         {t('auth.register.confirm_password_label')}
                       </FormLabel>
                       <FormControl>
                         <PasswordInput
                           {...field}
-                          className="h-12 rounded-2xl border border-white/10 bg-white/10 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
+                          className="h-12 rounded-2xl border border-white/10 bg-white/10 px-4 text-base text-white placeholder:text-slate-400 focus:border-primary/60 focus:ring-2 focus:ring-primary/30"
                         />
                       </FormControl>
                       <FormMessage />
@@ -320,17 +346,21 @@ export default function RegisterPage() {
               </div>
             </CardContent>
 
-            <CardFooter className="flex flex-col gap-4 p-0">
+            <CardFooter className="flex flex-col gap-3 p-0 pt-2">
               <Button
                 type="submit"
                 className="h-12 w-full rounded-2xl bg-primary text-base font-semibold hover:bg-primary/90"
                 disabled={isLoading || isGoogleLoading}
               >
-                {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && (
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {t('auth.register.create_account_button')}
               </Button>
 
-              <SocialAuthSeparator text={t('auth.register.social_auth_separator')} />
+              <SocialAuthSeparator
+                text={t('auth.register.social_auth_separator')}
+              />
 
               <Button
                 variant="outline"
@@ -338,13 +368,20 @@ export default function RegisterPage() {
                 onClick={handleGoogleLogin}
                 disabled={isLoading || isGoogleLoading}
               >
-                {isGoogleLoading ? <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : <Icons.google className="mr-2 h-4 w-4" />}
+                {isGoogleLoading ? (
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Icons.google className="mr-2 h-4 w-4" />
+                )}
                 {t('auth.register.sign_up_with_google_button')}
               </Button>
 
               <p className="text-center text-sm text-slate-400">
                 {t('auth.register.already_have_account_text')}{' '}
-                <Link href="/login" className="font-semibold text-primary hover:text-primary/80">
+                <Link
+                  href="/login"
+                  className="font-semibold text-primary hover:text-primary/80"
+                >
                   {t('auth.register.sign_in_link')}
                 </Link>
               </p>
