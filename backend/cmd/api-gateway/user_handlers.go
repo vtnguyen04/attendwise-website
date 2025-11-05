@@ -214,22 +214,35 @@ func (h *UserHandler) GoogleLogin(c *gin.Context) {
 	if callbackURL == "" {
 		// Fallback to a default URL if not provided, though the frontend should always provide it.
 		// Consider logging a warning if it's missing.
-		callbackURL = h.cfg.FrontendURL + "/dashboard"
-	} else {
+				callbackURL = h.cfg.FrontendURL + "/dashboard"	} else {
 		if parsed, err := url.Parse(callbackURL); err != nil || parsed.Scheme == "" || parsed.Host == "" {
 			log.Printf("[WARN] Invalid callback_url provided (%s). Falling back to default.", callbackURL)
-			callbackURL = h.cfg.FrontendURL + "/dashboard"
-		}
+			                callbackURL = h.cfg.FrontendURL + "/dashboard"		}
 	}
 
-	state, err := h.generateStateOauthCookie(c, callbackURL)
+	// Generate random state
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
 	if err != nil {
-		log.Printf("Error generating OAuth state: %v", err)
+		log.Printf("Error generating random state: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate Google login"})
 		return
 	}
+	state := base64.URLEncoding.EncodeToString(b)
+	log.Printf("Generated state: %s", state)
 
-	// Pass the dynamic redirect URI to the GetAuthCodeURL function
+	expiration := 10 * time.Minute // State valid for 10 minutes
+
+	// Store the callbackURL in Redis with the state as the key
+	err = h.redisClient.Set(c.Request.Context(), "oauthstate:"+state, callbackURL, expiration).Err()
+	if err != nil {
+		log.Printf("Error saving state to redis: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initiate Google login"})
+		return
+	}
+	log.Printf("State saved to Redis for key: oauthstate:%s", state)
+
+	// Pass the dynamic redirect URI and state to the GetAuthCodeURL function
 	c.Redirect(http.StatusTemporaryRedirect, h.googleOAuthClient.GetAuthCodeURL(state, h.googleRedirectURI))
 }
 
@@ -251,34 +264,26 @@ func (h *UserHandler) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Retrieve state from cookie
-	cookieState, err := c.Cookie("oauthstate")
-	if err != nil {
-		log.Printf("Google OAuth: State cookie not found: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "State cookie not found or invalid"})
-		return
-	}
-
 	// Retrieve state from query parameter
 	queryState := c.Query("state")
+	if queryState == "" {
+		log.Printf("Google OAuth: State query parameter not found")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "State parameter not found"})
+		return
+	}
+	log.Printf("Received state from query: %s", queryState)
 
 	// Verify state from Redis and get the callback URL
-	callbackURL, err := h.redisClient.Get(c.Request.Context(), "oauthstate:"+cookieState).Result()
+	callbackURL, err := h.redisClient.Get(c.Request.Context(), "oauthstate:"+queryState).Result()
 	if err != nil {
 		log.Printf("Google OAuth: State not found in Redis or expired: %v", err)
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired state parameter"})
 		return
 	}
-
-	// Compare query state with cookie state
-	if queryState != cookieState {
-		log.Printf("Google OAuth state mismatch: expected %s, got %s", cookieState, queryState)
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid state parameter"})
-		return
-	}
+	log.Printf("Retrieved callbackURL from Redis: %s", callbackURL)
 
 	// Delete the state from Redis after successful verification
-	err = h.redisClient.Del(c.Request.Context(), "oauthstate:"+cookieState).Err()
+	err = h.redisClient.Del(c.Request.Context(), "oauthstate:"+queryState).Err()
 	if err != nil {
 		log.Printf("Failed to delete state from Redis: %v", err)
 		// Continue processing, as this is not a critical failure for the login flow
@@ -316,62 +321,13 @@ func (h *UserHandler) GoogleCallback(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
 
-func (h *UserHandler) generateStateOauthCookie(c *gin.Context, callbackURL string) (string, error) {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate random state: %w", err)
-	}
-	state := base64.URLEncoding.EncodeToString(b)
-
-	expiration := 10 * time.Minute // State valid for 10 minutes
-
-	// Store the callbackURL in Redis with the state as the key
-	err = h.redisClient.Set(c.Request.Context(), "oauthstate:"+state, callbackURL, expiration).Err()
-	if err != nil {
-		return "", fmt.Errorf("failed to save state to redis: %w", err)
-	}
-
-		host := c.Request.Host // Get host from request header
-
-		if h, _, found := strings.Cut(host, ":"); found {
-
-			host = h
-
-		}
-
-		if host == "" {
-
-			host = "localhost" // Fallback for local development if host is empty
-
-		}
-
-	
-	secureCookie := c.Request.TLS != nil
-	if !secureCookie && strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https") {
-		secureCookie = true
-	}
-	cookieDomain := os.Getenv("COOKIE_DOMAIN")
-	if cookieDomain == "" {
-		cookieDomain = host // Default to current host for local development if not set
-	}
-
-	log.Printf("Setting OAuth state cookie with domain: %s", cookieDomain)
-
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "oauthstate",
-		Value:    state,
-		MaxAge:   int(expiration.Seconds()),
-		Path:     "/",
-		Domain:   cookieDomain,
-		Secure:   secureCookie,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-	})
-	return state, nil
-}
+// generateStateOauthCookie function is no longer needed
+// func (h *UserHandler) generateStateOauthCookie(c *gin.Context, callbackURL string) (string, error) {
+// 	// ... (old cookie logic) ...
+// }
 
 // @Summary Get user profile
+
 // @Success 200 {object} UserResponse
 // @Failure 401 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{}
