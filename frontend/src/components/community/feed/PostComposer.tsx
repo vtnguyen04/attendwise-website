@@ -13,10 +13,12 @@ import { useUser } from '@/context/user-provider';
 import { useToast } from '@/hooks/use-toast';
 import { createPost } from '@/lib/services/feed.client.service';
 import { useQueryClient } from '@tanstack/react-query';
+import { Post } from '@/lib/types';
+import { uploadFile } from '@/lib/services/media.service';
 
 interface PostComposerProps {
     communityId?: string;
-    onPostCreated?: () => void;
+    onPostCreated?: (post: Post) => void;
 }
 
 interface MediaFile {
@@ -27,6 +29,7 @@ interface MediaFile {
 
 export function PostComposer({ communityId, onPostCreated }: PostComposerProps) {
     const [content, setContent] = useState('');
+    const [title, setTitle] = useState('');
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -47,19 +50,23 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
 
         setIsUploading(true);
 
-        // Simulate upload
-        const newFiles = Array.from(files).map(file => ({
-            url: URL.createObjectURL(file),
-            name: file.name,
-            type: file.type
-        }));
+        const uploadedUrls: MediaFile[] = [];
+        for (const file of Array.from(files)) {
+            try {
+                const url = await uploadFile(file);
+                uploadedUrls.push({ url, name: file.name, type: file.type });
+                toast({ title: 'Upload successful', description: `File ${file.name} uploaded.` });
+            } catch (error: unknown) {
+                console.error("Upload error:", error);
+                const errorMessage = error instanceof Error ? error.message : 'Failed to upload files.';
+                toast({ title: 'Upload error', description: errorMessage, variant: 'destructive' });
+            }
+        }
 
-        setTimeout(() => {
-            setMediaFiles(prev => [...prev, ...newFiles]);
-            setIsUploading(false);
-            if(imageInputRef.current) imageInputRef.current.value = '';
-            if(fileInputRef.current) fileInputRef.current.value = '';
-        }, 500);
+        setMediaFiles(prev => [...prev, ...uploadedUrls]);
+        setIsUploading(false);
+        if(imageInputRef.current) imageInputRef.current.value = '';
+        if(fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleRemoveMedia = (urlToRemove: string) => {
@@ -72,15 +79,16 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
         setIsSubmitting(true);
 
         try {
-            await createPost(content, mediaFiles, communityId);
+            const newPost = await createPost(title, content, mediaFiles, communityId);
             
             // Post-submission logic
             setContent('');
+            setTitle('');
             setMediaFiles([]);
             setIsExpanded(false);
             toast({ title: 'Success', description: 'Your post has been created.' });
             queryClient.invalidateQueries({ queryKey: ['feed'] });
-            onPostCreated?.();
+            onPostCreated?.(newPost);
 
         } catch (error) {
             console.error("Failed to create post:", error);
@@ -131,6 +139,12 @@ export function PostComposer({ communityId, onPostCreated }: PostComposerProps) 
                 <>
                     <Separator className="bg-border/50" />
                     <CardContent className="pt-4 space-y-4 p-4">
+                        <Input
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Tiêu đề bài viết (Tùy chọn)"
+                            className="text-sm border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
                         <Textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}

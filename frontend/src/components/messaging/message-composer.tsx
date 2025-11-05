@@ -66,8 +66,10 @@ export function MessageComposer({ onSendMessage, isLoading, conversationId }: Me
   };
 
   const handleSend = () => {
-    if (content.trim() && !isLoading && !isUploading) {
-      onSendMessage(content.trim());
+    const trimmedContent = content.trim();
+    if (trimmedContent && !isLoading && !isUploading) {
+      console.log("MessageComposer: Sending text message with content:", trimmedContent);
+      onSendMessage(trimmedContent);
       setContent('');
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -124,8 +126,13 @@ export function MessageComposer({ onSendMessage, isLoading, conversationId }: Me
       });
 
       const messageType = selectedFile.type.startsWith('image/') ? "image" : "file";
-      onSendMessage(object_name, messageType);
-      clearFileSelection();
+      if (object_name) {
+        console.log("MessageComposer: Sending attachment with object_name:", object_name);
+        onSendMessage(object_name, messageType);
+        clearFileSelection();
+      } else {
+        console.warn("MessageComposer: object_name is empty, not sending attachment message.");
+      }
     } catch (error) {
       console.error("Error uploading file:", error);
       // TODO: Show error to user

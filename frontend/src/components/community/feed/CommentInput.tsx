@@ -28,7 +28,7 @@ export function CommentInput({ postId, onCommentPosted }: CommentInputProps) {
       setNewComment('');
       toast({ title: 'Success', description: 'Comment posted successfully' });
       onCommentPosted();
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'Failed to post comment', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);

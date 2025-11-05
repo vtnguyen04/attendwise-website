@@ -143,10 +143,16 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({ children, initialLocale }: { children: ReactNode; initialLocale: string }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
+    // Use initialLocale from props if available
+    if (initialLocale === 'en' || initialLocale === 'vi') {
+      return initialLocale;
+    }
+
+    // Existing client-side logic
     if (typeof window === 'undefined') {
-      return 'vi'; // Default to 'vi' on server
+      return 'vi'; // Default to 'vi' on server if initialLocale is not valid
     }
 
     const storedLocale = window.localStorage.getItem('attendwise_locale');

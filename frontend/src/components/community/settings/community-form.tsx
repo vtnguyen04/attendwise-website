@@ -58,7 +58,9 @@ export default function CommunityForm({ mode = 'create', initialData, onDelete }
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialData?.cover_image_url?.String
-      ? `${API_BASE_URL}${initialData.cover_image_url.String}`
+      ? initialData.cover_image_url.String.startsWith('http')
+        ? initialData.cover_image_url.String
+        : `${API_BASE_URL}${initialData.cover_image_url.String}`
       : null
   );
   const theme = useTheme(); // 👈 Lấy theme hiện tại

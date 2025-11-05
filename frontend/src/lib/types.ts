@@ -230,6 +230,7 @@ export type Post = {
   author_id: string;
   community_id: string;
   event_id: NullableString;
+  title: string | NullableString;
   content: string;
   content_html: NullableString;
   media_urls: string[];
@@ -382,6 +383,7 @@ export interface Message {
   created_at: string;
   updated_at: string;
   author?: Author;
+  status?: 'pending' | 'sent' | 'failed'; // Added for optimistic UI updates
 }
 
 export interface Notification {

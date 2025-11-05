@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +48,7 @@ import { Post, Comment } from '@/lib/types';
 import { pinPost } from '@/lib/services/community.client.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { PostDetailModal } from './PostDetailModal';
+import { formatDistanceToNow } from 'date-fns';
 
 type CommunityRole = 'community_admin' | 'moderator' | 'member' | 'pending' | undefined;
 
@@ -91,6 +91,10 @@ export function PostCard({
   }, [initialPost]);
 
   useEffect(() => {
+    if (post.created_at) {
+
+      setTimeAgo(formatDistanceToNow(new Date(post.created_at), { addSuffix: true }));
+    }
   }, [post.created_at]);
 
   useEffect(() => {
@@ -116,9 +120,16 @@ export function PostCard({
     return () => window.removeEventListener('realtime-comment', handleRealtimeComment as EventListener);
   }, [post.id, queryClient]);
 
+  interface RealtimeReaction {
+    post_id: string;
+    total_reactions: number;
+    user_id: string;
+    is_liked: boolean;
+  }
+
   useEffect(() => {
     const handleRealtimeReaction = (event: Event) => {
-      const customEvent = event as CustomEvent<any>; // Type for reaction can be improved
+      const customEvent = event as CustomEvent<RealtimeReaction>; // Type for reaction can be improved
       const reaction = customEvent.detail;
       if (reaction.post_id === post.id) {
         setLikeCount(reaction.total_reactions);
@@ -230,12 +241,8 @@ export function PostCard({
   const getAttachmentName = (attachment: Post['file_attachments'][number]) =>
     attachment?.Name || attachment?.name || getAttachmentUrl(attachment) || 'Attachment';
 
-  const rawAttachments = post.file_attachments || 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((post as any).fileAttachments as typeof post.file_attachments | undefined) || [];
-  const rawMediaUrls = post.media_urls || 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((post as any).mediaUrls as typeof post.media_urls | undefined) || [];
+  const rawAttachments = post.file_attachments || [];
+  const rawMediaUrls = post.media_urls || [];
 
   const imageAttachments = rawAttachments.filter((attachment) =>
     getAttachmentType(attachment).toLowerCase().startsWith('image/')
@@ -357,6 +364,19 @@ export function PostCard({
           </div>
         </div>
 
+        {/* Post Title */}
+        {post.title && (
+          <div className="px-3 pb-2">
+            <h3 className="text-base font-semibold text-foreground leading-tight">
+              {typeof post.title === 'object' && 'String' in post.title && typeof post.title.String === 'string'
+                ? post.title.String
+                : typeof post.title === 'string'
+                ? post.title
+                : null}
+            </h3>
+          </div>
+        )}
+
         {/* Content Text */}
         {post.content && (
           <div className="px-3 pb-2">
@@ -387,6 +407,7 @@ export function PostCard({
                   height={512}
                   className="w-full object-contain"
                   style={{ maxHeight: '512px' }}
+                  unoptimized={true}
                 />
               </div>
             ) : (

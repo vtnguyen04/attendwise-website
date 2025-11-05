@@ -148,6 +148,8 @@ export function RightRail({ className }: RightRailProps = {}) {
   ];
 
   useEffect(() => {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
     let isMounted = true;
 
     async function loadInsights() {
@@ -155,7 +157,7 @@ export function RightRail({ className }: RightRailProps = {}) {
       try {
         const [events, feedItems] = await Promise.all([
           getMyEventsByStatus('upcoming'),
-          getFeed('global'),
+          getFeed('global', signal),
         ]);
 
         if (!isMounted) return;
@@ -174,6 +176,7 @@ export function RightRail({ className }: RightRailProps = {}) {
 
     return () => {
       isMounted = false;
+      abortController.abort();
     };
   }, []);
 

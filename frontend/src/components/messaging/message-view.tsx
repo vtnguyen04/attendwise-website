@@ -3,7 +3,7 @@
 'use client';
 
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getConversationDetails, getMessages } from '@/lib/services/messaging.service';
 import { useSendMessage, useMarkConversationAsRead } from '@/hooks/use-messaging';
@@ -30,12 +30,14 @@ export function MessageView({ conversationId }: MessageViewProps) {
 
   const sendMessageMutation = useSendMessage();
   const markAsReadMutation = useMarkConversationAsRead();
+  const hasMarkedAsReadRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && hasMarkedAsReadRef.current !== conversationId) {
       markAsReadMutation.mutate(conversationId);
+      hasMarkedAsReadRef.current = conversationId;
     }
-  }, [conversationId]);
+  }, [conversationId, markAsReadMutation]);
 
   const {
     data: conversation,
@@ -69,7 +71,7 @@ export function MessageView({ conversationId }: MessageViewProps) {
 
   const handleSendMessage = (content: string, messageType?: "text" | "image" | "file") => {
     if (!content.trim()) return;
-    sendMessageMutation.mutate({ conversationId, content, messageType });
+    sendMessageMutation.mutate({ conversationId, content, messageType, author: currentUser });
   };
 
   const isLoading = isLoadingUser || isLoadingConversation;

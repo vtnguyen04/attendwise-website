@@ -4,8 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { PostComposer } from '@/components/community/feed/PostComposer';
+import { Post } from '@/lib/types';
 
-export default function CreatePostCard() {
+interface CreatePostCardProps {
+  communityId?: string;
+  onPostCreated?: (post: Post) => void;
+}
+
+export default function CreatePostCard({ communityId, onPostCreated }: CreatePostCardProps) {
   const { user, isLoading } = useUser();
 
   if (isLoading) {
@@ -29,7 +35,7 @@ export default function CreatePostCard() {
   }
 
   return (
-    <PostComposer />
+    <PostComposer communityId={communityId} onPostCreated={onPostCreated} />
   );
 }
 

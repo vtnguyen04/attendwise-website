@@ -10,6 +10,10 @@ export function useTranslation(namespace?: string) {
     const fullKey = namespace ? `${namespace}.${key}` : key;
     let translation = translations[fullKey] || fullKey;
 
+    if (fullKey === 'right_rail.insights.no_upcoming_events_title' || fullKey === 'right_rail.insights.no_upcoming_events') {
+      console.log(`Translation for ${fullKey}:`, translation);
+    }
+
     if (options) {
       Object.keys(options).forEach(optionKey => {
         translation = translation.replace(`{${optionKey}}`, String(options[optionKey]));

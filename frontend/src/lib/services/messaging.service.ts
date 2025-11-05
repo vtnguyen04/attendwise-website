@@ -124,3 +124,11 @@ export async function createConversation(payload: CreateConversationPayload): Pr
     return response.data.conversation;
 
 }
+
+/**
+ * Marks a conversation as read.
+ * Can be used on server or client.
+ */
+export async function markConversationAsRead(conversationId: string): Promise<void> {
+  await apiClient.post(`/conversations/${conversationId}/read`);
+}

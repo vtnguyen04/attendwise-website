@@ -2,7 +2,7 @@
 'use client';
 
 import { Sun, Moon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import UserNav from '@/components/layout/user-nav';
 import LanguageToggle from '@/components/layout/language-toggle';
@@ -15,21 +15,6 @@ interface HeaderActionsProps {
 
 export function HeaderActions({ theme, toggleTheme }: HeaderActionsProps) {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="hidden md:flex items-center gap-2">
-        <div className="h-9 w-9 rounded-full bg-muted" />
-        <div className="h-9 w-9 rounded-full bg-muted" />
-        <div className="h-9 w-9 rounded-full bg-muted" />
-      </div>
-    );
-  }
 
   return (
     <div className="hidden md:flex items-center gap-2">

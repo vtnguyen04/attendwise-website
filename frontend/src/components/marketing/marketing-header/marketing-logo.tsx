@@ -10,7 +10,7 @@ export function MarketingLogo() {
     <motion.div whileHover={{ scale: 1.05 }}>
       <Link href="/" className="group flex items-center gap-2.5">
         <motion.div whileHover={{ rotate: 12, scale: 1.1 }}>
-          <Image src="/apple-touch-icon.png" alt="AttendWise Logo" width={32} height={32} className="rounded-md" />
+          <Image src="/attendwise.png" alt="AttendWise Logo" width={32} height={32} className="rounded-md" />
         </motion.div>
         <span className="text-xl font-black tracking-tight text-white transition-colors duration-300 group-hover:text-purple-300">
           AttendWise

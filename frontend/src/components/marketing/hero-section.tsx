@@ -46,11 +46,6 @@ export function HeroSection() {
   const { t } = useTranslation('marketing');
   const { user } = useUser();
   const getStartedHref = user ? '/dashboard' : '/login';
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Mouse tracking for 3D parallax
   useEffect(() => {
@@ -108,14 +103,6 @@ export function HeroSection() {
       },
     },
   };
-
-  if (!mounted) {
-    return (
-      <section className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-slate-950">
-        <div className="h-screen w-full" />
-      </section>
-    );
-  }
 
   return (
     <motion.section

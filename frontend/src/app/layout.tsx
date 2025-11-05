@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/context/theme-provider';
 import { Toaster } from 'sonner'; // Import Toaster from sonner
 import { AppProviders } from '@/context/app-provider';
+import { headers } from 'next/headers';
 
 const inter = Inter({
   subsets: ['latin', 'latin-ext'],
@@ -17,21 +18,22 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
-    apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const acceptLanguage = headersList.get('accept-language');
+  const initialLocale = acceptLanguage?.startsWith('vi') ? 'vi' : 'en';
+
   return (
-    <html lang="vi" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang={initialLocale} suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -39,7 +41,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppProviders>
+          <AppProviders initialLocale={initialLocale}>
             {children}
           </AppProviders>
           <Toaster />

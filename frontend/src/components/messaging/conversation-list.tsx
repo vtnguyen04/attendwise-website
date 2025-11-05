@@ -146,7 +146,7 @@ export function ConversationList({ selectedConversationId, onSelectConversation 
     queryKey: ['conversations'], 
     queryFn: getConversations 
   });
-  console.log("Conversations in ConversationList:", conversations);
+
   const { onlineUsers } = useChatWebSocket();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

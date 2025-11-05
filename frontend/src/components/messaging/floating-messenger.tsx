@@ -8,12 +8,10 @@ import { Button } from '@/components/ui/button';
 import { ChatLayout } from '@/components/messaging/chat-layout';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import { useQueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from '@/hooks/use-translation';
 
 export function FloatingMessenger() {
   const pathname = usePathname();
-  const queryClient = useQueryClient();
   const { t } = useTranslation('messenger');
 
   const [isMessengerOpen, setIsMessengerOpen] = useState(false);

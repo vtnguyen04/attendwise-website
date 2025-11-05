@@ -3,7 +3,7 @@
 
 // 1. Import component Image từ next/image
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+
 
 import {
   DropdownMenu,
@@ -21,17 +21,8 @@ const USA_FLAG_URL =
   'https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/us.svg';
 
 export default function LanguageToggle() {
-  const [mounted, setMounted] = useState(false);
   const { locale, setLocale } = useI18n();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="h-9 w-9 rounded-full bg-muted" />;
-  }
 
   const currentFlag = locale === 'vi' ? VNM_FLAG_URL : USA_FLAG_URL;
 

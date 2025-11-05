@@ -136,7 +136,6 @@ export const EventDetailsStep = ({ communities, community }: DetailsStepProps) =
                 <ImageUploader
                   onUploadSuccess={field.onChange}
                   value={field.value}
-                  // 👇 ADD THIS LINE
                   alt="Preview of the event cover image"
                 />
               </div>

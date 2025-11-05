@@ -3,7 +3,7 @@
 'use client';
 
 // Đã xóa các import không cần thiết: useQuery, getMessages, Skeleton
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Message, User } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Loader2 from 'lucide-react/icons/loader-2';
@@ -21,7 +21,6 @@ interface MessageListProps {
 
 export function MessageList({ messages, currentUser, fetchNextPage, hasNextPage, isFetchingNextPage }: MessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [isUserScrollingUp, setIsUserScrollingUp] = useState(false);
     const prevScrollHeight = useRef(0);
 
     // Auto-scroll to bottom on initial load
@@ -37,11 +36,11 @@ export function MessageList({ messages, currentUser, fetchNextPage, hasNextPage,
             const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
             const lastMessage = messages[messages.length - 1];
 
-            if (lastMessage?.sender_id === currentUser.id || (scrollHeight - scrollTop - clientHeight < 100 && !isUserScrollingUp)) {
+            if (lastMessage?.sender_id === currentUser.id || (scrollHeight - scrollTop - clientHeight < 100)) {
                 scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }
         }
-    }, [messages, currentUser.id, isUserScrollingUp]);
+    }, [messages, currentUser.id]);
 
   const handleScroll = () => {
     if (scrollRef.current) {

@@ -1,21 +1,61 @@
 // frontend/src/hooks/use-messaging.ts
 'use client';
 
-import { useMutation, useQuery, useQueryClient, InfiniteData } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import * as MessagingService from '@/lib/services/messaging.service';
-import type { Message, Conversation } from '@/lib/types';
-import { useUser } from '@/context/user-provider';
-import { toNullableString } from '@/lib/utils';
+import type { Message, Conversation, User, NullableString } from '@/lib/types'; // Import User and NullableString type
 
 export function useSendMessage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ conversationId, content, messageType }: { conversationId: string; content: string; messageType?: "text" | "image" | "file" }) => 
+    mutationFn: ({ conversationId, content, messageType, author: _author }: { conversationId: string; content: string; messageType?: "text" | "image" | "file"; author?: User }) => 
       MessagingService.sendMessage(conversationId, content, messageType),
 
+    onMutate: async (newMessageData) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['messages', newMessageData.conversationId] });
+
+      // Snapshot the previous value
+      const previousMessages = queryClient.getQueryData(['messages', newMessageData.conversationId]);
+
+      // Optimistically update to the new value
+      const tempMessage: Message = {
+        id: `temp-${Date.now()}`,
+        conversation_id: newMessageData.conversationId,
+        sender_id: newMessageData.author?.id || '',
+        content: newMessageData.content,
+        message_type: newMessageData.messageType || 'text',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'pending',
+        author: newMessageData.author,
+        // Added missing required properties with default values
+        media_url: null,
+        file_metadata: null,
+        reply_to_message_id: { String: '', Valid: false } as NullableString, // Default for NullableString
+        mentioned_user_ids: [],
+        is_edited: false,
+        edited_at: null,
+        is_deleted: false,
+        deleted_at: null,
+        sent_at: new Date().toISOString(), // Assuming sent_at is similar to created_at for pending
+      };
+
+      queryClient.setQueryData(['messages', newMessageData.conversationId], (old: { pages: Message[][], pageParams: any[] } | undefined) => {
+        const newPages = old?.pages ? [...old.pages] : [];
+        if (newPages.length > 0) {
+          newPages[0] = [tempMessage, ...newPages[0]];
+        } else {
+          newPages.push([tempMessage]);
+        }
+        return { ...old, pages: newPages };
+      });
+
+      return { previousMessages };
+    },
     onSuccess: (newMessage: Message, variables) => {
       // Invalidate both the messages and conversations queries to refetch the latest data.
       // The WebSocket will also trigger this, but this is a good fallback.
@@ -23,12 +63,14 @@ export function useSendMessage() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
 
-    onError: (error: Error) => {
+    onError: (error: Error, newMessageData, context) => {
       toast({
         title: "Error sending message",
         description: error.message,
         variant: "destructive",
       });
+      // Rollback to the previous messages on error
+      queryClient.setQueryData(['messages', newMessageData.conversationId], context?.previousMessages);
     },
   });
 }
@@ -87,9 +129,14 @@ export function useMarkConversationAsRead() {
     mutationFn: (conversationId: string) => MessagingService.markConversationAsRead(conversationId),
     onSuccess: (data, conversationId) => {
       console.log("Mark as read successful for conversation:", conversationId);
-      // Invalidate queries to refetch conversation list and total unread count
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['unread-count'] });
+      // Update the specific conversation in the cache to set unread_count to 0
+      queryClient.setQueryData(['conversations'], (oldConversations: Conversation[] | undefined) => {
+        if (!oldConversations) return [];
+        return oldConversations.map(convo =>
+          convo.id === conversationId ? { ...convo, unread_count: 0 } : convo
+        );
+      });
+      queryClient.invalidateQueries({ queryKey: ['totalUnreadMessageCount'] });
     },
   });
 }

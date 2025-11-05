@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, File, MessageCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import { Post, Comment } from '@/lib/types';
 import apiClient from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
@@ -27,15 +28,19 @@ interface PostDetailModalProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-const CommentCard = React.memo(({ 
-  comment, 
-  onCommentDeleted, 
-  onCommentUpdated 
-}: { 
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  children: React.ReactNode;
+}
+
+const CommentCard = React.memo(function CommentCard({
+  comment,
+  onCommentDeleted,
+  onCommentUpdated
+}: {
   comment: Comment;
   onCommentDeleted: (commentId: string) => void;
   onCommentUpdated: (updatedComment: Comment) => void;
-}) => {
+}) {
   const { user } = useUser();
   const { toast } = useToast();
   const { t } = useTranslation('post_detail');
@@ -195,12 +200,10 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
 
   const rawAttachments =
     post?.file_attachments ||
-    ((post as { fileAttachments?: Post['file_attachments'] })?.fileAttachments) ||
     [];
 
   const rawMediaUrls =
     post?.media_urls ||
-    ((post as { mediaUrls?: Post['media_urls'] })?.mediaUrls) ||
     [];
 
   const imageSourceMap = new Map<
@@ -257,6 +260,15 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
               <DialogTitle className="text-base font-bold text-foreground">
                 {post?.author?.name || t('loading')}
               </DialogTitle>
+              {post?.title && (
+                <h2 className="text-lg font-semibold text-foreground mt-1 leading-tight">
+                  {typeof post.title === 'object' && 'String' in post.title && typeof post.title.String === 'string'
+                    ? post.title.String
+                    : typeof post.title === 'string'
+                    ? post.title
+                    : null}
+                </h2>
+              )}
               {post && (
                 <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
@@ -283,10 +295,10 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
                     remarkPlugins={[]}
                     rehypePlugins={[]}
                     components={{
-                      table: ({children, ...props}: {children: React.ReactNode}) => {
+                      table: ({children, ...props}: TableProps) => {
                         return (
                           <div className="overflow-x-auto rounded-lg border border-border/50">
-                            <table {...props as any} className="w-full">{children}</table>
+                            <table {...props} className="w-full">{children}</table>
                           </div>
                         );
                       }
@@ -304,10 +316,11 @@ export function PostDetailModal({ post, isOpen, onOpenChange }: PostDetailModalP
                             className="relative aspect-video overflow-hidden rounded-xl bg-muted group cursor-pointer"
                           >
                             <a href={url} target="_blank" rel="noopener noreferrer" className="block h-full w-full">
-                              <img
+                              <Image
                                 src={url}
                                 alt={name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
                               />
                             </a>
                           </div>

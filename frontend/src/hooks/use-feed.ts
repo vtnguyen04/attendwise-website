@@ -9,12 +9,17 @@ interface UseFeedResult {
   isLoading: boolean;
   error: Error | null;
   refetch: () => void;
+  addPost: (newPost: FeedItem) => void;
 }
 
 export function useFeed(): UseFeedResult {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const addPost = useCallback((newPost: FeedItem) => {
+    setFeed((prevFeed) => [newPost, ...prevFeed]);
+  }, []);
 
   const fetchFeedData = useCallback(async () => {
     setIsLoading(true);
@@ -43,6 +48,6 @@ export function useFeed(): UseFeedResult {
     fetchFeedData().then(data => setFeed(data));
   }, [fetchFeedData]);
 
-  return { feed, isLoading, error, refetch: fetchFeedData };
+  return { feed, isLoading, error, refetch: fetchFeedData, addPost };
 }
 
