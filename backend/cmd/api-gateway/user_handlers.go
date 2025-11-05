@@ -340,7 +340,12 @@ if host == "" {
 	if !secureCookie && strings.EqualFold(c.Request.Header.Get("X-Forwarded-Proto"), "https") {
 		secureCookie = true
 	}
-	c.SetCookie("oauthstate", state, int(expiration.Seconds()), "/", host, secureCookie, true) // Secure and HttpOnly in production
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	if cookieDomain == "" {
+		cookieDomain = host // Default to current host for local development if not set
+	}
+
+	c.SetCookie("oauthstate", state, int(expiration.Seconds()), "/", cookieDomain, secureCookie, true) // Secure and HttpOnly in production
 	return state, nil
 }
 
