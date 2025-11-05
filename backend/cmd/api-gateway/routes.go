@@ -61,9 +61,8 @@ func registerRoutes(r *gin.Engine, userHandler *UserHandler, communityHandler *C
 		MaxAge:           300,
 	}
 
-	router.Use(cors.New(corsConfig))
+	r.Use(cors.New(corsConfig))
 
-	r.Use(cors.New(config))
 	r.Use(LoggingMiddleware())
 	r.SetTrustedProxies(nil)
 
