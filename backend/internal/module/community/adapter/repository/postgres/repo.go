@@ -1103,6 +1103,7 @@ func (r *communityRepository) GetPendingMembers(ctx context.Context, communityID
 }
 
 func (r *communityRepository) GetCommunityMemberPreviews(ctx context.Context, communityID string, limit int) ([]*domain.CommunityMember, error) {
+	log.Printf("[DEBUG] GetCommunityMemberPreviews: communityID=%s, limit=%d", communityID, limit)
 	query := `
 		SELECT u.id, u.email, u.phone, u.name, u.profile_picture_url, u.bio, u.company, u.position, u.location, u.face_id_enrolled, u.face_id_consent_given, u.face_id_consent_time, u.face_samples_count, u.is_active, u.is_banned, u.is_verified, u.ban_reason, u.banned_until, u.profile_visibility, u.last_login_at, u.created_at, u.updated_at, u.deleted_at, cm.role, cm.status, cm.joined_at
 		FROM users u
@@ -1115,6 +1116,7 @@ func (r *communityRepository) GetCommunityMemberPreviews(ctx context.Context, co
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[DEBUG] GetCommunityMemberPreviews: query executed successfully")
 	defer rows.Close()
 
 	var members []*domain.CommunityMember
@@ -1125,6 +1127,7 @@ func (r *communityRepository) GetCommunityMemberPreviews(ctx context.Context, co
 		}
 		members = append(members, member)
 	}
+	log.Printf("[DEBUG] GetCommunityMemberPreviews: finished successfully")
 	return members, nil
 }
 

@@ -10,7 +10,8 @@ import (
 	"log"
 	"net/http" // Reverted alias
 	"net/url"
-	"os" // ADDED: Import os package
+
+	// "os" // ADDED: Import os package
 	"strings"
 	"time"
 
@@ -214,10 +215,12 @@ func (h *UserHandler) GoogleLogin(c *gin.Context) {
 	if callbackURL == "" {
 		// Fallback to a default URL if not provided, though the frontend should always provide it.
 		// Consider logging a warning if it's missing.
-				callbackURL = h.cfg.FrontendURL + "/dashboard"	} else {
+		callbackURL = h.cfg.FrontendURL + "/dashboard"
+	} else {
 		if parsed, err := url.Parse(callbackURL); err != nil || parsed.Scheme == "" || parsed.Host == "" {
 			log.Printf("[WARN] Invalid callback_url provided (%s). Falling back to default.", callbackURL)
-			                callbackURL = h.cfg.FrontendURL + "/dashboard"		}
+			callbackURL = h.cfg.FrontendURL + "/dashboard"
+		}
 	}
 
 	// Generate random state

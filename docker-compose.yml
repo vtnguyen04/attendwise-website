@@ -132,6 +132,7 @@ services:
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
       - IMGBB_API_KEY=${IMGBB_API_KEY}
       - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
       - MIGRATIONS_PATH=file:///home/appuser/migrations
       - COOKIE_DOMAIN=attendwise-website-1cud.onrender.com
       

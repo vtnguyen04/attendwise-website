@@ -104,14 +104,10 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
     setPreviewUrl(URL.createObjectURL(file));
 
     try {
-      const presignedUrlResponse = await apiClient.post("/media/upload", {
-        file_name: file.name,
-        content_type: file.type,
-      });
-      const { upload_url, final_url } = presignedUrlResponse.data;
+      const formData = new FormData();
+      formData.append('file', file);
 
-      await axios.put(upload_url, file, {
-        headers: { "Content-Type": file.type },
+      const response = await apiClient.post('/media/upload', formData, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / (progressEvent.total || 1)
@@ -120,18 +116,18 @@ export function GeneralSettingsTab({ communityId }: { communityId: string }) {
         },
       });
 
-      form.setValue("cover_image_url", final_url, { shouldValidate: true });
-      toast({ 
-        title: "Success", 
-        description: "Image uploaded successfully." 
+      form.setValue("cover_image_url", response.data.final_url, { shouldValidate: true });
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully."
       });
 
     } catch (error) {
       console.error(error);
-      toast({ 
-        title: "Upload Failed", 
-        description: "Could not upload the image.", 
-        variant: "destructive" 
+      toast({
+        title: "Upload Failed",
+        description: "Could not upload the image.",
+        variant: "destructive"
       });
       setPreviewUrl(null);
     } finally {
